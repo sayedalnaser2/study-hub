@@ -200,15 +200,28 @@ var BUCKET="files";
       to:function(r){return{fileId:r.file_id,userId:r.user_id,stars:r.stars,text:r.text||"",at:+new Date(r.at)}}}
   };
   var subs={};function bump(t){(subs[t]||[]).forEach(function(f){f()})}
+  /* Extra file space on Cloudflare R2 (through the "r2" Supabase function). Falls back to Supabase storage if anything fails. */
+  async function r2put(file,ext,type){
+    try{
+      var a=await sb.functions.invoke("r2",{body:{action:"sign-upload",size:file.size,ext:ext}});
+      if(a.error||!a.data||!a.data.url)return null;
+      var p=await fetch(a.data.url,{method:"PUT",body:file,headers:{"Content-Type":type}});
+      if(!p.ok)return null;
+      var c=await sb.functions.invoke("r2",{body:{action:"commit",id:a.data.key}});
+      if(c.error||!c.data||!c.data.size){try{await sb.functions.invoke("r2",{body:{action:"delete",id:a.data.key}})}catch(x){}return null}
+      return{id:a.data.key,url:"",sizeBytes:c.data.size,contentType:type}
+    }catch(x){return null}
+  }
   var api={
     user:{id:async function(){var s=await sessP;return s?s.user.id:null},canEdit:function(){return false},
       profiles:async function(ids){var o={};var r=await sb.from("profiles").select("id,name").in("id",ids);(r.data||[]).forEach(function(p){o[p.id]={name:p.name||""}});return o}},
     assets:{
       upload:async function(file,opt){var s=await sessP;if(!s)fail({code:"not_signed_in"});
         var e=(file.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,""),path=s.user.id+"/"+(crypto.randomUUID?crypto.randomUUID():Date.now()+""+Math.random().toString(36).slice(2))+"."+e,type=(opt&&opt.type)||file.type||"application/octet-stream";
+        var x=await r2put(file,e,type);if(x)return x;
         var r=await sb.storage.from(BUCKET).upload(path,file,{contentType:type,upsert:false});if(r.error)fail(r.error);
         return{id:path,url:sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl,sizeBytes:file.size,contentType:type}},
-      delete:async function(id){var r=await sb.storage.from(BUCKET).remove([id]);if(r.error)fail(r.error)},
+      delete:async function(id){if(String(id).indexOf("r2:")===0){var d=await sb.functions.invoke("r2",{body:{action:"delete",id:id}});if(d.error)fail(d.error);return}var r=await sb.storage.from(BUCKET).remove([id]);if(r.error)fail(r.error)},
       list:async function(){return{assets:[],usage:{}}}
     },
     db:{
@@ -239,7 +252,14 @@ var BUCKET="files";
   /* Open uploaded files (public storage URLs) */
   document.addEventListener("click",function(e){
     var a=e.target.closest&&e.target.closest('a[href^="/_blob/"]');if(!a)return;e.preventDefault();
-    window.open(sb.storage.from(BUCKET).getPublicUrl(a.getAttribute("href").slice(6)).data.publicUrl,"_blank","noopener")
+    var id=a.getAttribute("href").slice(6).replace(/^\/+/,"");
+    if(id.indexOf("r2:")===0){
+      var w=window.open("","_blank");
+      sb.functions.invoke("r2",{body:{action:"sign-download",id:id}}).then(function(r){
+        if(r.data&&r.data.url&&w){try{w.opener=null}catch(x){}w.location.href=r.data.url}else if(w)w.close()
+      },function(){if(w)w.close()});
+      return}
+    window.open(sb.storage.from(BUCKET).getPublicUrl(id).data.publicUrl,"_blank","noopener")
   },true);
 
   /* Sign in / sign up UI */
@@ -820,6 +840,6 @@ var BUCKET="files";
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setup);else setup()
 })();
 </script>
-<script src="admin.js?v=3"></script>
+<script src="admin.js?v=4"></script>
 </body>
 </html>

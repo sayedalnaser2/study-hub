@@ -50,7 +50,7 @@ main{padding-block:40px 72px;display:flex;flex-direction:column;gap:40px}
 .btn.small{padding:6px 11px;font-size:13px}
 .btn.danger{color:var(--bad)}
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:12px;background:var(--surface)}
-.stats div{padding:18px;border-left:1px solid var(--line)}.stats div:first-child{border-left:0}
+.stats div{padding:18px;border-inline-start:1px solid var(--line)}.stats div:first-child{border-inline-start:0}
 .stats b{display:block;font-family:var(--display);font-size:34px;font-variant-numeric:tabular-nums;line-height:1}
 .stats span{font-family:var(--mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px;flex-wrap:wrap}
@@ -64,13 +64,13 @@ main{padding-block:40px 72px;display:flex;flex-direction:column;gap:40px}
 .meta .tag{font-family:var(--mono);font-size:12px;color:var(--fg)}
 .desc{color:var(--muted);font-size:14px;margin-top:4px;overflow-wrap:anywhere}
 .here{display:flex;gap:10px 14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 12px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:14px;color:var(--muted)}.here b{color:var(--fg);font-weight:600;overflow-wrap:anywhere}
-.upl{display:inline-block;margin-left:4px;padding:2px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font:600 11px/1.4 var(--mono,ui-monospace,monospace);letter-spacing:.06em;vertical-align:1px}
+.upl{display:inline-block;margin-inline-start:4px;padding:2px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font:600 11px/1.4 var(--mono,ui-monospace,monospace);letter-spacing:.06em;vertical-align:1px}
 .rate{display:flex;align-items:center;gap:2px 8px;margin-top:6px;flex-wrap:wrap}
 .stars .s,.rv-h .s{color:var(--line);font-size:16px;line-height:1}.stars .s.on,.rv-h .s.on{color:var(--accent)}
 .rate .rt{color:var(--muted);font-size:13px}
 .rvs{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
 .rv{padding:8px 0}.rv+.rv{border-top:1px solid var(--line)}
-.rv-h{display:flex;gap:4px 8px;align-items:center;flex-wrap:wrap;font-size:14px}.rv-d{color:var(--muted);font-size:12px;margin-left:auto}
+.rv-h{display:flex;gap:4px 8px;align-items:center;flex-wrap:wrap;font-size:14px}.rv-d{color:var(--muted);font-size:12px;margin-inline-start:auto}
 .rv p{margin-top:4px;font-size:14px;overflow-wrap:anywhere;white-space:pre-wrap}
 .rv-none{color:var(--muted);font-size:14px}
 .rv-form{margin-top:10px;display:grid;gap:8px}
@@ -86,14 +86,14 @@ main{padding-block:40px 72px;display:flex;flex-direction:column;gap:40px}
 select:disabled,input:disabled{opacity:.55;cursor:not-allowed}
 .lbl{font-weight:500;font-size:14px;margin-bottom:6px}
 .choice{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
-.choice button,.seg button{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.choice button,.seg button{text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
 .choice button b{font-family:var(--display);font-size:20px}.choice button span{color:var(--muted);font-size:13px}
 .choice button[aria-pressed="true"],.seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
 .seg{display:flex;gap:8px;flex-wrap:wrap}.seg button{flex-direction:row;font-weight:500}
 .row-act{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.row-act .bar-prog{flex:1;min-width:120px}
 .grp{display:flex;flex-direction:column;gap:10px}.grp h2{font-size:20px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{display:inline-flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 8px 7px 14px;cursor:pointer;text-align:left}
+.chip{display:inline-flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 8px 7px 14px;cursor:pointer;text-align:start}
 .chip:hover{border-color:var(--accent)}.chip em{font-style:normal;font-family:var(--mono);font-size:12px;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:1px 8px;font-variant-numeric:tabular-nums}
 .tiles.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 
@@ -108,10 +108,10 @@ label small{font-weight:400;color:var(--muted)}
 .drop input{display:none}
 .drop strong{display:block;font-family:var(--display);font-size:18px}
 .drop span{color:var(--muted);font-size:13px}
-.note{border:1px solid var(--line);border-left:3px solid var(--warn);background:var(--surface);border-radius:8px;padding:12px 14px;font-size:14px}
+.note{border:1px solid var(--line);border-inline-start:3px solid var(--warn);background:var(--surface);border-radius:8px;padding:12px 14px;font-size:14px}
 .note.ok{border-left-color:var(--ok)}.note.bad{border-left-color:var(--bad)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
-.tile{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;cursor:pointer;display:flex;flex-direction:column;gap:6px}
+.tile{text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;cursor:pointer;display:flex;flex-direction:column;gap:6px}
 .tile:hover{border-color:var(--accent)}
 .tile h3{font-size:19px;overflow-wrap:anywhere}
 .tile span{font-family:var(--mono);font-size:12px;color:var(--muted)}
@@ -120,7 +120,7 @@ label small{font-weight:400;color:var(--muted)}
 .step h3{font-size:18px;margin-bottom:4px}.step p{color:var(--muted);font-size:14px}
 .prose{max-width:66ch;display:flex;flex-direction:column;gap:14px}
 .prose h2{font-size:24px;margin-top:14px}
-.prose ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.prose ul{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:6px}
 .pagehead h1{font-size:clamp(30px,5vw,44px)}.pagehead p{color:var(--muted);margin-top:10px;max-width:56ch}
 .bar-prog{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.bar-prog i{display:block;height:100%;background:var(--accent);width:0}
 @media (max-width:760px){
@@ -133,6 +133,14 @@ label small{font-weight:400;color:var(--muted)}
   .stats b{font-size:26px}.stats div{padding:14px 12px}
 }
 @media (prefers-reduced-motion:no-preference){.btn,.tile{transition:border-color .15s,background .15s}}
+
+.tools{display:flex;align-items:center;gap:8px}
+[lang="ar"] body,[lang="ar"] button,[lang="ar"] input,[lang="ar"] select,[lang="ar"] textarea{font-family:'Segoe UI','Noto Sans Arabic',Tahoma,system-ui,sans-serif}
+[lang="ar"] h1,[lang="ar"] h2,[lang="ar"] h3,[lang="ar"] .brand{font-family:'Segoe UI','Noto Sans Arabic',Tahoma,system-ui,sans-serif;letter-spacing:0}
+[lang="ar"] .eyebrow,[lang="ar"] .upl{letter-spacing:0;text-transform:none}
+[lang="ar"] .upl{font-family:'Segoe UI','Noto Sans Arabic',Tahoma,system-ui,sans-serif;font-size:12px}
+[dir="rtl"] input[type=email],[dir="rtl"] input[type=password]{direction:ltr;text-align:right}
+[dir="rtl"] .stars,[dir="rtl"] .rv-pick{direction:ltr}
 </style>
 
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}</style>
@@ -209,7 +217,7 @@ var BUCKET="files";
   },true);
 
   /* Sign in / sign up UI */
-  var css=document.createElement("style");css.textContent='#auth-dlg{border:1px solid var(--line);border-radius:14px;padding:22px;max-width:380px;width:calc(100% - 32px);background:var(--surface);color:var(--fg);font-family:inherit}#auth-dlg::backdrop{background:rgba(0,0,0,.45)}#auth-dlg h2{margin:0 0 4px;font-size:20px}#auth-dlg label{display:block;margin-top:12px;font-size:13px;color:var(--muted)}#auth-dlg input{display:block;width:100%;margin-top:4px;padding:10px 12px;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}#auth-dlg .row2{display:flex;gap:8px;margin-top:16px;align-items:center;flex-wrap:wrap}#auth-msg{margin-top:10px;font-size:13px;min-height:18px}#auth-btn{margin-left:auto}#auth-dlg [hidden]{display:none!important}#auth-dlg small{display:block;margin-top:4px;color:var(--muted);font-size:12px}#auth-dlg .oauth{display:grid;gap:8px;margin-top:14px}#auth-dlg .oauth .btn{width:100%;justify-content:center}#auth-dlg .or{margin:12px 0 0;text-align:center;color:var(--muted);font-size:12px}';document.head.appendChild(css);
+  var css=document.createElement("style");css.textContent='#auth-dlg{border:1px solid var(--line);border-radius:14px;padding:22px;max-width:380px;width:calc(100% - 32px);background:var(--surface);color:var(--fg);font-family:inherit}#auth-dlg::backdrop{background:rgba(0,0,0,.45)}#auth-dlg h2{margin:0 0 4px;font-size:20px}#auth-dlg label{display:block;margin-top:12px;font-size:13px;color:var(--muted)}#auth-dlg input{display:block;width:100%;margin-top:4px;padding:10px 12px;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}#auth-dlg .row2{display:flex;gap:8px;margin-top:16px;align-items:center;flex-wrap:wrap}#auth-msg{margin-top:10px;font-size:13px;min-height:18px}#auth-btn{margin-inline-start:auto}#auth-dlg [hidden]{display:none!important}#auth-dlg small{display:block;margin-top:4px;color:var(--muted);font-size:12px}#auth-dlg .oauth{display:grid;gap:8px;margin-top:14px}#auth-dlg .oauth .btn{width:100%;justify-content:center}#auth-dlg .or{margin:12px 0 0;text-align:center;color:var(--muted);font-size:12px}';document.head.appendChild(css);
   var mode="in",dlg;
   function build(){
     dlg=document.createElement("dialog");dlg.id="auth-dlg";
@@ -365,7 +373,7 @@ var BUCKET="files";
   function collegeOpts(u,sel){var x=uni(u);if(!x)return"";return x.groups.map(function(g){return '<option value="'+esc(g.g)+'"'+(sel===g.g?' selected':'')+'>'+esc(g.g)+'</option>'}).join("")}
   function majorOpts(u,col,sel){var x=uni(u);if(!x||!col)return"";var out="";x.groups.forEach(function(g){if(g.g===col)out=g.m.map(function(m){return '<option value="'+esc(m)+'"'+(sel===m?' selected':'')+'>'+esc(m)+'</option>'}).join("")});return out}
   function collegeOf(u,major){var x=uni(u),r="";if(x)x.groups.forEach(function(g){if(g.m.indexOf(major)>-1)r=g.g});return r}
-  function yearOpts(u,sel){var x=uni(u);if(!x)return"";return x.years.map(function(y){return '<option'+(sel===y?' selected':'')+'>'+y+'</option>'}).join("")}
+  function yearOpts(u,sel){var x=uni(u);if(!x)return"";return x.years.map(function(y){return '<option value="'+esc(y)+'"'+(sel===y?' selected':'')+'>'+y+'</option>'}).join("")}
   function within(f,o){return (!o.uni||f.uni===o.uni)&&(!o.college||(f.college||collegeOf(f.uni,f.major))===o.college)&&(!o.major||f.major===o.major)&&(!o.year||f.year===o.year)}
   function listed(o){var c=COURSES[o.uni+"|"+o.major];return c&&o.year&&c[o.year]?c[o.year]:[]}
   function subjectsFor(o){var m={};listed(o).forEach(function(k){m[k]=0});S.files.forEach(function(f){if(within(f,o)&&f.subject)m[f.subject]=(m[f.subject]||0)+1});return Object.keys(m).sort().map(function(k){return[k,m[k]]})}
@@ -438,7 +446,7 @@ var BUCKET="files";
     '<label>4 · Year<select id="fy"'+(F.major?'':' disabled')+'><option value="">All years</option>'+yearOpts(F.uni,F.year)+'</select></label>'+
     '<label>5 · Subject<select id="fs"'+(F.year?'':' disabled')+'><option value="">All subjects</option>'+subs.map(function(s){return '<option value="'+esc(s[0])+'"'+(F.subject===s[0]?' selected':'')+'>'+esc(s[0])+(s[1]?' ('+s[1]+')':'')+'</option>'}).join("")+'</select></label></div>'+
     '<div class="filters2"><input type="search" id="fq" placeholder="Search by title or description" aria-label="Search files" value="'+esc(F.q)+'">'+
-    '<select id="fk" aria-label="Type"><option value="">All types</option>'+KINDS.map(function(k){return '<option'+(F.kind===k?' selected':'')+'>'+k+'</option>'}).join("")+'</select>'+
+    '<select id="fk" aria-label="Type"><option value="">All types</option>'+KINDS.map(function(k){return '<option value="'+esc(k)+'"'+(F.kind===k?' selected':'')+'>'+k+'</option>'}).join("")+'</select>'+
     '<select id="fo" aria-label="Sort"><option value="new"'+(F.sort==="new"?' selected':'')+'>Newest first</option><option value="top"'+(F.sort==="top"?' selected':'')+'>Top rated</option><option value="az"'+(F.sort==="az"?' selected':'')+'>A to Z</option></select></div>'+
     (F.uni&&F.college&&F.major&&F.year?'<div class="here"><span>Adding to <b>'+esc(uni(F.uni).short)+' · '+esc(F.major)+' · '+esc(F.year)+(F.subject?' · '+esc(F.subject):'')+'</b></span><button class="btn small primary" data-here="1">Upload a file here</button></div>':'')+
     '<div class="list" id="lib">'+(S.loaded?libraryList():'<div class="empty">Loading files…</div>')+'</div>'
@@ -485,7 +493,7 @@ var BUCKET="files";
     subjectField()+
     '<label class="full drop" id="drop" for="file"><input type="file" id="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.svg,.txt,.md,.csv"><strong id="dname">Choose a file or drop it here</strong><span id="dhint">PDF, PNG, JPG, TXT, MD or CSV</span></label>'+
     '<label class="full">Title<input type="text" id="pt" maxlength="120" placeholder="e.g. Week 4 lecture slides: Loops" value="'+esc(U.title)+'"></label>'+
-    '<label>Type<select id="pk">'+KINDS.map(function(k){return '<option'+(U.kind===k?' selected':'')+'>'+k+'</option>'}).join("")+'</select></label>'+
+    '<label>Type<select id="pk">'+KINDS.map(function(k){return '<option value="'+esc(k)+'"'+(U.kind===k?' selected':'')+'>'+k+'</option>'}).join("")+'</select></label>'+
     '<label class="full">Short description <small>Optional. Say what is covered and which week or exam.</small><textarea id="pd" maxlength="400">'+esc(U.desc)+'</textarea></label>'+
     '<div class="full row-act"><button class="btn primary" type="submit" id="go"'+(can?'':' disabled')+'>Share with classmates</button><div class="bar-prog" id="prog" hidden><i></i></div></div>'+
     '</form>'
@@ -633,5 +641,155 @@ var BUCKET="files";
 })();
 </script>
 
+<script>
+(function(){
+  var AR={
+    "Study Hub":"مركز الدراسة","Home":"الرئيسية","Library":"المكتبة","Upload":"رفع","Majors":"التخصصات","Guidelines":"الإرشادات",
+    "For students at universities across Bahrain":"لطلبة الجامعات في مملكة البحرين",
+    "Study together. Share what helped you.":"ادرسوا معًا. شاركوا ما ساعدكم.",
+    "Pick your university, major and year, then upload notes, slides and past papers. Or find what your classmates already shared before the exam.":"اختر جامعتك وتخصصك وسنتك، ثم ارفع ملاحظاتك وشرائحك واختبارات السنوات السابقة. أو ابحث عمّا شاركه زملاؤك قبل الامتحان.",
+    "Upload a file":"رفع ملف","Upload a file here":"ارفع ملفًا هنا","Browse the library":"تصفّح المكتبة","Files":"الملفات","Sharers":"المشاركون","Choose your university":"اختر جامعتك",
+    "Latest uploads":"أحدث الملفات","See all":"عرض الكل","PDF":"PDF","Notes":"ملاحظات","Slides":"شرائح","Past paper":"اختبار سابق","Summary":"ملخص","Worksheet":"ورقة عمل","Other":"أخرى",
+    "No reviews yet":"لا توجد تقييمات بعد","No reviews yet. Be the first.":"لا توجد تقييمات بعد. كن أول من يقيّم.","Hide reviews":"إخفاء التقييمات","Reviews":"التقييمات","Write a review":"اكتب تقييمًا",
+    "Post review":"نشر التقييم","Update review":"تحديث التقييم","Remove mine":"حذف تقييمي","Remove":"حذف","Open":"فتح","UPLOADER":"الرافع","You":"أنت","A classmate":"زميل",
+    "Click again to remove":"اضغط مرة أخرى للحذف","Could not remove":"تعذّر الحذف","Could not remove.":"تعذّر الحذف.","General":"عام",
+    "No ratings":"لا توجد تقييمات","Your rating":"تقييمك","Your review":"تقييمك المكتوب","Study Hub home":"الصفحة الرئيسية لمركز الدراسة","Main":"القائمة الرئيسية",
+    "What did you think? Was it clear, complete, useful?":"ما رأيك؟ هل كان واضحًا وكاملًا ومفيدًا؟",
+    "Narrow it down in order: university, college or school, major, year, then subject.":"حدّد بالترتيب: الجامعة، ثم الكلية أو المدرسة، ثم التخصص، ثم السنة، ثم المادة.",
+    "University":"الجامعة","College":"الكلية","School":"المدرسة","Faculty":"الكلية","Department":"القسم","College / School":"الكلية / المدرسة","Major":"التخصص","Year":"السنة","Subject":"المادة",
+    "All universities":"كل الجامعات","All":"الكل","All majors":"كل التخصصات","All years":"كل السنوات","All subjects":"كل المواد","All types":"كل الأنواع",
+    "Newest first":"الأحدث أولًا","Top rated":"الأعلى تقييمًا","A to Z":"أبجديًا",
+    "Search by title or description":"ابحث بالعنوان أو الوصف","Search files":"البحث في الملفات","Type":"النوع","Sort":"الترتيب",
+    "Tell us where it belongs so classmates in your course can find it. PDFs, images and text files up to 20 MB.":"أخبرنا إلى أين ينتمي الملف ليجده زملاؤك في مقررك. ملفات PDF وصور وملفات نصية حتى 20 ميغابايت.",
+    "Choose a university first":"اختر الجامعة أولًا","Choose a college first":"اختر الكلية أولًا","Choose a school first":"اختر المدرسة أولًا","Choose a faculty first":"اختر الكلية أولًا","Choose a department first":"اختر القسم أولًا","Choose a major first":"اختر التخصص أولًا","Choose a year first":"اختر السنة أولًا",
+    "Choose your college":"اختر كليتك","Choose your school":"اختر مدرستك","Choose your faculty":"اختر كليتك","Choose your department":"اختر قسمك","Choose your major":"اختر تخصصك","Choose your year":"اختر سنتك","Choose your subject":"اختر المادة",
+    "Another subject (type it)":"مادة أخرى (اكتبها)","Subject name":"اسم المادة","Course code and name":"رمز المقرر واسمه","e.g. Course code and name":"مثال: رمز المقرر واسمه",
+    "No official course list for this major yet. Type the course name and code.":"لا توجد قائمة مواد رسمية لهذا التخصص بعد. اكتب اسم المقرر ورمزه.",
+    "Choose a file or drop it here":"اختر ملفًا أو أسقطه هنا","PDF, PNG, JPG, TXT, MD or CSV":"PDF أو PNG أو JPG أو TXT أو MD أو CSV",
+    "Title":"العنوان","Short description":"وصف قصير","Optional. Say what is covered and which week or exam.":"اختياري. اذكر ما يغطيه الملف وأي أسبوع أو امتحان.",
+    "Share with classmates":"شارك مع الزملاء","e.g. Week 4 lecture slides: Loops":"مثال: شرائح محاضرة الأسبوع 4: الحلقات",
+    "Every programme listed on each university's website, with the number of files shared for it.":"جميع البرامج المعلنة على موقع كل جامعة، مع عدد الملفات المشاركة لكل برنامج.",
+    "Uploading…":"جارٍ الرفع…","Saving…":"جارٍ الحفظ…","Loading files…":"جارٍ تحميل الملفات…",
+    "Save it as a PDF first":"احفظه بصيغة PDF أولًا","Word and PowerPoint files are not supported. See Guidelines for the steps.":"ملفات Word وPowerPoint غير مدعومة. راجع الإرشادات لمعرفة الخطوات.",
+    "This file type is not supported":"نوع الملف غير مدعوم","Use PDF, PNG, JPG, TXT, MD or CSV.":"استخدم PDF أو PNG أو JPG أو TXT أو MD أو CSV.",
+    "File is over 20 MB":"حجم الملف يتجاوز 20 ميغابايت","Compress it or split it into parts.":"اضغطه أو قسّمه إلى أجزاء.",
+    "Choose your university first.":"اختر جامعتك أولًا.","Choose your college or school.":"اختر كليتك أو مدرستك.","Choose your major.":"اختر تخصصك.","Choose your year.":"اختر سنتك.",
+    "Enter the subject, for example the course name and code.":"أدخل المادة، مثل اسم المقرر ورمزه.","Choose a file to upload.":"اختر ملفًا لرفعه.","Give the file a title so classmates can find it.":"أعطِ الملف عنوانًا ليجده زملاؤك.",
+    "The upload did not finish. Try again in a moment.":"لم يكتمل الرفع. حاول مرة أخرى بعد قليل.","The hub is out of storage space. Ask the organizer to free some up.":"مساحة التخزين ممتلئة. اطلب من المسؤول تفريغ بعضها.",
+    "You do not have permission to upload here. Ask the organizer for edit access.":"ليست لديك صلاحية الرفع هنا. اطلب من المسؤول صلاحية التعديل.","This file type is not accepted. Use a PDF, image or text file.":"نوع الملف غير مقبول. استخدم ملف PDF أو صورة أو ملفًا نصيًا.",
+    "Uploading needs contributor access to this page. Ask the person who runs the hub to give you edit access, then reload.":"الرفع يتطلب تسجيل الدخول. سجّل الدخول ثم أعد المحاولة.",
+    "Pick 1 to 5 stars first.":"اختر من نجمة إلى 5 نجوم أولًا.","Reviewing needs contributor access to this hub.":"كتابة التقييم تتطلب تسجيل الدخول.",
+    "No files here yet":"لا توجد ملفات هنا بعد","Be the first to share notes, slides or a past paper.":"كن أول من يشارك ملاحظات أو شرائح أو اختبارًا سابقًا.",
+    "Nothing matches":"لا توجد نتائج مطابقة","Try another subject or clear a filter.":"جرّب مادة أخرى أو امسح أحد المرشحات.",
+    "Adding to":"الإضافة إلى","A few rules keep the hub useful for everyone.":"بضع قواعد تُبقي المركز مفيدًا للجميع.",
+    "What to share":"ما الذي تشاركه","Your own notes, summaries and slides.":"ملاحظاتك وملخصاتك وشرائحك.","Past papers your instructor already handed out.":"اختبارات سابقة وزّعها مدرّسك.","Anything that helped you understand a topic.":"أي شيء ساعدك على فهم موضوع ما.",
+    "What to leave out":"ما الذي تتجنبه","Files with private information such as phone numbers or ID cards.":"ملفات فيها معلومات خاصة مثل أرقام الهواتف أو البطاقات الشخصية.","Copied textbooks or paid course material you do not have permission to share.":"كتب منسوخة أو مواد مدفوعة ليس لديك إذن بمشاركتها.","Graded work belonging to someone else.":"أعمال مصححة تخص شخصًا آخر.",
+    "Word and PowerPoint files":"ملفات Word وPowerPoint","The hub opens PDFs, images and text. Save your document as a PDF first, then upload it.":"يعرض المركز ملفات PDF والصور والنصوص. احفظ مستندك بصيغة PDF أولًا ثم ارفعه.",
+    "Word:":"Word:","File, then Save As, then choose PDF.":"ملف، ثم حفظ باسم، ثم اختر PDF.","PowerPoint:":"PowerPoint:","File, then Export, then Create PDF.":"ملف، ثم تصدير، ثم إنشاء PDF.",
+    "Google Docs or Slides:":"مستندات Google أو العروض:","File, then Download, then PDF document.":"ملف، ثم تنزيل، ثم مستند PDF.",
+    "Name files clearly":"سمِّ ملفاتك بوضوح","Where the lists come from":"مصدر القوائم",
+    "Put the topic and week in the title, for example \"Week 4 slides: Loops\". Write the subject the way your course lists it, with the course code, so it groups with everyone else's files.":"ضع الموضوع والأسبوع في العنوان، مثل «شرائح الأسبوع 4: الحلقات». اكتب المادة كما يسجّلها مقررك مع رمز المقرر، لتتجمع مع ملفات الآخرين.",
+    "Majors are taken from the website of each university: University of Bahrain, Bahrain Polytechnic, Ahlia, AUBH, Applied Science University, Arab Open University, Arabian Gulf University, British University of Bahrain, Euro University, Gulf University, Kingdom University, RCSI Bahrain, Royal University for Women, University College of Bahrain and University of Technology Bahrain. Subject lists by year come from the published study plans for University of Bahrain and some Bahrain Polytechnic programmes. For every other programme, type the subject and it appears for your classmates after that.":"أُخذت التخصصات من موقع كل جامعة: جامعة البحرين، بوليتكنك البحرين، الأهلية، الأمريكية في البحرين، العلوم التطبيقية، العربية المفتوحة، الخليج العربي، البريطانية في البحرين، يوروبا، الخليج، المملكة، RCSI البحرين، الملكية للبنات، كلية البحرين الجامعية وجامعة البحرين للتكنولوجيا. وقوائم المواد حسب السنة مأخوذة من الخطط الدراسية المنشورة لعدد من الجامعات. أما بقية البرامج فاكتب المادة وستظهر لزملائك بعد ذلك. أسماء الكليات والتخصصات والمقررات تبقى بالإنجليزية كما وردت في المصادر.",
+    "just now":"الآن",
+    "University of Bahrain":"جامعة البحرين","Bahrain Polytechnic":"بوليتكنك البحرين","Ahlia University":"الجامعة الأهلية","American University of Bahrain":"الجامعة الأمريكية في البحرين",
+    "Applied Science University":"جامعة العلوم التطبيقية","Arab Open University Bahrain":"الجامعة العربية المفتوحة – البحرين","Arabian Gulf University":"جامعة الخليج العربي",
+    "British University of Bahrain":"الجامعة البريطانية في البحرين","Euro University of Bahrain":"جامعة يوروبا في البحرين","Gulf University":"جامعة الخليج","Kingdom University":"جامعة المملكة",
+    "RCSI Bahrain":"الكلية الملكية للجراحين في أيرلندا – البحرين","Royal University for Women":"الجامعة الملكية للبنات","University College of Bahrain":"كلية البحرين الجامعية","University of Technology Bahrain":"جامعة البحرين للتكنولوجيا",
+    "Sign in":"تسجيل الدخول","Sign up":"إنشاء الحساب","Create an account":"إنشاء حساب","I have an account":"لدي حساب","Cancel":"إلغاء","Email":"البريد الإلكتروني","Password":"كلمة المرور","Account":"الحساب",
+    "You need an account to upload files and write reviews. Browsing is open to everyone.":"تحتاج إلى حساب لرفع الملفات وكتابة التقييمات. التصفح متاح للجميع.",
+    "Continue with Google":"المتابعة باستخدام Google","or use your email":"أو استخدم بريدك الإلكتروني",
+    "Choose your name (shown on your uploads and reviews)":"اختر اسمك (يظهر على ملفاتك وتقييماتك)","Enter your name.":"أدخل اسمك.",
+    "Choose a name of 3 to 30 letters or numbers.":"اختر اسمًا من 3 إلى 30 حرفًا أو رقمًا.","Checking the name…":"جارٍ التحقق من الاسم…","Could not check the name. Try again.":"تعذّر التحقق من الاسم. حاول مرة أخرى.",
+    "That name is already taken. Choose another.":"هذا الاسم مستخدم. اختر اسمًا آخر.","That name may have just been taken. Try a different name.":"ربما استُخدم هذا الاسم للتو. جرّب اسمًا آخر.",
+    "One moment…":"لحظة…","Check your email and click the confirmation link, then sign in.":"تحقق من بريدك واضغط رابط التأكيد ثم سجّل الدخول.",
+    "3 to 30 letters or numbers. It must be unique and cannot be changed later.":"من 3 إلى 30 حرفًا أو رقمًا. يجب أن يكون فريدًا ولا يمكن تغييره لاحقًا.","Invalid login credentials":"بيانات الدخول غير صحيحة"
+  };
+  var UNITS={"colleges":["كليات","كلية","كليتان","كلية"],"schools":["مدارس","مدرسة","مدرستان","مدرسة"],"faculties":["كليات","كلية","كليتان","كلية"],"departments":["أقسام","قسم","قسمان","قسمًا"]};
+  function cnt(n,w){return n===1?"1 "+w[1]:n===2?w[2]:n===0?"0 "+w[0]:(n>=3&&n<=10?n+" "+w[0]:n+" "+w[3])}
+  var lang="en",busy=false;
+  function base(s){return Object.prototype.hasOwnProperty.call(AR,s)?AR[s]:null}
+  function tr(s){
+    var t=s.trim();if(!t)return s;
+    var lead=s.slice(0,s.indexOf(t)),tail=s.slice(s.indexOf(t)+t.length),r=core(t);
+    return r===null||r===t?s:lead+r+tail
+  }
+  function core(t){
+    var b=base(t),m;if(b!==null)return b;
+    if(m=/^(\d+) (colleges|schools|faculties|departments) · (\d+) programmes · (\d+) files?$/.exec(t))return cnt(+m[1],UNITS[m[2]])+" · "+cnt(+m[3],["برامج","برنامج","برنامجان","برنامجًا"])+" · "+cnt(+m[4],["ملفات","ملف","ملفان","ملفًا"]);
+    if(m=/^Year (\d+)$/.exec(t))return "السنة "+m[1];
+    if(m=/^([\d.]+) out of 5$/.exec(t))return m[1]+" من 5";
+    if(m=/^(\d+) stars?$/.exec(t))return m[1]+(m[1]==="1"?" نجمة":" نجوم");
+    if(m=/^(\d+) (min|h|d) ago$/.exec(t))return "منذ "+m[1]+" "+({min:"دقيقة",h:"ساعة",d:"يوم"})[m[2]];
+    if(m=/^(\d+) reviews?$/.exec(t))return m[1]+(m[1]==="1"?" تقييم":" تقييمات");
+    if(m=/^Sign out \((.*)\)$/.exec(t))return "تسجيل الخروج ("+(base(m[1])||m[1])+")";
+    if(m=/^From the (Year \d+) study plan$/.exec(t))return "من الخطة الدراسية لـ"+core(m[1]);
+    if(m=/^Shared\. Classmates in (.*), (Year \d+) can now find "(.*)" in the Library\.$/.exec(t))return "تمت المشاركة. يمكن لزملائك في "+m[1]+"، "+core(m[2])+" العثور على «"+m[3]+"» في المكتبة الآن.";
+    if(m=/^Could not save \((.*)\)\. Reviewing needs contributor access\.$/.exec(t))return "تعذّر الحفظ ("+m[1]+"). كتابة التقييم تتطلب تسجيل الدخول.";
+    if(t.indexOf(" · ")>-1){var p=t.split(" · "),ch=false,o=p.map(function(x){var y=core(x);if(y!==null&&y!==x){ch=true;return y}return x});return ch?o.join(" · "):null}
+    if(m=/^(\d+) (.+)$/.exec(t)){var y=core(m[2]);if(y!==null&&y!==m[2])return m[1]+" "+y}
+    return null
+  }
+  var ATTRS=["placeholder","aria-label","title"];
+  function doText(n){
+    var p=n.parentNode;if(!p)return;var tg=p.nodeName;if(tg==="SCRIPT"||tg==="STYLE"||tg==="TEXTAREA")return;
+    var v=n.nodeValue;
+    if(n.__t!==undefined&&v===n.__t)return;
+    if(lang==="ar"){var r=tr(v);n.__o=v;n.__t=r;if(r!==v)n.nodeValue=r}else{n.__t=undefined}
+  }
+  function doAttrs(el){
+    ATTRS.forEach(function(a){
+      if(!el.hasAttribute||!el.hasAttribute(a))return;
+      var k="__a_"+a,v=el.getAttribute(a);
+      if(el[k]&&el[k].t===v)return;
+      if(lang==="ar"){var r=tr(v);el[k]={o:v,t:r};if(r!==v)el.setAttribute(a,r)}else el[k]=null
+    })
+  }
+  function walk(root){
+    if(root.nodeType===3){doText(root);return}
+    if(root.nodeType!==1)return;
+    if(root.nodeName==="SCRIPT"||root.nodeName==="STYLE")return;
+    doAttrs(root);
+    for(var c=root.firstChild;c;c=c.nextSibling)walk(c)
+  }
+  function restore(root){
+    if(root.nodeType===3){if(root.__t!==undefined&&root.__o!==undefined&&root.nodeValue===root.__t)root.nodeValue=root.__o;root.__t=undefined;return}
+    if(root.nodeType!==1)return;
+    ATTRS.forEach(function(a){var k="__a_"+a;if(root[k]&&root.getAttribute(a)===root[k].t)root.setAttribute(a,root[k].o);root[k]=null});
+    for(var c=root.firstChild;c;c=c.nextSibling)restore(c)
+  }
+  var mo=new MutationObserver(function(list){
+    if(busy||lang!=="ar")return;busy=true;
+    try{list.forEach(function(m){
+      if(m.type==="childList")m.addedNodes.forEach(walk);
+      else if(m.type==="characterData")doText(m.target);
+      else if(m.type==="attributes")doAttrs(m.target)
+    })}finally{busy=false}
+  });
+  function set(l,save){
+    var root=document.documentElement;
+    if(l==="ar"){lang="ar";root.setAttribute("lang","ar");root.setAttribute("dir","rtl");walk(document.body)}
+    else{busy=true;restore(document.body);busy=false;lang="en";root.setAttribute("lang","en");root.setAttribute("dir","ltr")}
+    var b=document.getElementById("langbtn");if(b){b.textContent=l==="ar"?"English":"عربي";b.setAttribute("aria-label",l==="ar"?"Switch to English":"التبديل إلى العربية")}
+    document.title=l==="ar"?"مركز الدراسة":(document.title==="مركز الدراسة"?"Study Hub":document.title);
+    if(save){try{localStorage.setItem("sh_lang",l)}catch(e){}}
+  }
+  function setup(){
+    var bar=document.querySelector(".bar");
+    var b=document.createElement("button");b.id="langbtn";b.type="button";b.className="btn small";b.textContent="عربي";
+    b.onclick=function(){set(lang==="ar"?"en":"ar",true)};
+    var nav=document.getElementById("nav");
+    var wrap=document.createElement("div");wrap.className="tools";
+    if(nav&&nav.parentNode===bar){bar.insertBefore(wrap,nav.nextSibling)}else bar.appendChild(wrap);
+    wrap.appendChild(b);
+    mo.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:ATTRS});
+    var l="en";try{l=localStorage.getItem("sh_lang")||""}catch(e){}
+    if(!l){try{l=/^ar/i.test(navigator.language||"")?"ar":"en"}catch(e){l="en"}}
+    set(l==="ar"?"ar":"en",false);
+    var ab=document.getElementById("auth-btn");if(ab)wrap.appendChild(ab);
+    window.__shLang=function(x){set(x,true)}
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setup);else setup()
+})();
+</script>
 </body>
 </html>

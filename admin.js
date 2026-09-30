@@ -1,6 +1,6 @@
 (function(){
 var sb=window.__sb;if(!sb)return;
-var A={ok:false,role:null,tab:"overview",stats:null,time:null,files:null,ratings:null,users:null,reports:null,admins:null,site:null,names:{},err:"",q:"",busy:false,me:null,ccRows:[],sub:{uni:"",college:"",major:"",year:""},msg:""};
+var A={ok:false,role:null,tab:"overview",stats:null,stor:null,time:null,files:null,ratings:null,users:null,reports:null,admins:null,site:null,names:{},err:"",q:"",busy:false,me:null,ccRows:[],sub:{uni:"",college:"",major:"",year:""},msg:""};
 window.__adm=A;
 var ZIPURL="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",FREE=1073741824,KINDS=["Notes","Slides","Past paper","Summary","Worksheet","Other"];
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -11,6 +11,10 @@ function dtt(t){try{return new Date(t).toLocaleString("en-GB",{day:"numeric",mon
 function nm(id){return A.names[id]||"Unknown"}
 function refresh(){if(window.__sh&&document.querySelector("#adm"))window.__sh.render()}
 function U(){return(window.__sh&&window.__sh.UNIS)||[]}
+function isR2(p){return String(p||"").indexOf("r2:")===0}
+async function r2(b){var r=await sb.functions.invoke("r2",{body:b});if(r.error||!r.data||r.data.error)throw new Error((r.data&&r.data.error)||(r.error&&r.error.message)||"R2 error");return r.data}
+async function fileUrl(p){return isR2(p)?(await r2({action:"sign-download",id:p})).url:sb.storage.from("files").getPublicUrl(p).data.publicUrl}
+async function rmStore(paths){var a=paths.filter(function(p){return !isR2(p)}),b=paths.filter(isR2);if(a.length){var s=await sb.storage.from("files").remove(a);if(s.error)throw s.error}for(var i=0;i<b.length;i++)await r2({action:"delete",id:b[i]})}
 function uniOf(id){return U().filter(function(x){return x.id===id})[0]}
 function collegeOf(u,major){var x=uniOf(u),r="";if(x)x.groups.forEach(function(g){if(g.m.indexOf(major)>-1)r=g.g});return r}
 function lg(){return document.documentElement.lang==="ar"?"ar":"en"}
@@ -94,7 +98,7 @@ a.textContent="Reported";a.disabled=true;setTimeout(function(){},0)}})
 },true);
 async function all(t,order,asc){var out=[],i=0;for(;;){var r=await sb.from(t).select("*").order(order,{ascending:!!asc}).range(i,i+999);if(r.error)throw r.error;out=out.concat(r.data);if(r.data.length<1000)break;i+=1000}return out}
 async function loadTime(){var r=await sb.rpc("admin_time");if(r.error)throw r.error;A.time=r.data}
-async function loadStats(){var r=await sb.rpc("admin_stats");if(r.error)throw r.error;A.stats=r.data}
+async function loadStats(){var r=await sb.rpc("admin_stats");if(r.error)throw r.error;try{var q=await sb.rpc("admin_storage");A.stor=q.error?null:q.data}catch(e){A.stor=null}A.stats=r.data}
 async function loadNames(){var r=await sb.from("profiles").select("id,name").limit(1000);if(r.data)r.data.forEach(function(p){A.names[p.id]=p.name})}
 async function loadFiles(){var r=await sb.from("files").select("id,title,uni,college,major,year,subject,kind,description,uploader_id,created_at,asset_path,size_bytes,file_name,featured").order("created_at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.files=r.data}
 async function loadRatings(){var r=await sb.from("ratings").select("file_id,user_id,stars,text,at").order("at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.ratings=r.data}
@@ -213,8 +217,9 @@ return h
 }
 function cleanupTab(){
 if(!ready("cleanup"))return loading();
-var used=+A.stats.storage_bytes||0,pc=Math.min(100,used/FREE*100),cls=pc>=95?"bad":pc>=80?"warn":"";
-var h=card("Storage",'<div class="adm-meter '+cls+'"><i style="width:'+Math.max(1,pc).toFixed(1)+'%"></i></div><p class="adm-note"><b>'+mb(used)+'</b> of 1 GB used ('+pc.toFixed(1)+'%) on the Supabase free plan. '+(pc>=80?'You are close to the limit. Remove big or duplicate files below.':'Plenty of space left.')+'</p>');
+var st=A.stor||{supabase:+A.stats.storage_bytes||0,r2:0},GB=1000*1000*1000;
+function meter(name,used,cap,note){var pc=Math.min(100,used/cap*100),cls=pc>=95?"bad":pc>=80?"warn":"";return'<h3 class="adm-h3">'+name+'</h3><div class="adm-meter '+cls+'"><i style="width:'+Math.max(1,pc).toFixed(1)+'%"></i></div><p class="adm-note"><b>'+mb(used)+'</b> of '+note+' ('+pc.toFixed(1)+'%). '+(pc>=80?'Getting close to the limit.':'Plenty of space left.')+'</p>'}
+var h=card("Storage",meter("Supabase (older files)",+st.supabase||0,FREE,"1 GB")+meter("Cloudflare R2 (new uploads)",+st.r2||0,10*GB,"10 GB free")+'<p class="adm-note">New uploads go to Cloudflare R2 first. If R2 is unavailable or reaches 9 GB, uploads fall back to Supabase.</p>');
 var big=A.files.slice().sort(function(a,b){return(+b.size_bytes||0)-(+a.size_bytes||0)}).slice(0,10);
 h+=card("Biggest files",big.length?big.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(nm(f.uploader_id))+'</span></div><div class="adm-a"><span class="adm-size">'+mb(f.size_bytes)+'</span><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join(""):'<p class="adm-none">No files.</p>');
 var g=dupes();
@@ -299,8 +304,8 @@ btn.disabled=true;btn.textContent="Working…";fn().then(function(){},function(e
 function dirty(){A.stats=null;A.ratings=null;A.reports=null}
 async function delFile(id){
 var f=A.files.filter(function(x){return x.id===id})[0];if(!f)return;
-var r=await sb.storage.from("files").remove([f.asset_path]);if(r.error)throw r.error;
-r=await sb.from("files").delete().eq("id",id);if(r.error)throw r.error;
+await rmStore([f.asset_path]);
+var r=await sb.from("files").delete().eq("id",id);if(r.error)throw r.error;
 A.files=A.files.filter(function(x){return x.id!==id});dirty();refresh()
 }
 async function delRev(k){
@@ -310,7 +315,7 @@ A.ratings=A.ratings&&A.ratings.filter(function(x){return !(x.file_id===p[0]&&x.u
 }
 async function purge(u){
 var r=await sb.from("files").select("id,asset_path").eq("uploader_id",u);if(r.error)throw r.error;
-if(r.data.length){var s=await sb.storage.from("files").remove(r.data.map(function(x){return x.asset_path}));if(s.error)throw s.error;
+if(r.data.length){await rmStore(r.data.map(function(x){return x.asset_path}));
 var d=await sb.from("files").delete().eq("uploader_id",u);if(d.error)throw d.error}
 var q=await sb.from("ratings").delete().eq("user_id",u);if(q.error)throw q.error;
 A.files=null;A.ratings=null;A.stats=null;A.reports=null;await loadUsers();refresh()
@@ -371,14 +376,14 @@ say("Reading the database…");
 var files=await all("files","created_at",true),ratings=await all("ratings","at",true),profiles=await all("profiles","id",true),cc=await all("custom_courses","id",true),st=await all("site_settings","key",true);
 var day=new Date().toISOString().slice(0,10),man={app:"study-hub",version:1,exported_at:new Date().toISOString(),files:[],ratings:ratings,profiles:profiles,custom_courses:cc.map(function(c){return{uni:c.uni,major:c.major,year:c.year,subject:c.subject}}),site_settings:st};
 if(kind==="json"){
-files.forEach(function(f){f.public_url=sb.storage.from("files").getPublicUrl(f.asset_path).data.publicUrl});man.files=files;
+files.forEach(function(f){f.public_url=isR2(f.asset_path)?"":sb.storage.from("files").getPublicUrl(f.asset_path).data.publicUrl});man.files=files;
 save(new Blob([JSON.stringify(man,null,1)],{type:"application/json"}),"study-hub-data-"+day+".json");say("Done. Data saved (files themselves are not inside this JSON).");A.busy=false;return}
 await loadZip();var zip=new JSZip(),miss=0,ok=0,used={};
 for(var i=0;i<files.length;i++){
 var f=files[i],u=uniOf(f.uni),col=f.college||collegeOf(f.uni,f.major),ext=extOf(f.file_name||f.asset_path);
 var p="files/"+[safe(u?u.name:f.uni),safe(col),safe(f.major),safe(f.year),safe(f.subject||"General")].join("/")+"/"+safe(f.title).replace(/\.+$/,"")+" ["+f.id.slice(0,8)+"]."+ext;
 addl0("Downloading "+(i+1)+" of "+files.length+": "+f.title);
-try{var r=await fetch(sb.storage.from("files").getPublicUrl(f.asset_path).data.publicUrl);if(!r.ok)throw 0;zip.file(p,await r.blob());ok++;man.files.push({zip_path:p,row:f})}
+try{var r=await fetch(await fileUrl(f.asset_path));if(!r.ok)throw 0;zip.file(p,await r.blob());ok++;man.files.push({zip_path:p,row:f})}
 catch(e){miss++;man.files.push({zip_path:null,missing:true,row:f})}
 }
 zip.file("manifest.json",JSON.stringify(man,null,1));
@@ -415,8 +420,10 @@ var it=items[i],row=Object.assign({},it.row);
 if(row.id&&have[row.id]||have["p:"+row.asset_path]){skip++;continue}
 try{
 if(zip&&it.zp){var ze=zip.file(it.zp);if(!ze)throw new Error("file missing from ZIP");var buf=await ze.async("blob");row.size_bytes=row.size_bytes||buf.size;
-var up=await sb.storage.from("files").upload(row.asset_path,new Blob([buf],{type:row.content_type||CT[extOf(row.asset_path)]||"application/octet-stream"}),{contentType:row.content_type||CT[extOf(row.asset_path)]||"application/octet-stream",upsert:false});
-if(up.error&&!/exist/i.test(up.error.message||""))throw up.error}
+var ctype=row.content_type||CT[extOf(row.asset_path)]||"application/octet-stream";
+if(isR2(row.asset_path)){var sg=await r2({action:"sign-upload",size:buf.size||1,ext:extOf(row.asset_path),key:row.asset_path});var pr=await fetch(sg.url,{method:"PUT",body:buf,headers:{"Content-Type":ctype}});if(!pr.ok)throw new Error("R2 upload failed")}
+else{var up=await sb.storage.from("files").upload(row.asset_path,new Blob([buf],{type:row.content_type||CT[extOf(row.asset_path)]||"application/octet-stream"}),{contentType:row.content_type||CT[extOf(row.asset_path)]||"application/octet-stream",upsert:false});
+if(up.error&&!/exist/i.test(up.error.message||""))throw up.error}}
 if(!names[row.uploader_id])row.uploader_id=A.me;delete row.public_url;
 var ins=await sb.from("files").insert(row);if(ins.error)throw ins.error;made++;
 if(made%5===0)addl0("Restored "+made+" of "+items.length+"…")

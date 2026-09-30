@@ -274,7 +274,7 @@ var BUCKET="files";
   var mode="in",dlg;
   function build(){
     dlg=document.createElement("dialog");dlg.id="auth-dlg";
-    dlg.innerHTML='<form method="dialog" id="auth-f"><h2 id="auth-t">Sign in</h2><p style="margin:0;color:var(--muted);font-size:14px">You need an account to upload files and write reviews. Browsing is open to everyone.</p><div class="oauth"><button type="button" class="btn" data-oa="google">Continue with Google</button></div><p class="or">or use your email</p><label id="auth-nl" hidden>Choose your name (shown on your uploads and reviews)<input id="auth-n" maxlength="30" autocomplete="nickname"><small>3 to 30 letters or numbers. It must be unique and cannot be changed later.</small></label><label>Email<input id="auth-e" type="email" required autocomplete="email"></label><label>Password<input id="auth-p" type="password" required minlength="6" autocomplete="current-password"></label><div class="row2"><button class="btn primary" id="auth-go" value="x">Sign in</button><button type="button" class="btn" id="auth-sw">Create an account</button><button type="button" class="btn" id="auth-x">Cancel</button></div><div id="auth-msg" role="status"></div></form>';
+    dlg.innerHTML='<form method="dialog" id="auth-f"><h2 id="auth-t">Sign in</h2><p style="margin:0;color:var(--muted);font-size:14px">You need an account to upload files and write reviews. Browsing is open to everyone.</p><div class="oauth"><button type="button" class="btn" data-oa="google">Continue with Google</button></div><p class="or">or use your email</p><label id="auth-nl" hidden>Choose your username (shown on your uploads and reviews)<input id="auth-n" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false"><small>3 to 20 letters, numbers, dots, dashes or underscores. No spaces. It must be unique and cannot be changed later.</small></label><label>Email<input id="auth-e" type="email" required autocomplete="email"></label><label>Password<input id="auth-p" type="password" required minlength="6" autocomplete="current-password"></label><div class="row2"><button class="btn primary" id="auth-go" value="x">Sign in</button><button type="button" class="btn" id="auth-sw">Create an account</button><button type="button" class="btn" id="auth-x">Cancel</button></div><div id="auth-msg" role="status"></div></form>';
     document.body.appendChild(dlg);
     dlg.querySelector("#auth-x").onclick=function(){dlg.close()};
     dlg.querySelectorAll("[data-oa]").forEach(function(b){b.onclick=async function(){var m=dlg.querySelector("#auth-msg");m.textContent="Opening "+b.getAttribute("data-oa")+"…";
@@ -284,15 +284,15 @@ var BUCKET="files";
     dlg.querySelector("#auth-f").onsubmit=async function(ev){ev.preventDefault();
       var m=dlg.querySelector("#auth-msg"),em=dlg.querySelector("#auth-e").value.trim(),pw=dlg.querySelector("#auth-p").value,nm=dlg.querySelector("#auth-n").value.trim();
       if(mode==="up"){
-        if(!/^[A-Za-z0-9_. \u0600-\u06FF-]{3,30}$/.test(nm)){m.textContent="Choose a name of 3 to 30 letters or numbers.";return}
-        m.textContent="Checking the name…";
+        if(!/^[A-Za-z0-9_.\u0600-\u06FF-]{3,20}$/.test(nm)){m.textContent="Choose a username of 3 to 20 letters or numbers (no spaces).";return}
+        m.textContent="Checking the username…";
         var ck=await sb.rpc("name_available",{n:nm});
-        if(ck.error){m.textContent="Could not check the name. Try again.";return}
-        if(ck.data===false){m.textContent="That name is already taken. Choose another.";return}
+        if(ck.error){m.textContent="Could not check the username. Try again.";return}
+        if(ck.data===false){m.textContent="That username is already taken. Choose another.";return}
       }
       m.textContent="One moment…";
-      var r=mode==="up"?await sb.auth.signUp({email:em,password:pw,options:{data:{name:nm}}}):await sb.auth.signInWithPassword({email:em,password:pw});
-      if(r.error){m.textContent=/database error/i.test(r.error.message)?"That name may have just been taken. Try a different name.":r.error.message;return}
+      var r=mode==="up"?await sb.auth.signUp({email:em,password:pw,options:{data:{name:nm,picked:"true"}}}):await sb.auth.signInWithPassword({email:em,password:pw});
+      if(r.error){m.textContent=/database error/i.test(r.error.message)?"That username may have just been taken. Try a different one.":r.error.message;return}
       if(r.data&&r.data.session){location.reload()}else{m.textContent="Check your email and click the confirmation link, then sign in."}
     };
     paint()
@@ -307,9 +307,55 @@ var BUCKET="files";
   }
   window.__shAuth=function(){if(!dlg)build();mode="in";paint();dlg.showModal()};
   document.addEventListener("click",function(e){if(e.target.closest&&e.target.closest("[data-auth]")){e.preventDefault();window.__shAuth()}});
+
+  /* Everyone (Google or email) must pick a unique username once. Until then they can browse but not post. */
+  var ucss=document.createElement("style");ucss.textContent='#un-dlg{border:1px solid var(--line);border-radius:14px;padding:22px;max-width:380px;width:calc(100% - 32px);background:var(--surface);color:var(--fg);font-family:inherit}#un-dlg::backdrop{background:rgba(0,0,0,.6)}#un-dlg h2{margin:0 0 6px;font-size:20px}#un-dlg p{margin:0;color:var(--muted);font-size:14px}#un-dlg label{display:block;margin-top:14px;font-size:13px;color:var(--muted)}#un-dlg input{display:block;width:100%;margin-top:4px;padding:10px 12px;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}#un-dlg small{display:block;margin-top:4px;color:var(--muted);font-size:12px}#un-s{margin-top:10px;font-size:13px;min-height:18px}#un-s.ok{color:#15803d}#un-s.bad{color:#b91c1c}#un-dlg .row2{display:flex;gap:8px;margin-top:14px;align-items:center;flex-wrap:wrap}';document.head.appendChild(ucss);
+  var UN_RE=/^[A-Za-z0-9_.؀-ۿ-]{3,20}$/;
+  async function unameCheck(s,b){
+    try{
+      var r=await sb.from("profiles").select("name,chosen").eq("id",s.user.id).maybeSingle();
+      if(r.error)return; /* database not updated yet: do not block anyone */
+      if(r.data&&r.data.name)b.textContent="Sign out ("+r.data.name+")";
+      if(!r.data||r.data.chosen===false)askName()
+    }catch(e){}
+  }
+  function askName(){
+    if(document.getElementById("un-dlg"))return;
+    var d=document.createElement("dialog");d.id="un-dlg";
+    d.innerHTML='<form id="un-f"><h2>Choose your username</h2><p>This is the name other students see next to your files and reviews. It must be unique and cannot be changed later.</p><label>Username<input id="un-i" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" required></label><small>3 to 20 letters, numbers, dots, dashes or underscores. No spaces.</small><div id="un-s" role="status"></div><div class="row2"><button class="btn primary" id="un-go" disabled>Save username</button><button type="button" class="btn" id="un-out">Sign out</button><button type="button" class="btn" id="un-lang" style="margin-inline-start:auto"></button></div></form>';
+    document.body.appendChild(d);
+    d.addEventListener("cancel",function(ev){ev.preventDefault()});
+    var inp=d.querySelector("#un-i"),st=d.querySelector("#un-s"),go=d.querySelector("#un-go"),tick=0,timer=null;
+    function say(txt,cls){st.textContent=txt;st.className=cls||""}
+    inp.addEventListener("input",function(){
+      var v=inp.value.trim();go.disabled=true;clearTimeout(timer);var my=++tick;
+      if(!v){say("");return}
+      if(!UN_RE.test(v)){say("Use 3 to 20 letters, numbers, dots, dashes or underscores (no spaces)","bad");return}
+      say("Checking…");
+      timer=setTimeout(async function(){
+        var c=await sb.rpc("name_available",{n:v});if(my!==tick)return;
+        if(c.error){say("Could not check the username. Try again.","bad");return}
+        if(c.data===false){say("That username is already taken.","bad");return}
+        say("Available","ok");go.disabled=false
+      },350)
+    });
+    d.querySelector("#un-f").addEventListener("submit",async function(ev){
+      ev.preventDefault();var v=inp.value.trim();if(!UN_RE.test(v))return;
+      go.disabled=true;say("Saving…");
+      var r=await sb.rpc("set_username",{n:v});
+      if(r.error){var mm=r.error.message||"";say(/taken|already/i.test(mm)&&!/already set/i.test(mm)?"That username is already taken.":mm||"Could not save. Try again.","bad");return}
+      location.reload()
+    });
+    d.querySelector("#un-out").onclick=async function(){await sb.auth.signOut();location.reload()};
+    var ul=d.querySelector("#un-lang");
+    function lbl(){var lb=document.getElementById("langbtn");ul.textContent=lb?lb.textContent:"";ul.style.display=lb?"":"none"}
+    ul.onclick=function(){var lb=document.getElementById("langbtn");if(lb){lb.click();setTimeout(lbl,80)}};
+    lbl();setTimeout(lbl,600);
+    d.showModal();inp.focus()
+  }
   document.addEventListener("DOMContentLoaded",async function(){
     var bar=document.querySelector(".bar");if(!bar)return;var s=await sessP,b=document.createElement("button");b.id="auth-btn";b.className="btn small";
-    if(s){var um=s.user.user_metadata||{},nm=um.name||um.full_name||"Account";b.textContent="Sign out ("+nm+")";b.onclick=async function(){await sb.auth.signOut();location.reload()}}
+    if(s){var um=s.user.user_metadata||{},nm=um.name||um.full_name||"Account";b.textContent="Sign out ("+nm+")";b.onclick=async function(){await sb.auth.signOut();location.reload()};unameCheck(s,b)}
     else{b.textContent="Sign in";b.className="btn small primary";b.onclick=function(){window.__shAuth()}}
     bar.appendChild(b)
   });
@@ -772,11 +818,11 @@ var BUCKET="files";
     "Sign in":"تسجيل الدخول","Sign up":"إنشاء الحساب","Create an account":"إنشاء حساب","I have an account":"لدي حساب","Cancel":"إلغاء","Email":"البريد الإلكتروني","Password":"كلمة المرور","Account":"الحساب",
     "You need an account to upload files and write reviews. Browsing is open to everyone.":"تحتاج إلى حساب لرفع الملفات وكتابة التقييمات. التصفح متاح للجميع.",
     "Continue with Google":"المتابعة باستخدام Google","or use your email":"أو استخدم بريدك الإلكتروني",
-    "Choose your name (shown on your uploads and reviews)":"اختر اسمك (يظهر على ملفاتك وتقييماتك)","Enter your name.":"أدخل اسمك.",
-    "Choose a name of 3 to 30 letters or numbers.":"اختر اسمًا من 3 إلى 30 حرفًا أو رقمًا.","Checking the name…":"جارٍ التحقق من الاسم…","Could not check the name. Try again.":"تعذّر التحقق من الاسم. حاول مرة أخرى.",
-    "That name is already taken. Choose another.":"هذا الاسم مستخدم. اختر اسمًا آخر.","That name may have just been taken. Try a different name.":"ربما استُخدم هذا الاسم للتو. جرّب اسمًا آخر.",
+    "Choose your username (shown on your uploads and reviews)":"اختر اسم المستخدم (يظهر على ملفاتك وتقييماتك)","Enter your name.":"أدخل اسمك.",
+    "Choose a username of 3 to 20 letters or numbers (no spaces).":"اختر اسم مستخدم من 3 إلى 20 حرفًا أو رقمًا (بدون مسافات).","Checking the username…":"جارٍ التحقق من اسم المستخدم…","Could not check the username. Try again.":"تعذّر التحقق من اسم المستخدم. حاول مرة أخرى.",
+    "That username is already taken. Choose another.":"اسم المستخدم هذا مستخدم. اختر اسمًا آخر.","That username may have just been taken. Try a different one.":"ربما استُخدم اسم المستخدم هذا للتو. جرّب اسمًا آخر.",
     "One moment…":"لحظة…","Check your email and click the confirmation link, then sign in.":"تحقق من بريدك واضغط رابط التأكيد ثم سجّل الدخول.",
-    "3 to 30 letters or numbers. It must be unique and cannot be changed later.":"من 3 إلى 30 حرفًا أو رقمًا. يجب أن يكون فريدًا ولا يمكن تغييره لاحقًا.","Invalid login credentials":"بيانات الدخول غير صحيحة","Report":"إبلاغ","FEATURED":"مميز","Featured":"المميّزة","Report this file":"الإبلاغ عن هذا الملف","Report this review":"الإبلاغ عن هذا التقييم","Reason":"السبب","Wrong subject or major":"مادة أو تخصص خاطئ","Inappropriate content":"محتوى غير لائق","Copyright problem":"مشكلة حقوق نشر","Spam or unrelated":"إزعاج أو غير ذي صلة","Details (optional)":"تفاصيل (اختياري)","Send report":"إرسال البلاغ","Reported":"تم الإبلاغ","You already reported this.":"لقد أبلغت عن هذا من قبل.","Could not send. Are you signed in?":"تعذّر الإرسال. هل سجّلت الدخول؟","One moment…":"لحظة…"
+    "3 to 20 letters, numbers, dots, dashes or underscores. No spaces. It must be unique and cannot be changed later.":"من 3 إلى 20 حرفًا أو رقمًا أو نقطة أو شرطة أو شرطة سفلية. بدون مسافات. يجب أن يكون فريدًا ولا يمكن تغييره لاحقًا.","Choose your username":"اختر اسم المستخدم","This is the name other students see next to your files and reviews. It must be unique and cannot be changed later.":"هذا هو الاسم الذي يراه الطلاب بجانب ملفاتك وتقييماتك. يجب أن يكون فريدًا ولا يمكن تغييره لاحقًا.","Username":"اسم المستخدم","3 to 20 letters, numbers, dots, dashes or underscores. No spaces.":"من 3 إلى 20 حرفًا أو رقمًا أو نقطة أو شرطة أو شرطة سفلية. بدون مسافات.","Save username":"حفظ اسم المستخدم","Sign out":"تسجيل الخروج","Available":"متاح","Checking…":"جارٍ التحقق…","Saving…":"جارٍ الحفظ…","That username is already taken.":"اسم المستخدم هذا مستخدم.","Use 3 to 20 letters, numbers, dots, dashes or underscores (no spaces)":"استخدم من 3 إلى 20 حرفًا أو رقمًا أو نقطة أو شرطة أو شرطة سفلية (بدون مسافات)","Could not save. Try again.":"تعذّر الحفظ. حاول مرة أخرى.","That name is reserved":"هذا الاسم محجوز","Your username is already set":"تم تعيين اسم المستخدم مسبقًا","Invalid login credentials":"بيانات الدخول غير صحيحة","Report":"إبلاغ","FEATURED":"مميز","Featured":"المميّزة","Report this file":"الإبلاغ عن هذا الملف","Report this review":"الإبلاغ عن هذا التقييم","Reason":"السبب","Wrong subject or major":"مادة أو تخصص خاطئ","Inappropriate content":"محتوى غير لائق","Copyright problem":"مشكلة حقوق نشر","Spam or unrelated":"إزعاج أو غير ذي صلة","Details (optional)":"تفاصيل (اختياري)","Send report":"إرسال البلاغ","Reported":"تم الإبلاغ","You already reported this.":"لقد أبلغت عن هذا من قبل.","Could not send. Are you signed in?":"تعذّر الإرسال. هل سجّلت الدخول؟","One moment…":"لحظة…"
   };
   var UNITS={"colleges":["كليات","كلية","كليتان","كلية"],"schools":["مدارس","مدرسة","مدرستان","مدرسة"],"faculties":["كليات","كلية","كليتان","كلية"],"departments":["أقسام","قسم","قسمان","قسمًا"]};
   function cnt(n,w){return n===1?"1 "+w[1]:n===2?w[2]:n===0?"0 "+w[0]:(n>=3&&n<=10?n+" "+w[0]:n+" "+w[3])}

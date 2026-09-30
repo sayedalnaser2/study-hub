@@ -644,7 +644,7 @@ var BUCKET="files";
     try{var ps=await S.user.profiles(ids);ids.forEach(function(i){var n=ps[i]&&ps[i].name;if(n)S.names[i]=n});if(typing())S.stale=true;else refreshData()}catch(e){}
   }
   async function init(){
-    window.__sh={render:render,go:go,UNIS:UNIS,COURSES:COURSES};
+    window.__sh={render:render,go:go,UNIS:UNIS,COURSES:COURSES,S:S};
     var h="";try{h=(location.hash||"").slice(1)}catch(e){}
     if(PAGES.some(function(p){return p[0]===h}))S.page=h;
     render();
@@ -820,6 +820,6 @@ var BUCKET="files";
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setup);else setup()
 })();
 </script>
-<script src="admin.js?v=2"></script>
+<script src="admin.js?v=3"></script>
 </body>
 </html>

@@ -100,7 +100,7 @@ async function all(t,order,asc){var out=[],i=0;for(;;){var r=await sb.from(t).se
 async function loadTime(){var r=await sb.rpc("admin_time");if(r.error)throw r.error;A.time=r.data}
 async function loadStats(){var r=await sb.rpc("admin_stats");if(r.error)throw r.error;try{var q=await sb.rpc("admin_storage");A.stor=q.error?null:q.data}catch(e){A.stor=null}A.stats=r.data}
 async function loadNames(){var r=await sb.from("profiles").select("id,name").limit(1000);if(r.data)r.data.forEach(function(p){A.names[p.id]=p.name})}
-async function loadFiles(){var r=await sb.from("files").select("id,title,uni,college,major,year,subject,kind,description,uploader_id,created_at,asset_path,size_bytes,file_name,featured").order("created_at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.files=r.data}
+async function loadFiles(){var r=await sb.from("files").select("id,title,uni,college,major,year,subject,kind,description,uploader_id,created_at,asset_path,size_bytes,file_name,featured,hidden").order("created_at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.files=r.data}
 async function loadRatings(){var r=await sb.from("ratings").select("file_id,user_id,stars,text,at").order("at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.ratings=r.data}
 async function loadUsers(){var r=await sb.rpc("admin_users");if(r.error)throw r.error;A.users=r.data}
 async function loadReports(){var r=await sb.from("reports").select("*").order("at",{ascending:false}).limit(300);if(r.error)throw r.error;A.reports=r.data}
@@ -179,7 +179,7 @@ return'<div class="adm-tools"><input type="search" id="adm-q" placeholder="Searc
 }
 function fileRows(r){
 if(!r.length)return'<p class="adm-none">No files.</p>';
-return r.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+(f.featured?' <span class="adm-me">FEATURED</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+'</span></div><div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small" data-adm-ft="'+esc(f.id)+'">'+(f.featured?'Unfeature':'Feature')+'</button><button class="btn small" data-adm-ed="'+esc(f.id)+'">Edit</button><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join("")
+return r.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+(f.featured?' <span class="adm-me">FEATURED</span>':'')+(f.hidden?' <span class="adm-ban">HIDDEN</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+'</span></div><div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button><button class="btn small" data-adm-ft="'+esc(f.id)+'">'+(f.featured?'Unfeature':'Feature')+'</button><button class="btn small" data-adm-ed="'+esc(f.id)+'">Edit</button><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join("")
 }
 function reviewsTab(){
 if(!ready("reviews"))return loading();
@@ -196,7 +196,7 @@ var f=t[r.file_id],rv=r.kind==="review"?A.ratings.filter(function(v){return v.fi
 var what=r.kind==="file"?(f?"File “"+esc(f.title)+"” by "+esc(nm(f.uploader_id)):"File (already deleted)"):("Review by "+esc(nm(r.review_user))+(rv?": "+(rv.text?esc(rv.text):"★".repeat(rv.stars)):" (already deleted)")+(f?" on “"+esc(f.title)+"”":""));
 var gone=r.kind==="file"?!f:!rv;
 return'<div class="adm-row'+(r.status==="done"?' adm-done':'')+'"><div><b>'+esc(r.reason)+(r.status==="done"?' <span class="adm-me">HANDLED</span>':'')+'</b><span>'+what+'</span>'+(r.note?'<p>“'+esc(r.note)+'”</p>':'')+'<span>Reported by '+esc(nm(r.reporter))+' · '+dtt(r.at)+'</span></div><div class="adm-a">'+
-(f&&r.kind==="file"?'<a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small" data-adm-ed="'+esc(f.id)+'">Edit</button>':'')+
+(f&&r.kind==="file"?'<a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button><button class="btn small" data-adm-ed="'+esc(f.id)+'">Edit</button>':'')+
 (r.status==="open"&&!gone?'<button class="btn small danger" data-adm-rdel="'+r.id+'">Delete '+(r.kind==="file"?"file":"review")+'</button>':'')+
 (r.status==="open"?'<button class="btn small" data-adm-rok="'+r.id+'">Dismiss</button>':'<button class="btn small" data-adm-rrm="'+r.id+'">Remove</button>')+'</div></div>'}).join("")
 }
@@ -332,6 +332,11 @@ var row={title:form.title.value.trim(),uni:st.uni,college:st.college,major:st.ma
 var r=await sb.from("files").update(row).eq("id",id);if(r.error)throw r.error;
 Object.assign(f,row);refresh()}})
 }
+async function toggleHide(id,btn){
+var f=A.files.filter(function(x){return x.id===id})[0];if(!f)return;btn.disabled=true;
+var nv=!f.hidden,r=await sb.from("files").update({hidden:nv}).eq("id",id);if(r.error){A.err=r.error.message;refresh();return}
+f.hidden=nv;refresh()
+}
 async function toggleFeat(id,btn){
 var f=A.files.filter(function(x){return x.id===id})[0];if(!f)return;btn.disabled=true;
 var nv=!f.featured,r=await sb.from("files").update({featured:nv}).eq("id",id);if(r.error){A.err=r.error.message;refresh();return}
@@ -448,6 +453,7 @@ if(x=t.closest("[data-adm-dr]")){two(x,"Delete",function(){return delRev(x.getAt
 if(x=t.closest("[data-adm-pu]")){two(x,"Delete content",function(){return purge(x.getAttribute("data-adm-pu"))});return}
 if(x=t.closest("[data-adm-ban]")){var p=x.getAttribute("data-adm-ban").split(":");x.disabled=true;ban(p[0],p[1]==="1").catch(function(er){A.err=er.message;refresh()});return}
 if(x=t.closest("[data-adm-ed]")){editFile(x.getAttribute("data-adm-ed"));return}
+if(x=t.closest("[data-adm-hd]")){toggleHide(x.getAttribute("data-adm-hd"),x);return}
 if(x=t.closest("[data-adm-ft]")){toggleFeat(x.getAttribute("data-adm-ft"),x);return}
 if(x=t.closest("[data-adm-ut]")){userTime(x.getAttribute("data-adm-ut"));return}
 if(x=t.closest("[data-adm-rn]")){renameUser(x.getAttribute("data-adm-rn"));return}

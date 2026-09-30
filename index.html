@@ -141,6 +141,19 @@ label small{font-weight:400;color:var(--muted)}
 [lang="ar"] .upl{font-family:'Segoe UI','Noto Sans Arabic',Tahoma,system-ui,sans-serif;font-size:12px}
 [dir="rtl"] input[type=email],[dir="rtl"] input[type=password]{direction:ltr;text-align:right}
 [dir="rtl"] .stars,[dir="rtl"] .rv-pick{direction:ltr}
+
+.adm-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:20px}
+.adm-k{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.adm-k span{color:var(--muted);font-size:13px}.adm-k b{font-family:var(--display);font-size:30px;font-variant-numeric:tabular-nums;line-height:1.15}.adm-k em{font-style:normal;color:var(--muted);font-size:12px}
+.adm-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}.adm-card h2{font-size:18px;margin-bottom:10px}
+.adm-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}.adm-2 .adm-card{margin-top:16px}
+.adm-legend{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;color:var(--muted);font-size:12px;margin-bottom:8px}.adm-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);margin-inline-end:6px}.adm-legend em{font-style:normal;margin-inline-start:auto}
+.adm-bars{display:flex;flex-direction:column;gap:8px}.adm-b{display:grid;grid-template-columns:minmax(90px,38%) 1fr auto;gap:10px;align-items:center;font-size:13px}.adm-bl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.adm-bt{height:10px;background:var(--accent-soft);border-radius:5px;overflow:hidden}.adm-bt i{display:block;height:100%;background:var(--accent);border-radius:5px}.adm-b b{font-variant-numeric:tabular-nums}
+.adm-none{color:var(--muted);padding:18px 0}.adm-body{margin-top:16px}
+.adm-tools{display:flex;gap:12px;align-items:center;margin-bottom:10px;color:var(--muted);font-size:13px}.adm-tools input{flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.adm-row{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}.adm-row>div:first-child{min-width:0;display:flex;flex-direction:column;gap:2px}.adm-row span{color:var(--muted);font-size:13px}.adm-row p{margin-top:4px;font-size:14px}
+.adm-a{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.adm-ban,.adm-me{display:inline-block;padding:1px 7px;border-radius:6px;font:600 11px/1.5 var(--mono);letter-spacing:.06em;vertical-align:1px}.adm-ban{background:var(--bad);color:var(--surface)}.adm-me{background:var(--accent-soft);color:var(--accent)}
 </style>
 
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}</style>
@@ -163,7 +176,7 @@ var BUCKET="files";
   var ready=!/YOUR_SUPABASE/.test(SUPABASE_URL+SUPABASE_ANON_KEY)&&window.supabase&&window.supabase.createClient;
   function banner(t){document.addEventListener("DOMContentLoaded",function(){var d=document.createElement("div");d.style.cssText="background:#fff4e5;color:#7a4300;padding:10px 16px;font:14px/1.4 system-ui,sans-serif;text-align:center";d.textContent=t;document.body.insertBefore(d,document.body.firstChild)})}
   if(!ready){window.claude={use:async function(){return null}};banner("Study Hub is not connected yet. Open the file and set SUPABASE_URL and SUPABASE_ANON_KEY at the top of the script.");return}
-  var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);window.__sb=sb;
   var sessP=sb.auth.getSession().then(function(r){return r.data&&r.data.session||null}).catch(function(){return null});
   function fail(e){throw {code:(e&&(e.code||e.statusCode))||"error",message:e&&e.message}}
   var CFG={
@@ -380,7 +393,7 @@ var BUCKET="files";
   function count(o){return S.files.filter(function(f){return within(f,o)}).length}
 
   function go(p){S.page=p;S.msg=null;try{history.replaceState(null,"","#"+p)}catch(e){}render();window.scrollTo(0,0)}
-  function nav(){$("#nav").innerHTML=PAGES.map(function(p){return '<button data-go="'+p[0]+'"'+(S.page===p[0]?' aria-current="page"':'')+'>'+p[1]+'</button>'}).join("")}
+  function nav(){$("#nav").innerHTML=PAGES.concat(window.__adm&&window.__adm.ok?[["admin","Admin"]]:[]).map(function(p){return '<button data-go="'+p[0]+'"'+(S.page===p[0]?' aria-current="page"':'')+'>'+p[1]+'</button>'}).join("")}
 
   function stats(id){var r=S.ratings[id]||{},k=Object.keys(r),n=k.length,t=0;k.forEach(function(x){t+=r[x].stars});return{n:n,avg:n?t/n:0,mine:S.me&&r[S.me]?r[S.me]:null}}
   function starStr(n){var h="";for(var i=1;i<=5;i++)h+='<span class="s'+(i<=n?' on':'')+'" aria-hidden="true">\u2605</span>';return h}
@@ -511,12 +524,14 @@ var BUCKET="files";
   function render(){
     nav();
     var v=$("#view"),h;
-    if(S.page==="library")h=library();else if(S.page==="upload")h=uploadPage();else if(S.page==="majors")h=majorsPage();else if(S.page==="guidelines")h=guidelines();else h=home();
+    if(S.page==="library")h=library();else if(S.page==="upload")h=uploadPage();else if(S.page==="majors")h=majorsPage();else if(S.page==="guidelines")h=guidelines();else if(S.page==="admin"&&window.__adm&&window.__adm.ok)h=window.__adm.html();else h=home();
     v.innerHTML=h;
     if(S.page==="upload")bindUpload();
     if(S.page==="library")bindLibrary();
+    if(S.page==="admin"&&window.__adm)window.__adm.bind();
   }
   function refreshData(){
+    if(S.page==="admin")return;
     if(S.page==="upload"){nav();if(!S.loaded||true){var sd=$("#subs");if(sd&&U.year)sd.innerHTML=subjectsFor(U).map(function(s){return '<option value="'+esc(s[0])+'">'}).join("");var g=$("#go");if(g&&!picked)g.disabled=!(S.assets&&S.dbOk)}return}
     if(S.page==="library"){var l=$("#lib");if(l){l.innerHTML=libraryList();var fs=$("#fs");if(fs){fs.innerHTML='<option value="">All subjects</option>'+subjectsFor(S.filter).map(function(s){return '<option value="'+esc(s[0])+'"'+(S.filter.subject===s[0]?' selected':'')+'>'+esc(s[0])+(s[1]?' ('+s[1]+')':'')+'</option>'}).join("")}return}}
     render()
@@ -616,6 +631,7 @@ var BUCKET="files";
     try{var ps=await S.user.profiles(ids);ids.forEach(function(i){var n=ps[i]&&ps[i].name;if(n)S.names[i]=n});if(typing())S.stale=true;else refreshData()}catch(e){}
   }
   async function init(){
+    window.__sh={render:render,go:go};
     var h="";try{h=(location.hash||"").slice(1)}catch(e){}
     if(PAGES.some(function(p){return p[0]===h}))S.page=h;
     render();
@@ -644,7 +660,7 @@ var BUCKET="files";
 <script>
 (function(){
   var AR={
-    "Study Hub":"مركز الدراسة","Home":"الرئيسية","Library":"المكتبة","Upload":"رفع","Majors":"التخصصات","Guidelines":"الإرشادات",
+    "Study Hub":"مركز الدراسة","Home":"الرئيسية","Library":"المكتبة","Upload":"رفع","Majors":"التخصصات","Guidelines":"الإرشادات","Admin":"الإدارة",
     "For students at universities across Bahrain":"لطلبة الجامعات في مملكة البحرين",
     "Study together. Share what helped you.":"ادرسوا معًا. شاركوا ما ساعدكم.",
     "Pick your university, major and year, then upload notes, slides and past papers. Or find what your classmates already shared before the exam.":"اختر جامعتك وتخصصك وسنتك، ثم ارفع ملاحظاتك وشرائحك واختبارات السنوات السابقة. أو ابحث عمّا شاركه زملاؤك قبل الامتحان.",
@@ -789,6 +805,153 @@ var BUCKET="files";
     window.__shLang=function(x){set(x,true)}
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setup);else setup()
+})();
+</script>
+<script>
+(function(){
+  var sb=window.__sb;if(!sb)return;
+  var A={ok:false,tab:"overview",stats:null,files:null,ratings:null,users:null,names:{},err:"",q:"",busy:false,me:null};
+  window.__adm=A;
+  function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+  function nf(n){return Number(n||0).toLocaleString("en-US")}
+  function mb(b){b=+b||0;return b<1048576?Math.max(0,Math.round(b/1024))+" KB":(b/1048576).toFixed(b<10485760?1:0)+" MB"}
+  function dt(t){try{return new Date(t).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}catch(e){return""}}
+  function nm(id){return A.names[id]||"Unknown"}
+  function refresh(){if(window.__sh&&document.querySelector("#adm"))window.__sh.render()}
+
+  /* ---- visit log (everyone, not the admin) ---- */
+  var sid;try{sid=localStorage.getItem("sh_sid");if(!sid){sid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now()).replace(/-/g,"").slice(0,32);localStorage.setItem("sh_sid",sid)}}catch(e){sid=String(Math.random()).slice(2)+Date.now()}
+  var uid=null;
+  sb.auth.getSession().then(function(r){uid=r.data&&r.data.session&&r.data.session.user.id||null}).catch(function(){});
+  function log(kind,ref){if(A.ok)return;try{sb.from("page_views").insert({sid:sid,uid:uid,kind:kind,ref:String(ref).slice(0,200)}).then(function(){},function(){})}catch(e){}}
+  var last="";function page(p){if(p&&p!==last){last=p;log("page",p)}}
+  var h0=(location.hash||"").slice(1);setTimeout(function(){page(h0&&h0!=="admin"?h0:"home")},900);
+  var rs=history.replaceState;history.replaceState=function(a,b,u){var r=rs.apply(this,arguments);try{var p=String(u||"").replace(/^#/,"");if(p)page(p)}catch(e){}return r};
+  document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest('a[href^="/_blob/"]');if(a)log("open",decodeURIComponent(a.getAttribute("href").slice(7)))},true);
+
+  /* ---- data ---- */
+  async function loadStats(){var r=await sb.rpc("admin_stats");if(r.error)throw r.error;A.stats=r.data}
+  async function loadNames(){var r=await sb.from("profiles").select("id,name");if(r.data)r.data.forEach(function(p){A.names[p.id]=p.name})}
+  async function loadFiles(){var r=await sb.from("files").select("id,title,uni,major,year,subject,uploader_id,created_at,asset_path,size_bytes").order("created_at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.files=r.data}
+  async function loadRatings(){var r=await sb.from("ratings").select("file_id,user_id,stars,text,at").order("at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.ratings=r.data}
+  async function loadUsers(){var r=await sb.rpc("admin_users");if(r.error)throw r.error;A.users=r.data}
+  async function load(tab){
+    A.err="";
+    try{
+      if(tab==="overview")await Promise.all([loadStats(),A.files?0:loadFiles()]);
+      if(tab==="files")await Promise.all([loadFiles(),loadNames()]);
+      if(tab==="reviews")await Promise.all([loadRatings(),loadNames(),A.files?0:loadFiles()]);
+      if(tab==="users")await Promise.all([loadUsers(),loadNames()])
+    }catch(e){A.err=(e&&e.message)||"Could not load. Did you run supabase-admin.sql?"}
+    refresh()
+  }
+
+  /* ---- views ---- */
+  function chart(d){
+    if(!d||!d.length)return"";
+    var W=640,H=190,L=34,B=24,T=8,n=d.length,mx=1;d.forEach(function(x){if(x.views>mx)mx=x.views});
+    var step=mx<=4?1:mx<=10?2:mx<=50?10:mx<=200?50:100;mx=Math.ceil(mx/step)*step;
+    var bw=(W-L)/n,g='';
+    for(var y=0;y<=mx;y+=step){var yy=T+(H-T-B)*(1-y/mx);g+='<line x1="'+L+'" x2="'+W+'" y1="'+yy+'" y2="'+yy+'" stroke="var(--line)"/><text x="'+(L-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="var(--muted)">'+y+'</text>'}
+    d.forEach(function(x,i){
+      var hv=(H-T-B)*x.views/mx,hu=(H-T-B)*x.visitors/mx,xx=L+i*bw+bw*.15,w=bw*.7;
+      g+='<g><title>'+esc(dt(x.day))+': '+x.views+' views, '+x.visitors+' visitors</title><rect x="'+xx+'" y="'+(H-B-hv)+'" width="'+w+'" height="'+hv+'" rx="2" fill="var(--accent)" opacity=".3"/><rect x="'+(xx+w*.2)+'" y="'+(H-B-hu)+'" width="'+w*.6+'" height="'+hu+'" rx="2" fill="var(--accent)"/></g>'
+    });
+    [0,Math.floor(n/2),n-1].forEach(function(i){g+='<text x="'+(L+i*bw+bw/2)+'" y="'+(H-6)+'" text-anchor="'+(i===0?"start":i===n-1?"end":"middle")+'" font-size="11" fill="var(--muted)">'+esc(new Date(d[i].day).toLocaleDateString("en-GB",{day:"numeric",month:"short"}))+'</text>'});
+    return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Views and visitors per day, last 30 days" style="width:100%;height:auto;display:block">'+g+'</svg>'
+  }
+  function bars(rows,lab,val,unit){
+    if(!rows||!rows.length)return'<p class="adm-none">Nothing yet.</p>';
+    var m=1;rows.forEach(function(r){if(r[val]>m)m=r[val]});
+    return'<div class="adm-bars">'+rows.map(function(r){return'<div class="adm-b"><span class="adm-bl">'+esc(lab(r))+'</span><span class="adm-bt"><i style="width:'+Math.max(2,Math.round(100*r[val]/m))+'%"></i></span><b>'+nf(r[val])+'</b></div>'}).join("")+'</div>'
+  }
+  function kpi(l,v,s){return'<div class="adm-k"><span>'+esc(l)+'</span><b>'+esc(v)+'</b>'+(s?'<em>'+esc(s)+'</em>':'')+'</div>'}
+  function overview(){
+    var s=A.stats;if(!s)return'<p class="adm-none">Loading…</p>';
+    var pg={home:"Home",library:"Library",upload:"Upload",majors:"Majors",guidelines:"Guidelines"};
+    return'<div class="adm-kpis">'+kpi("Page views",nf(s.views),nf(s.views_today)+" today · "+nf(s.views_7d)+" in 7 days")+kpi("Unique visitors",nf(s.visitors),nf(s.visitors_today)+" today · "+nf(s.visitors_7d)+" in 7 days")+kpi("File opens",nf(s.opens),"clicks on Open")+kpi("Files",nf(s.files),mb(s.storage_bytes)+" stored")+kpi("Users",nf(s.users),nf(s.banned)+" banned")+kpi("Reviews",nf(s.reviews),"")+'</div>'+
+      '<section class="adm-card"><h2>Views per day, last 30 days</h2><p class="adm-legend"><span><i style="opacity:.3"></i>Page views</span><span><i></i>Unique visitors</span><em>Days follow Bahrain time. Your own visits are not counted.</em></p>'+chart(s.daily)+'</section>'+
+      '<div class="adm-2"><section class="adm-card"><h2>Most visited pages</h2>'+bars(s.pages,function(r){return pg[r.page]||r.page},"views")+'</section>'+
+      '<section class="adm-card"><h2>Most opened files</h2>'+bars(s.top_files,function(r){return r.title+" ("+r.uni+")"},"opens")+'</section></div>'+
+      '<section class="adm-card"><h2>Files per university</h2>'+bars(s.by_uni,function(r){return r.uni},"files")+'</section>'
+  }
+  function filesTab(){
+    if(!A.files)return'<p class="adm-none">Loading…</p>';
+    var q=A.q.trim().toLowerCase();
+    var r=A.files.filter(function(f){return !q||(f.title+" "+f.uni+" "+f.major+" "+(f.subject||"")+" "+nm(f.uploader_id)).toLowerCase().indexOf(q)>-1});
+    return'<div class="adm-tools"><input type="search" id="adm-q" placeholder="Search files, subjects or uploaders" value="'+esc(A.q)+'" aria-label="Search files"><span>'+r.length+' of '+A.files.length+'</span></div><div id="adm-list">'+fileRows(r)+'</div>'
+  }
+  function fileRows(r){
+    if(!r.length)return'<p class="adm-none">No files.</p>';
+    return r.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+'</span></div><div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join("")
+  }
+  function reviewsTab(){
+    if(!A.ratings||!A.files)return'<p class="adm-none">Loading…</p>';
+    var t={};A.files.forEach(function(f){t[f.id]=f.title});
+    if(!A.ratings.length)return'<p class="adm-none">No reviews yet.</p>';
+    return A.ratings.map(function(v){return'<div class="adm-row"><div><b>'+"★".repeat(v.stars)+"☆".repeat(5-v.stars)+' · '+esc(nm(v.user_id))+'</b><span>On “'+esc(t[v.file_id]||"deleted file")+'” · '+dt(v.at)+'</span>'+(v.text?'<p>'+esc(v.text)+'</p>':'')+'</div><div class="adm-a"><button class="btn small danger" data-adm-dr="'+esc(v.file_id+"|"+v.user_id)+'">Delete</button></div></div>'}).join("")
+  }
+  function usersTab(){
+    if(!A.users)return'<p class="adm-none">Loading…</p>';
+    return A.users.map(function(u){var me=u.id===A.me;return'<div class="adm-row"><div><b>'+esc(u.name||"No name")+(u.banned?' <span class="adm-ban">BANNED</span>':'')+(me?' <span class="adm-me">YOU</span>':'')+'</b><span>'+esc(u.email||"")+'</span><span>Joined '+dt(u.created_at)+(u.last_sign_in?' · last seen '+dt(u.last_sign_in):'')+' · '+u.files+' files · '+u.reviews+' reviews</span></div><div class="adm-a">'+(me?'':'<button class="btn small" data-adm-ban="'+esc(u.id)+':'+(u.banned?0:1)+'">'+(u.banned?'Unban':'Ban')+'</button>'+((+u.files||+u.reviews)?'<button class="btn small danger" data-adm-pu="'+esc(u.id)+'">Delete content</button>':''))+'</div></div>'}).join("")
+  }
+  A.html=function(){
+    var T=[["overview","Overview"],["files","Files"],["reviews","Reviews"],["users","Users"]];
+    var body=A.tab==="files"?filesTab():A.tab==="reviews"?reviewsTab():A.tab==="users"?usersTab():overview();
+    return'<div id="adm"><div class="pagehead"><h1>Admin</h1><p>Only you can see this page. Deleting a file also removes its stored upload.</p></div>'+
+      '<div class="seg" role="group" aria-label="Admin sections">'+T.map(function(t){return'<button data-adm-tab="'+t[0]+'" aria-pressed="'+(A.tab===t[0])+'"><b>'+t[1]+'</b></button>'}).join("")+'<button data-adm-reload="1" aria-label="Reload"><b>Reload</b></button></div>'+
+      (A.err?'<div class="note bad" role="alert">'+esc(A.err)+'</div>':'')+'<div class="adm-body">'+body+'</div></div>'
+  };
+  A.bind=function(){
+    if(A.tab==="overview"&&!A.stats||A.tab==="files"&&!A.files||A.tab==="reviews"&&!A.ratings||A.tab==="users"&&!A.users){if(!A.busy){A.busy=true;load(A.tab).then(function(){A.busy=false})}}
+  };
+
+  /* ---- actions ---- */
+  function two(btn,label,fn){
+    if(btn.dataset.sure!=="1"){btn.dataset.sure="1";btn.textContent="Click again to confirm";setTimeout(function(){if(btn){btn.dataset.sure="";btn.textContent=label}},4000);return}
+    btn.disabled=true;btn.textContent="Working…";fn().then(function(){},function(e){A.err=(e&&e.message)||"Failed";refresh()})
+  }
+  async function delFile(id){
+    var f=A.files.filter(function(x){return x.id===id})[0];if(!f)return;
+    var r=await sb.storage.from("files").remove([f.asset_path]);if(r.error)throw r.error;
+    r=await sb.from("files").delete().eq("id",id);if(r.error)throw r.error;
+    A.files=A.files.filter(function(x){return x.id!==id});A.stats=null;A.ratings=null;refresh()
+  }
+  async function delRev(k){
+    var p=k.split("|"),r=await sb.from("ratings").delete().eq("file_id",p[0]).eq("user_id",p[1]);if(r.error)throw r.error;
+    A.ratings=A.ratings.filter(function(x){return !(x.file_id===p[0]&&x.user_id===p[1])});A.stats=null;refresh()
+  }
+  async function purge(u){
+    var r=await sb.from("files").select("id,asset_path").eq("uploader_id",u);if(r.error)throw r.error;
+    if(r.data.length){var s=await sb.storage.from("files").remove(r.data.map(function(x){return x.asset_path}));if(s.error)throw s.error;
+      var d=await sb.from("files").delete().eq("uploader_id",u);if(d.error)throw d.error}
+    var q=await sb.from("ratings").delete().eq("user_id",u);if(q.error)throw q.error;
+    A.files=null;A.ratings=null;A.stats=null;await loadUsers();refresh()
+  }
+  async function ban(u,b){var r=await sb.rpc("admin_ban",{uid:u,b:b});if(r.error)throw r.error;await loadUsers();refresh()}
+  document.addEventListener("click",function(e){
+    if(!A.ok)return;var t=e.target,x;
+    if(x=t.closest("[data-adm-tab]")){A.tab=x.getAttribute("data-adm-tab");A.err="";refresh();return}
+    if(t.closest("[data-adm-reload]")){A.stats=A.files=A.ratings=A.users=null;refresh();return}
+    if(x=t.closest("[data-adm-df]")){two(x,"Delete",function(){return delFile(x.getAttribute("data-adm-df"))});return}
+    if(x=t.closest("[data-adm-dr]")){two(x,"Delete",function(){return delRev(x.getAttribute("data-adm-dr"))});return}
+    if(x=t.closest("[data-adm-pu]")){two(x,"Delete content",function(){return purge(x.getAttribute("data-adm-pu"))});return}
+    if(x=t.closest("[data-adm-ban]")){var p=x.getAttribute("data-adm-ban").split(":");x.disabled=true;ban(p[0],p[1]==="1").catch(function(er){A.err=er.message;refresh()})}
+  });
+  document.addEventListener("input",function(e){
+    if(e.target.id==="adm-q"){A.q=e.target.value;var q=A.q.trim().toLowerCase(),r=A.files.filter(function(f){return !q||(f.title+" "+f.uni+" "+f.major+" "+(f.subject||"")+" "+nm(f.uploader_id)).toLowerCase().indexOf(q)>-1});document.getElementById("adm-list").innerHTML=fileRows(r)}
+  });
+
+  /* ---- who is admin? asked of the database, so it cannot be faked ---- */
+  async function check(){
+    try{
+      var s=(await sb.auth.getSession()).data.session;
+      if(!s){A.ok=false;return}
+      var r=await sb.rpc("is_admin");A.ok=r.data===true;A.me=s.user.id;
+      if(A.ok&&window.__sh){window.__sh.render();if((location.hash||"")==="#admin")window.__sh.go("admin")}
+    }catch(e){}
+  }
+  check();sb.auth.onAuthStateChange(function(){A.ok=false;setTimeout(check,50)});
 })();
 </script>
 </body>

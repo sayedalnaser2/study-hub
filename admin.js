@@ -1,6 +1,6 @@
 (function(){
 var sb=window.__sb;if(!sb)return;
-var A={ok:false,role:null,tab:"overview",stats:null,files:null,ratings:null,users:null,reports:null,admins:null,site:null,names:{},err:"",q:"",busy:false,me:null,ccRows:[],sub:{uni:"",college:"",major:"",year:""},msg:""};
+var A={ok:false,role:null,tab:"overview",stats:null,time:null,files:null,ratings:null,users:null,reports:null,admins:null,site:null,names:{},err:"",q:"",busy:false,me:null,ccRows:[],sub:{uni:"",college:"",major:"",year:""},msg:""};
 window.__adm=A;
 var ZIPURL="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",FREE=1073741824,KINDS=["Notes","Slides","Past paper","Summary","Worksheet","Other"];
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -23,6 +23,24 @@ var last="";function page(p){if(p&&p!==last){last=p;log("page",p)}}
 var h0=(location.hash||"").slice(1);setTimeout(function(){page(h0&&h0!=="admin"?h0:"home")},900);
 var rs=history.replaceState;history.replaceState=function(a,b,u){var r=rs.apply(this,arguments);try{var p=String(u||"").replace(/^#/,"");if(p)page(p)}catch(e){}return r};
 document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest('a[href^="/_blob/"]');if(a)log("open",decodeURIComponent(a.getAttribute("href").slice(7)))},true);
+var tAcc={},tKey="",lastAct=Date.now(),lastTick=Date.now();
+function tctx(){var S=window.__sh&&window.__sh.S;if(!S)return null;var f=S.filter||{},p=S.page||"home",sub=p==="library"&&f.subject?f.subject:"";return{page:p,uni:sub?(f.uni||""):"",major:sub?(f.major||""):"",year:sub?(f.year||""):"",subject:sub}}
+function tsend(a){
+var s=Math.round(a.s);if(s<1||A.ok)return;var c=a.c,e=env();
+for(;s>0;s-=120){try{sb.rpc("log_time",{p_sid:sid,p_secs:Math.min(s,120),p_page:c.page,p_uni:c.uni||null,p_major:c.major||null,p_year:c.year||null,p_subject:c.subject||null,p_dev:e.dev}).then(function(){},function(){})}catch(x){}}
+}
+function tflush(all){Object.keys(tAcc).forEach(function(k){var a=tAcc[k];if(all||a.s>=30){delete tAcc[k];tsend(a)}})}
+["mousemove","keydown","scroll","click","touchstart","wheel"].forEach(function(n){window.addEventListener(n,function(){lastAct=Date.now()},{passive:true,capture:true})});
+setInterval(function(){
+var now=Date.now(),dt=Math.min((now-lastTick)/1000,8);lastTick=now;
+var c=tctx();if(!c)return;var k=JSON.stringify(c);
+if(tKey&&k!==tKey&&tAcc[tKey]){var o=tAcc[tKey];delete tAcc[tKey];tsend(o)}
+tKey=k;
+if(document.visibilityState==="visible"&&now-lastAct<60000){(tAcc[k]=tAcc[k]||{c:c,s:0}).s+=dt}
+tflush(false)
+},5000);
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")tflush(true)});
+window.addEventListener("pagehide",function(){tflush(true)});
 var ann=null;
 function paintBanner(){
 var b=document.getElementById("sh-banner");
@@ -75,6 +93,7 @@ if(r.error){if(r.error.code==="23505")throw new Error("You already reported this
 a.textContent="Reported";a.disabled=true;setTimeout(function(){},0)}})
 },true);
 async function all(t,order,asc){var out=[],i=0;for(;;){var r=await sb.from(t).select("*").order(order,{ascending:!!asc}).range(i,i+999);if(r.error)throw r.error;out=out.concat(r.data);if(r.data.length<1000)break;i+=1000}return out}
+async function loadTime(){var r=await sb.rpc("admin_time");if(r.error)throw r.error;A.time=r.data}
 async function loadStats(){var r=await sb.rpc("admin_stats");if(r.error)throw r.error;A.stats=r.data}
 async function loadNames(){var r=await sb.from("profiles").select("id,name").limit(1000);if(r.data)r.data.forEach(function(p){A.names[p.id]=p.name})}
 async function loadFiles(){var r=await sb.from("files").select("id,title,uni,college,major,year,subject,kind,description,uploader_id,created_at,asset_path,size_bytes,file_name,featured").order("created_at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.files=r.data}
@@ -84,12 +103,13 @@ async function loadReports(){var r=await sb.from("reports").select("*").order("a
 async function loadAdmins(){var r=await sb.rpc("admin_list");if(r.error)throw r.error;A.admins=r.data}
 async function loadSite(){var r=await sb.from("site_settings").select("value").eq("key","announcement").maybeSingle();A.site=r.data&&r.data.value||{text:"",text_ar:"",on:false,until:""}}
 function ready(t){
-return t==="overview"?!!A.stats:t==="activity"?!!(A.files&&A.ratings&&A.users&&A.reports):t==="files"?!!A.files:t==="reviews"?!!(A.ratings&&A.files):t==="reports"?!!(A.reports&&A.files&&A.ratings):t==="users"?!!A.users:t==="cleanup"?!!(A.files&&A.stats):t==="site"?!!A.site:t==="admins"?!!A.admins:true
+return t==="overview"?!!A.stats:t==="activity"?!!(A.files&&A.ratings&&A.users&&A.reports):t==="files"?!!A.files:t==="reviews"?!!(A.ratings&&A.files):t==="reports"?!!(A.reports&&A.files&&A.ratings):t==="users"?!!A.users:t==="cleanup"?!!(A.files&&A.stats):t==="site"?!!A.site:t==="time"?!!A.time:t==="admins"?!!A.admins:true
 }
 async function load(t){
 A.err="";
 try{var P=[loadNames()];
 if(t==="overview")P.push(loadStats());
+if(t==="time")P.push(loadTime());
 if(t==="activity")P.push(loadFiles(),loadRatings(),loadUsers(),loadReports());
 if(t==="files"||t==="cleanup")P.push(loadFiles());
 if(t==="cleanup")P.push(loadStats());
@@ -225,9 +245,44 @@ return card("Back up everything",'<p class="adm-note">Downloads one ZIP with eve
 card("Restore from a backup",'<p class="adm-note">Choose a backup ZIP. Every file goes back to the right university, college, major, year and subject on its own; nothing needs sorting. Files already on the site are skipped, so it is safe to run twice. You can also restore a plain ZIP that uses the folder layout <code>files/University/College/Major/Year/Subject/name.pdf</code>.</p><input type="file" id="adm-rf" accept=".zip,.json"><div class="adm-a" style="margin-top:8px"><button class="btn primary small" data-adm-rs="1">Restore</button></div>')+
 '<pre id="adm-bklog" class="adm-log" aria-live="polite">'+esc(A.msg)+'</pre>'
 }
-var TABS=[["overview","Overview"],["activity","Activity"],["files","Files"],["reviews","Reviews"],["reports","Reports"],["users","Users"],["subjects","Subjects"],["cleanup","Cleanup"],["site","Site"],["admins","Admins","owner"],["backup","Backup","owner"]];
+function fmt(s){s=Math.round(+s||0);if(s<60)return s+" s";var m=Math.round(s/60);if(s<3600)return m+" min";var h=Math.floor(s/3600),mm=Math.round((s-h*3600)/60);if(mm===60){h++;mm=0}return h+" h"+(mm?" "+mm+" min":"")}
+function tbars(rows,lab,val,sub){
+if(!rows||!rows.length)return'<p class="adm-none">Nothing yet.</p>';
+var m=1;rows.forEach(function(r){if(r[val]>m)m=r[val]});
+return'<div class="adm-bars">'+rows.map(function(r){return'<div class="adm-b"><span class="adm-bl">'+esc(lab(r))+'</span><span class="adm-bt"><i style="width:'+Math.max(2,Math.round(100*r[val]/m))+'%"></i></span><b>'+fmt(r[val])+'</b></div>'}).join("")+'</div>'
+}
+function tchart(d,xl,tip){
+if(!d||!d.length)return"";var W=640,H=170,L=8,B=22,T=6,n=d.length,mx=1;d.forEach(function(x){if(x.secs>mx)mx=x.secs});
+var bw=(W-L)/n,g="";
+d.forEach(function(x,i){var h=(H-T-B)*x.secs/mx,xx=L+i*bw+bw*.15,w=bw*.7;
+g+='<g><title>'+esc(tip(x))+'</title><rect x="'+xx+'" y="'+(H-B-h)+'" width="'+w+'" height="'+Math.max(h,x.secs?2:0)+'" rx="2" fill="var(--accent)"/></g>';
+if(xl(x,i,n))g+='<text x="'+(xx+w/2)+'" y="'+(H-6)+'" text-anchor="'+(i===n-1&&n>24?"end":"middle")+'" font-size="11" fill="var(--muted)">'+esc(xl(x,i,n))+'</text>'});
+return'<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Time chart" style="display:block">'+g+'<line x1="'+L+'" x2="'+W+'" y1="'+(H-B)+'" y2="'+(H-B)+'" stroke="var(--line)"/></svg>'
+}
+function dayChart(d){return tchart(d,function(x,i,n){return(i%5===0&&n-1-i>2)||i===n-1?new Date(x.day).toLocaleDateString("en-GB",{day:"numeric",month:"short"}):""},function(x){return dt(x.day)+": "+fmt(x.secs)+(x.people?" · "+x.people+" people":"")})}
+function hrLab(h){h=+h;return(h%12||12)+(h<12?"am":"pm")}
+function timeTab(){
+var s=A.time;if(!s)return loading();
+var pg={home:"Home",library:"Library",upload:"Upload",majors:"Majors",guidelines:"Guidelines",admin:"Admin"};
+var mem=s.total-s.guest_secs,avg=s.members?mem/s.members:0;
+var users='<div class="adm-row"><div><b>Guests (not signed in)</b><span>'+nf(s.guests)+' visitor'+(s.guests===1?'':'s')+' on this and other devices</span></div><div class="adm-a"><b class="adm-size">'+fmt(s.guest_secs)+'</b></div></div>'+
+(s.users.length?s.users.map(function(u){return'<div class="adm-row"><div><b>'+esc(nm(u.uid))+'</b><span>'+nf(u.days)+' active day'+(u.days===1?'':'s')+' · first '+dt(u.first_at)+' · last active '+dtt(u.last_at)+'</span>'+(u.top_subject?'<span>Most time on: '+esc(u.top_subject)+'</span>':'')+'</div><div class="adm-a"><b class="adm-size">'+fmt(u.secs)+'</b><button class="btn small" data-adm-ut="'+esc(u.uid)+'">Details</button></div></div>'}).join(""):'<p class="adm-none">No signed-in members tracked yet.</p>');
+var subs=s.subjects.length?s.subjects.map(function(r){return'<div class="adm-row"><div><b>'+esc(r.subject)+'</b><span>'+esc([r.uni,r.major,r.year].filter(Boolean).join(" · "))+'</span><span>'+nf(r.people)+' '+(r.people===1?'person':'people')+' · last '+dtt(r.last_at)+'</span></div><div class="adm-a"><b class="adm-size">'+fmt(r.secs)+'</b></div></div>'}).join(""):'<p class="adm-none">No subject time yet. It counts while someone has a subject chosen in the Library.</p>';
+return'<div class="adm-kpis">'+kpi("Total time on the hub",fmt(s.total),"all visitors together")+kpi("Today",fmt(s.today),"Bahrain time")+kpi("Last 7 days",fmt(s.days7),"")+kpi("Average per member",fmt(avg),nf(s.members)+" signed-in member"+(s.members===1?"":"s"))+kpi("Guests",fmt(s.guest_secs),nf(s.guests)+" visitor"+(s.guests===1?"":"s"))+'</div>'+
+card("Time per day, last 30 days",dayChart(s.daily),'<p class="adm-note">Counts only time when the site is open on screen and the visitor is actually active (idle for a minute stops the clock). Your own time as admin is not counted.</p>')+
+'<div class="adm-2">'+card("Busiest hours (Bahrain time)",tchart(s.hours,function(x){return x.hr%6===0?hrLab(x.hr):""},function(x){return hrLab(x.hr)+": "+fmt(x.secs)}))+card("Time by page",tbars(s.pages,function(r){return pg[r.page]||r.page},"secs"))+'</div>'+
+card("Time per user",users)+
+card("Time per subject",subs,(s.no_subject?'<p class="adm-note">Another '+fmt(s.no_subject)+' was spent in the Library with no subject picked.</p>':''))
+}
+async function userTime(id){
+var r=await sb.rpc("admin_user_time",{p_uid:id});if(r.error){A.err=r.error.message;refresh();return}
+var d=r.data,pg={home:"Home",library:"Library",upload:"Upload",majors:"Majors",guidelines:"Guidelines"};
+var html='<p class="adm-note">Total: <b>'+fmt(d.total)+'</b></p>'+dayChart(d.daily)+'<h3 class="adm-h3">Subjects</h3>'+(d.subjects.length?tbars(d.subjects,function(x){return x.subject+" ("+x.major+")"},"secs"):'<p class="adm-none">No subject time yet.</p>')+'<h3 class="adm-h3">Recent activity</h3>'+(d.recent.length?d.recent.map(function(x){return'<div class="adm-b"><span class="adm-bl">'+esc(dtt(x.at))+'</span><span>'+esc((pg[x.page]||x.page)+(x.subject?" · "+x.subject:"")+(x.dev==="phone"?" · phone":""))+'</span><b>'+fmt(x.secs)+'</b></div>'}).join(""):'<p class="adm-none">Nothing yet.</p>');
+dlg({title:nm(id),intro:"Time on the hub (day chart follows Bahrain time)",html:html,ok:"Close",run:async function(){}})
+}
+var TABS=[["overview","Overview"],["time","Time"],["activity","Activity"],["files","Files"],["reviews","Reviews"],["reports","Reports"],["users","Users"],["subjects","Subjects"],["cleanup","Cleanup"],["site","Site"],["admins","Admins","owner"],["backup","Backup","owner"]];
 A.html=function(){
-var body={overview:overview,activity:activity,files:filesTab,reviews:reviewsTab,reports:reportsTab,users:usersTab,subjects:subjectsTab,cleanup:cleanupTab,site:siteTab,admins:adminsTab,backup:backupTab}[A.tab]();
+var body={overview:overview,time:timeTab,activity:activity,files:filesTab,reviews:reviewsTab,reports:reportsTab,users:usersTab,subjects:subjectsTab,cleanup:cleanupTab,site:siteTab,admins:adminsTab,backup:backupTab}[A.tab]();
 var openN=(A.reports||[]).filter(function(r){return r.status==="open"}).length;
 return'<div id="adm"><div class="pagehead"><h1>Admin</h1><p>'+(A.role==="owner"?"You are the owner.":"You are a moderator.")+' Deleting a file also removes its stored upload.</p></div>'+
 '<div class="seg adm-tabs" role="group" aria-label="Admin sections">'+TABS.filter(function(t){return !t[2]||A.role===t[2]}).map(function(t){return'<button data-adm-tab="'+t[0]+'" aria-pressed="'+(A.tab===t[0])+'"><b>'+t[1]+(t[0]==="reports"&&openN?' ('+openN+')':'')+'</b></button>'}).join("")+'<button data-adm-reload="1" aria-label="Reload"><b>Reload</b></button></div>'+
@@ -380,13 +435,14 @@ A.busy=false
 document.addEventListener("click",function(e){
 if(!A.ok)return;var t=e.target,x;
 if(x=t.closest("[data-adm-tab]")){A.tab=x.getAttribute("data-adm-tab");A.err="";refresh();return}
-if(t.closest("[data-adm-reload]")){A.stats=A.files=A.ratings=A.users=A.reports=A.admins=A.site=null;refresh();return}
+if(t.closest("[data-adm-reload]")){A.stats=A.files=A.ratings=A.users=A.reports=A.admins=A.site=A.time=null;refresh();return}
 if(x=t.closest("[data-adm-df]")){two(x,"Delete",function(){return delFile(x.getAttribute("data-adm-df"))});return}
 if(x=t.closest("[data-adm-dr]")){two(x,"Delete",function(){return delRev(x.getAttribute("data-adm-dr"))});return}
 if(x=t.closest("[data-adm-pu]")){two(x,"Delete content",function(){return purge(x.getAttribute("data-adm-pu"))});return}
 if(x=t.closest("[data-adm-ban]")){var p=x.getAttribute("data-adm-ban").split(":");x.disabled=true;ban(p[0],p[1]==="1").catch(function(er){A.err=er.message;refresh()});return}
 if(x=t.closest("[data-adm-ed]")){editFile(x.getAttribute("data-adm-ed"));return}
 if(x=t.closest("[data-adm-ft]")){toggleFeat(x.getAttribute("data-adm-ft"),x);return}
+if(x=t.closest("[data-adm-ut]")){userTime(x.getAttribute("data-adm-ut"));return}
 if(x=t.closest("[data-adm-rn]")){renameUser(x.getAttribute("data-adm-rn"));return}
 if(x=t.closest("[data-adm-rok]")){repAct(x.getAttribute("data-adm-rok"),"ok").catch(function(er){A.err=er.message;refresh()});return}
 if(x=t.closest("[data-adm-rrm]")){repAct(x.getAttribute("data-adm-rrm"),"rm").catch(function(er){A.err=er.message;refresh()});return}

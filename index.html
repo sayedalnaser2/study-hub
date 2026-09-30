@@ -425,7 +425,7 @@ var BUCKET="files";
   function subjectsFor(o){var m={};listed(o).forEach(function(k){m[k]=0});S.files.forEach(function(f){if(within(f,o)&&f.subject)m[f.subject]=(m[f.subject]||0)+1});return Object.keys(m).sort().map(function(k){return[k,m[k]]})}
   function count(o){return S.files.filter(function(f){return within(f,o)}).length}
 
-  function go(p){S.page=p;S.msg=null;try{history.replaceState(null,"","#"+p)}catch(e){}render();window.scrollTo(0,0)}
+  function go(p){S.page=p;S.msg=null;S.toast=null;try{history.replaceState(null,"","#"+p)}catch(e){}render();window.scrollTo(0,0)}
   function nav(){$("#nav").innerHTML=PAGES.concat(window.__adm&&window.__adm.ok?[["admin","Admin"]]:[]).map(function(p){return '<button data-go="'+p[0]+'"'+(S.page===p[0]?' aria-current="page"':'')+'>'+p[1]+'</button>'}).join("")}
 
   function stats(id){var r=S.ratings[id]||{},k=Object.keys(r),n=k.length,t=0;k.forEach(function(x){t+=r[x].stars});return{n:n,avg:n?t/n:0,mine:S.me&&r[S.me]?r[S.me]:null}}
@@ -484,7 +484,7 @@ var BUCKET="files";
   function library(){
     var F=S.filter;
     var subs=subjectsFor(F);
-    return '<div class="pagehead"><h1>Library</h1><p>Narrow it down in order: university, college or school, major, year, then subject.</p></div>'+
+    return '<div class="pagehead"><h1>Library</h1><p>Narrow it down in order: university, college or school, major, year, then subject.</p></div>'+(S.toast?'<div class="note ok" id="toast" role="status">'+esc(S.toast)+'</div>':'')+
     '<div class="filters">'+
     '<label>1 · University<select id="fu"><option value="">All universities</option>'+UNIS.map(function(u){return '<option value="'+u.id+'"'+(F.uni===u.id?' selected':'')+'>'+esc(u.name)+'</option>'}).join("")+'</select></label>'+
     '<label>2 · '+(F.uni?unitWord(F.uni):'College / School')+'<select id="fc"'+(F.uni?'':' disabled')+'><option value="">All</option>'+collegeOpts(F.uni,F.college)+'</select></label>'+
@@ -526,17 +526,22 @@ var BUCKET="files";
     var opts='<option value="">Choose your subject</option>'+L.concat(extras).map(function(k){return '<option value="'+esc(k)+'"'+(sel===k?' selected':'')+'>'+esc(k)+'</option>'}).join("")+'<option value="__other"'+(sel==='__other'?' selected':'')+'>Another subject (type it)</option>';
     return '<label>5 · Subject <small>From the '+esc(U.year)+' study plan</small><select id="psl">'+opts+'</select></label>'+(U.other?'<label class="full">Subject name<input type="text" id="ps" maxlength="80" placeholder="Course code and name" value="'+esc(U.subject)+'"></label>':'')
   }
+  function locFields(){
+    return '<div class="full"><div class="lbl">1 · University</div><div class="choice">'+UNIS.map(function(x){return '<button type="button" data-pu="'+x.id+'" aria-pressed="'+(U.uni===x.id)+'"><b>'+esc(x.short)+'</b><span>'+esc(x.name)+'</span></button>'}).join("")+'</div></div>'+
+    '<label class="full">2 · '+(U.uni?unitWord(U.uni):'College / School')+'<select id="pc"'+(U.uni?'':' disabled')+'><option value="">'+(U.uni?'Choose your '+unitWord(U.uni).toLowerCase():'Choose a university first')+'</option>'+collegeOpts(U.uni,U.college)+'</select></label>'+
+    '<label class="full">3 · Major<select id="pm"'+(U.college?'':' disabled')+'><option value="">'+(U.college?'Choose your major':'Choose a '+(U.uni?unitWord(U.uni).toLowerCase():'college')+' first')+'</option>'+majorOpts(U.uni,U.college,U.major)+'</select></label>'+
+    '<label>4 · Year<select id="py"'+(U.major?'':' disabled')+'><option value="">'+(U.major?'Choose your year':'Choose a major first')+'</option>'+yearOpts(U.uni,U.year)+'</select></label>'
+  }
+  function lockedBar(){
+    return '<div class="full here"><span>Adding to <b>'+esc(uni(U.uni).short)+' · '+esc(U.major)+' · '+esc(U.year)+(U.subject&&!U.other?' · '+esc(U.subject):'')+'</b></span><button type="button" class="btn small" data-unlock="1">Change</button></div>'
+  }
   function uploadPage(){
     var m=S.msg,can=S.assets&&S.dbOk&&S.me,u=uni(U.uni);
     return '<div class="pagehead"><h1>Upload a file</h1><p>Tell us where it belongs so classmates in your course can find it. PDFs, images and text files up to 20 MB.</p></div>'+
     (!can&&S.loaded?(S.dbOk&&!S.me?'<div class="note">Sign in to upload files. <button class="btn small primary" data-auth="1">Sign in or sign up</button></div>':'<div class="note">Uploading is not available right now. Check that the hub is connected to Supabase.</div>'):'')+
     (m?'<div class="note '+(m.ok?'ok':'bad')+'" role="status">'+esc(m.text)+'</div>':'')+
     '<form class="form" id="upf" novalidate>'+
-    '<div class="full"><div class="lbl">1 · University</div><div class="choice">'+UNIS.map(function(x){return '<button type="button" data-pu="'+x.id+'" aria-pressed="'+(U.uni===x.id)+'"><b>'+esc(x.short)+'</b><span>'+esc(x.name)+'</span></button>'}).join("")+'</div></div>'+
-    '<label class="full">2 · '+(U.uni?unitWord(U.uni):'College / School')+'<select id="pc"'+(U.uni?'':' disabled')+'><option value="">'+(U.uni?'Choose your '+unitWord(U.uni).toLowerCase():'Choose a university first')+'</option>'+collegeOpts(U.uni,U.college)+'</select></label>'+
-    '<label class="full">3 · Major<select id="pm"'+(U.college?'':' disabled')+'><option value="">'+(U.college?'Choose your major':'Choose a '+(U.uni?unitWord(U.uni).toLowerCase():'college')+' first')+'</option>'+majorOpts(U.uni,U.college,U.major)+'</select></label>'+
-    '<label>4 · Year<select id="py"'+(U.major?'':' disabled')+'><option value="">'+(U.major?'Choose your year':'Choose a major first')+'</option>'+yearOpts(U.uni,U.year)+'</select></label>'+
-    subjectField()+
+    (U.locked&&U.uni&&U.college&&U.major&&U.year?lockedBar()+(U.subject&&!U.other?'':subjectField()):locFields()+subjectField())+
     '<label class="full drop" id="drop" for="file"><input type="file" id="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.svg,.txt,.md,.csv"><strong id="dname">Choose a file or drop it here</strong><span id="dhint">PDF, PNG, JPG, TXT, MD or CSV</span></label>'+
     '<label class="full">Title<input type="text" id="pt" maxlength="120" placeholder="e.g. Week 4 lecture slides: Loops" value="'+esc(U.title)+'"></label>'+
     '<label>Type<select id="pk">'+KINDS.map(function(k){return '<option value="'+esc(k)+'"'+(U.kind===k?' selected':'')+'>'+k+'</option>'}).join("")+'</select></label>'+
@@ -585,9 +590,9 @@ var BUCKET="files";
     ["dragenter","dragover"].forEach(function(n){drop.addEventListener(n,function(e){e.preventDefault();drop.classList.add("over")})});
     ["dragleave","drop"].forEach(function(n){drop.addEventListener(n,function(e){e.preventDefault();drop.classList.remove("over")})});
     drop.addEventListener("drop",function(e){if(e.dataTransfer.files[0])pick(e.dataTransfer.files[0])});
-    $("#pc").addEventListener("change",function(e){U.college=e.target.value;U.major=U.year=U.subject="";U.other=false;render()});
-    $("#pm").addEventListener("change",function(e){U.major=e.target.value;U.year=U.subject="";U.other=false;render()});
-    $("#py").addEventListener("change",function(e){U.year=e.target.value;U.subject="";U.other=false;render()});
+    var pcs=$("#pc");if(pcs)pcs.addEventListener("change",function(e){U.college=e.target.value;U.major=U.year=U.subject="";U.other=false;render()});
+    var pms=$("#pm");if(pms)pms.addEventListener("change",function(e){U.major=e.target.value;U.year=U.subject="";U.other=false;render()});
+    var pys=$("#py");if(pys)pys.addEventListener("change",function(e){U.year=e.target.value;U.subject="";U.other=false;render()});
     var ps=$("#ps");if(ps)ps.addEventListener("input",function(e){U.subject=e.target.value});
     var psl=$("#psl");if(psl)psl.addEventListener("change",function(e){var v=e.target.value;if(v==="__other"){U.other=true;U.subject=""}else{U.other=false;U.subject=v}render()});
     $("#pt").addEventListener("input",function(e){U.title=e.target.value});
@@ -610,7 +615,10 @@ var BUCKET="files";
     try{
       var e=ext(picked.name),a=await S.assets.upload(picked,{type:OK_EXT[e]});
       await S.db.collection("files").add({title:title,uni:U.uni,college:U.college,major:U.major,year:U.year,subject:subj,kind:U.kind,description:U.desc.trim(),assetId:a.id,contentType:a.contentType,sizeBytes:a.sizeBytes,fileName:picked.name,uploaderId:S.me||"",createdAt:Date.now()});
-      picked=null;U.title=U.subject=U.desc="";S.msg={ok:true,text:"Shared. Classmates in "+U.major+", "+U.year+" can now find \""+title+"\" in the Library."};render()
+      var okText="Shared. Classmates in "+U.major+", "+U.year+" can now find \""+title+"\" in the Library.";
+      picked=null;S.filter={uni:U.uni,college:U.college,major:U.major,year:U.year,subject:subj,kind:"",q:"",sort:"new"};U.title=U.subject=U.desc="";U.locked=false;
+      S.msg=null;S.toast=okText;S.page="library";try{history.replaceState(null,"","#library")}catch(e){}render();window.scrollTo(0,0);
+      setTimeout(function(){if(S.toast===okText){S.toast=null;var n=document.getElementById("toast");if(n)n.remove()}},8000)
     }catch(err){
       var c=err&&err.code,t="The upload did not finish. Try again in a moment.";
       if(c==="quota_exceeded"||c==="quota")t="The hub is out of storage space.";
@@ -644,12 +652,13 @@ var BUCKET="files";
   function typing(){var a=document.activeElement;return !!(a&&a.classList&&a.classList.contains("rv-text"))}
   document.addEventListener("click",function(e){
     var t=e.target;
-    var g=t.closest("[data-go]");if(g){go(g.getAttribute("data-go"));return}
+    var g=t.closest("[data-go]");if(g){if(g.getAttribute("data-go")==="upload")U.locked=false;go(g.getAttribute("data-go"));return}
     var un=t.closest("[data-uni]");if(un){S.filter={uni:un.getAttribute("data-uni"),college:"",major:"",year:"",subject:"",kind:"",q:"",sort:"new"};go("library");return}
     var mu=t.closest("[data-mu]");if(mu){S.majorsUni=mu.getAttribute("data-mu");render();return}
     var mj=t.closest("[data-major]");if(mj){S.filter={uni:mj.getAttribute("data-u"),college:collegeOf(mj.getAttribute("data-u"),mj.getAttribute("data-major")),major:mj.getAttribute("data-major"),year:"",subject:"",kind:"",q:"",sort:"new"};go("library");return}
     var pu=t.closest("[data-pu]");if(pu){var id=pu.getAttribute("data-pu");if(U.uni!==id){U.uni=id;U.college=U.major=U.year=U.subject="";U.other=false}render();return}
-    if(t.closest("[data-here]")){var F=S.filter;U.uni=F.uni;U.college=F.college;U.major=F.major;U.year=F.year;U.subject=F.subject||"";U.other=false;go("upload");return}
+    if(t.closest("[data-unlock]")){U.locked=false;render();return}
+    if(t.closest("[data-here]")){var F=S.filter;U.locked=true;U.uni=F.uni;U.college=F.college;U.major=F.major;U.year=F.year;U.subject=F.subject||"";U.other=false;go("upload");return}
     var rv=t.closest("[data-rv]");if(rv){var i0=rv.getAttribute("data-rv");S.open[i0]=!S.open[i0];relib();return}
     var rs=t.closest("[data-rs]");if(rs){var p=rs.getAttribute("data-rs").split(":");(S.draft[p[0]]=S.draft[p[0]]||{stars:0,text:""}).stars=+p[1];relib();return}
     var sv=t.closest("[data-rsave]");if(sv){saveReview(sv.getAttribute("data-rsave"));return}
@@ -730,7 +739,7 @@ var BUCKET="files";
     "Pick 1 to 5 stars first.":"اختر من نجمة إلى 5 نجوم أولًا.","Reviewing needs contributor access to this hub.":"كتابة التقييم تتطلب تسجيل الدخول.",
     "No files here yet":"لا توجد ملفات هنا بعد","Be the first to share notes, slides or a past paper.":"كن أول من يشارك ملاحظات أو شرائح أو اختبارًا سابقًا.",
     "Nothing matches":"لا توجد نتائج مطابقة","Try another subject or clear a filter.":"جرّب مادة أخرى أو امسح أحد المرشحات.",
-    "Adding to":"الإضافة إلى","A few rules keep the hub useful for everyone.":"بضع قواعد تُبقي المركز مفيدًا للجميع.",
+    "Adding to":"الإضافة إلى","Change":"تغيير","A few rules keep the hub useful for everyone.":"بضع قواعد تُبقي المركز مفيدًا للجميع.",
     "What to share":"ما الذي تشاركه","Your own notes, summaries and slides.":"ملاحظاتك وملخصاتك وشرائحك.","Past papers your instructor already handed out.":"اختبارات سابقة وزّعها مدرّسك.","Anything that helped you understand a topic.":"أي شيء ساعدك على فهم موضوع ما.",
     "What to leave out":"ما الذي تتجنبه","Files with private information such as phone numbers or ID cards.":"ملفات فيها معلومات خاصة مثل أرقام الهواتف أو البطاقات الشخصية.","Copied textbooks or paid course material you do not have permission to share.":"كتب منسوخة أو مواد مدفوعة ليس لديك إذن بمشاركتها.","Graded work belonging to someone else.":"أعمال مصححة تخص شخصًا آخر.",
     "Word and PowerPoint files":"ملفات Word وPowerPoint","The hub opens PDFs, images and text. Save your document as a PDF first, then upload it.":"يعرض المركز ملفات PDF والصور والنصوص. احفظ مستندك بصيغة PDF أولًا ثم ارفعه.",

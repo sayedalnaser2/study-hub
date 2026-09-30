@@ -64,6 +64,7 @@ main{padding-block:40px 72px;display:flex;flex-direction:column;gap:40px}
 .meta .tag{font-family:var(--mono);font-size:12px;color:var(--fg)}
 .desc{color:var(--muted);font-size:14px;margin-top:4px;overflow-wrap:anywhere}
 .here{display:flex;gap:10px 14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 12px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:14px;color:var(--muted)}.here b{color:var(--fg);font-weight:600;overflow-wrap:anywhere}
+.upl{display:inline-block;margin-left:4px;padding:2px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font:600 11px/1.4 var(--mono,ui-monospace,monospace);letter-spacing:.06em;vertical-align:1px}
 .rate{display:flex;align-items:center;gap:2px 8px;margin-top:6px;flex-wrap:wrap}
 .stars .s,.rv-h .s{color:var(--line);font-size:16px;line-height:1}.stars .s.on,.rv-h .s.on{color:var(--accent)}
 .rate .rt{color:var(--muted);font-size:13px}
@@ -383,7 +384,7 @@ var BUCKET="files";
     var r=S.ratings[f.id]||{},ids=Object.keys(r).sort(function(x,y){return (r[y].at||0)-(r[x].at||0)});
     h+='<div class="rvs">';
     if(!ids.length)h+='<p class="rv-none">No reviews yet. Be the first.</p>';
-    ids.forEach(function(u){var v=r[u];h+='<div class="rv"><div class="rv-h"><b>'+esc(u===S.me?"You":who(u))+(f.uploaderId===u?' <span class="tag">uploader</span>':'')+'</b>'+starStr(v.stars)+'<span class="rv-d">'+esc(ago(v.at))+'</span></div>'+(v.text?'<p>'+esc(v.text)+'</p>':'')+'</div>'});
+    ids.forEach(function(u){var v=r[u];h+='<div class="rv"><div class="rv-h"><b>'+esc(u===S.me?"You":who(u))+(f.uploaderId===u?' <span class="upl">UPLOADER</span>':'')+'</b>'+starStr(v.stars)+'<span class="rv-d">'+esc(ago(v.at))+'</span></div>'+(v.text?'<p>'+esc(v.text)+'</p>':'')+'</div>'});
     if(can){
       var d=S.draft[f.id]||(S.draft[f.id]={stars:st.mine?st.mine.stars:0,text:st.mine?st.mine.text||"":""});
       h+='<div class="rv-form"><div class="rv-pick" role="group" aria-label="Your rating">';

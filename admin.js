@@ -1,6 +1,6 @@
 (function(){
 var sb=window.__sb;if(!sb)return;
-var A={rev:null,revF:"todo",ok:false,role:null,tab:"overview",stats:null,stor:null,time:null,files:null,ratings:null,users:null,reports:null,admins:null,site:null,names:{},err:"",q:"",busy:false,me:null,ccRows:[],sub:{uni:"",college:"",major:"",year:""},msg:""};
+var A={rev:null,revF:"all",ok:false,role:null,tab:"overview",stats:null,stor:null,time:null,files:null,ratings:null,users:null,reports:null,admins:null,site:null,names:{},err:"",q:"",busy:false,me:null,ccRows:[],sub:{uni:"",college:"",major:"",year:""},msg:""};
 window.__adm=A;
 var ZIPURL="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",FREE=1073741824,KINDS=["Notes","Slides","Past paper","Summary","Worksheet","Other"];
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -192,13 +192,17 @@ pd.forEach(function(f){var v=A.rev[f.id];if(!v)n.todo++;else if(v.status==="queu
 var F=A.revF,list=pd.filter(function(f){var v=A.rev[f.id];return F==="all"||(F==="todo"&&!v)||(F==="queued"&&v&&v.status==="queued")||(F==="done"&&v&&v.status!=="queued")||(F==="flag"&&v&&(v.status==="warn"||v.status==="bad"))});
 var rank=function(f){var v=A.rev[f.id];return !v?3:v.status==="queued"?0:v.status==="bad"?1:v.status==="warn"?2:4};
 list.sort(function(a,b){return rank(a)-rank(b)||new Date(b.created_at)-new Date(a.created_at)});
-var tabs=[["todo","Not reviewed ("+n.todo+")"],["queued","Waiting ("+n.queued+")"],["done","Reviewed ("+n.done+")"],["flag","Flagged ("+n.flag+")"],["all","All ("+pd.length+")"]];
+var tabs=[["all","Everything ("+pd.length+")"],["todo","Not reviewed ("+n.todo+")"],["queued","Waiting ("+n.queued+")"],["done","Reviewed ("+n.done+")"],["flag","Flagged ("+n.flag+")"]];
 var head='<p class="adm-note">Press <b>Add to queue</b> on the PDFs you want checked (or add every new one at once). Then tell Claude in the chat: <b>“review the queue”</b>. Claude opens each waiting PDF, checks it for private information, copied or paid material and whether it matches its subject and grade, then writes what it is and what it thinks. Results appear here and only you can see them.</p>'+
 '<div class="adm-tools"><div class="seg" role="group" aria-label="Filter">'+tabs.map(function(x){return'<button data-adm-rvf="'+x[0]+'" aria-pressed="'+(F===x[0])+'"><b>'+x[1]+'</b></button>'}).join("")+'</div>'+(n.todo?'<button class="btn small primary" data-adm-rq="all">Add all '+n.todo+' new PDF'+(n.todo>1?'s':'')+' to the queue</button>':'')+'</div>';
-return head+(list.length?list.map(function(f){var v=A.rev[f.id],s=v&&RV[v.status];
+var row=function(f){var v=A.rev[f.id],s=v&&RV[v.status];
 return'<div class="adm-row"><div><b>'+esc(f.title)+(s?' <span class="'+(s[1]||"adm-tag")+'">'+s[0]+'</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+(f.hidden?' · hidden':'')+'</span>'+
 (v&&v.status!=="queued"?(v.flags?'<span><b>Flags:</b> '+esc(v.flags)+'</span>':'<span><b>Flags:</b> none</span>')+(v.matches?'<span><b>Matches its subject and grade:</b> '+esc(v.matches)+'</span>':'')+(v.summary?'<p>'+esc(v.summary)+'</p>':'')+'<span>Reviewed '+dtt(v.reviewed_at)+'</span>':'')+'</div>'+
-'<div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a>'+(v&&v.status==="queued"?'<button class="btn small" data-adm-rq="-'+esc(f.id)+'">Remove from queue</button>':'<button class="btn small" data-adm-rq="'+esc(f.id)+'">'+(v?'Review again':'Add to queue')+'</button>')+(v&&(v.status==="warn"||v.status==="bad")?'<button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button>':'')+'</div></div>'}).join(""):'<p class="adm-none">Nothing here.</p>')
+'<div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a>'+(v&&v.status==="queued"?'<button class="btn small" data-adm-rq="-'+esc(f.id)+'">Remove from queue</button>':'<button class="btn small" data-adm-rq="'+esc(f.id)+'">'+(v?'Review again':'Add to queue')+'</button>')+(v&&(v.status==="warn"||v.status==="bad")?'<button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button>':'')+'</div></div>'};
+var sum='<div class="stats" style="grid-template-columns:repeat(4,minmax(0,1fr));margin:14px 0">'+[["Not reviewed",n.todo],["Waiting for Claude",n.queued],["Reviewed",n.done],["Flagged",n.flag]].map(function(x){return'<div style="padding:12px"><b>'+x[1]+'</b><span>'+x[0]+'</span></div>'}).join("")+'</div>';
+if(F==="all"){var gs=[["Waiting for Claude",function(v){return v&&v.status==="queued"}],["Not reviewed yet",function(v){return !v}],["Reviewed",function(v){return v&&v.status!=="queued"}]];
+return head+sum+gs.map(function(g){var l=list.filter(function(f){return g[1](A.rev[f.id])});return'<h3 class="adm-h3">'+g[0]+' ('+l.length+')</h3>'+(l.length?l.map(row).join(""):'<p class="adm-none">None.</p>')}).join("")}
+return head+sum+(list.length?list.map(row).join(""):'<p class="adm-none">Nothing here.</p>')
 }
 async function rq(k){
 var rows,r;

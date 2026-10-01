@@ -1,6 +1,6 @@
 (function(){
 var sb=window.__sb;if(!sb)return;
-var A={ok:false,role:null,tab:"overview",stats:null,stor:null,time:null,files:null,ratings:null,users:null,reports:null,admins:null,site:null,names:{},err:"",q:"",busy:false,me:null,ccRows:[],sub:{uni:"",college:"",major:"",year:""},msg:""};
+var A={rev:null,revF:"todo",ok:false,role:null,tab:"overview",stats:null,stor:null,time:null,files:null,ratings:null,users:null,reports:null,admins:null,site:null,names:{},err:"",q:"",busy:false,me:null,ccRows:[],sub:{uni:"",college:"",major:"",year:""},msg:""};
 window.__adm=A;
 var ZIPURL="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",FREE=1073741824,KINDS=["Notes","Slides","Past paper","Summary","Worksheet","Other"];
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -100,14 +100,15 @@ async function all(t,order,asc){var out=[],i=0;for(;;){var r=await sb.from(t).se
 async function loadTime(){var r=await sb.rpc("admin_time");if(r.error)throw r.error;A.time=r.data}
 async function loadStats(){var r=await sb.rpc("admin_stats");if(r.error)throw r.error;try{var q=await sb.rpc("admin_storage");A.stor=q.error?null:q.data}catch(e){A.stor=null}A.stats=r.data}
 async function loadNames(){var r=await sb.from("profiles").select("id,name").limit(1000);if(r.data)r.data.forEach(function(p){A.names[p.id]=p.name})}
-async function loadFiles(){var r=await sb.from("files").select("id,title,uni,college,major,year,subject,kind,description,uploader_id,created_at,asset_path,size_bytes,file_name,featured,hidden").order("created_at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.files=r.data}
+async function loadFiles(){var r=await sb.from("files").select("id,title,uni,college,major,year,subject,kind,description,uploader_id,created_at,asset_path,size_bytes,file_name,featured,hidden,content_type").order("created_at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.files=r.data}
+async function loadRev(){var r=await sb.from("file_reviews").select("*");if(r.error)throw r.error;A.rev={};r.data.forEach(function(x){A.rev[x.file_id]=x})}
 async function loadRatings(){var r=await sb.from("ratings").select("file_id,user_id,stars,text,at").order("at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.ratings=r.data}
 async function loadUsers(){var r=await sb.rpc("admin_users");if(r.error)throw r.error;A.users=r.data}
 async function loadReports(){var r=await sb.from("reports").select("*").order("at",{ascending:false}).limit(300);if(r.error)throw r.error;A.reports=r.data}
 async function loadAdmins(){var r=await sb.rpc("admin_list");if(r.error)throw r.error;A.admins=r.data}
 async function loadSite(){var r=await sb.from("site_settings").select("value").eq("key","announcement").maybeSingle();A.site=r.data&&r.data.value||{text:"",text_ar:"",on:false,until:""}}
 function ready(t){
-return t==="overview"?!!A.stats:t==="activity"?!!(A.files&&A.ratings&&A.users&&A.reports):t==="files"?!!A.files:t==="reviews"?!!(A.ratings&&A.files):t==="reports"?!!(A.reports&&A.files&&A.ratings):t==="users"?!!A.users:t==="cleanup"?!!(A.files&&A.stats):t==="site"?!!A.site:t==="time"?!!A.time:t==="admins"?!!A.admins:true
+return t==="overview"?!!A.stats:t==="activity"?!!(A.files&&A.ratings&&A.users&&A.reports):t==="files"?!!A.files:t==="pdfrev"?!!(A.files&&A.rev):t==="reviews"?!!(A.ratings&&A.files):t==="reports"?!!(A.reports&&A.files&&A.ratings):t==="users"?!!A.users:t==="cleanup"?!!(A.files&&A.stats):t==="site"?!!A.site:t==="time"?!!A.time:t==="admins"?!!A.admins:true
 }
 async function load(t){
 A.err="";
@@ -115,7 +116,8 @@ try{var P=[loadNames()];
 if(t==="overview")P.push(loadStats());
 if(t==="time")P.push(loadTime());
 if(t==="activity")P.push(loadFiles(),loadRatings(),loadUsers(),loadReports());
-if(t==="files"||t==="cleanup")P.push(loadFiles());
+if(t==="files"||t==="cleanup"||t==="pdfrev")P.push(loadFiles());
+if(t==="pdfrev")P.push(loadRev());
 if(t==="cleanup")P.push(loadStats());
 if(t==="reviews"||t==="reports")P.push(loadRatings(),loadFiles());
 if(t==="reports")P.push(loadReports());
@@ -180,6 +182,32 @@ return'<div class="adm-tools"><input type="search" id="adm-q" placeholder="Searc
 function fileRows(r){
 if(!r.length)return'<p class="adm-none">No files.</p>';
 return r.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+(f.featured?' <span class="adm-me">FEATURED</span>':'')+(f.hidden?' <span class="adm-ban">HIDDEN</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+'</span></div><div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button><button class="btn small" data-adm-ft="'+esc(f.id)+'">'+(f.featured?'Unfeature':'Feature')+'</button><button class="btn small" data-adm-ed="'+esc(f.id)+'">Edit</button><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join("")
+}
+function isPdf(f){return /pdf/i.test(f.content_type||"")||/\.pdf$/i.test(f.asset_path||"")}
+var RV={queued:["WAITING",""],ok:["LOOKS FINE","adm-me"],warn:["CHECK THIS","adm-ban"],bad:["PROBLEM","adm-ban"]};
+function pdfRevTab(){
+if(!A.files||!A.rev)return loading();
+var pd=A.files.filter(isPdf),n={todo:0,queued:0,done:0,flag:0};
+pd.forEach(function(f){var v=A.rev[f.id];if(!v)n.todo++;else if(v.status==="queued")n.queued++;else{n.done++;if(v.status!=="ok")n.flag++}});
+var F=A.revF,list=pd.filter(function(f){var v=A.rev[f.id];return F==="all"||(F==="todo"&&!v)||(F==="queued"&&v&&v.status==="queued")||(F==="done"&&v&&v.status!=="queued")||(F==="flag"&&v&&(v.status==="warn"||v.status==="bad"))});
+var rank=function(f){var v=A.rev[f.id];return !v?3:v.status==="queued"?0:v.status==="bad"?1:v.status==="warn"?2:4};
+list.sort(function(a,b){return rank(a)-rank(b)||new Date(b.created_at)-new Date(a.created_at)});
+var tabs=[["todo","Not reviewed ("+n.todo+")"],["queued","Waiting ("+n.queued+")"],["done","Reviewed ("+n.done+")"],["flag","Flagged ("+n.flag+")"],["all","All ("+pd.length+")"]];
+var head='<p class="adm-note">Press <b>Add to queue</b> on the PDFs you want checked (or add every new one at once). Then tell Claude in the chat: <b>“review the queue”</b>. Claude opens each waiting PDF, checks it for private information, copied or paid material and whether it matches its subject and grade, then writes what it is and what it thinks. Results appear here and only you can see them.</p>'+
+'<div class="adm-tools"><div class="seg" role="group" aria-label="Filter">'+tabs.map(function(x){return'<button data-adm-rvf="'+x[0]+'" aria-pressed="'+(F===x[0])+'"><b>'+x[1]+'</b></button>'}).join("")+'</div>'+(n.todo?'<button class="btn small primary" data-adm-rq="all">Add all '+n.todo+' new PDF'+(n.todo>1?'s':'')+' to the queue</button>':'')+'</div>';
+return head+(list.length?list.map(function(f){var v=A.rev[f.id],s=v&&RV[v.status];
+return'<div class="adm-row"><div><b>'+esc(f.title)+(s?' <span class="'+(s[1]||"adm-tag")+'">'+s[0]+'</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+(f.hidden?' · hidden':'')+'</span>'+
+(v&&v.status!=="queued"?(v.flags?'<span><b>Flags:</b> '+esc(v.flags)+'</span>':'<span><b>Flags:</b> none</span>')+(v.matches?'<span><b>Matches its subject and grade:</b> '+esc(v.matches)+'</span>':'')+(v.summary?'<p>'+esc(v.summary)+'</p>':'')+'<span>Reviewed '+dtt(v.reviewed_at)+'</span>':'')+'</div>'+
+'<div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a>'+(v&&v.status==="queued"?'<button class="btn small" data-adm-rq="-'+esc(f.id)+'">Remove from queue</button>':'<button class="btn small" data-adm-rq="'+esc(f.id)+'">'+(v?'Review again':'Add to queue')+'</button>')+(v&&(v.status==="warn"||v.status==="bad")?'<button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button>':'')+'</div></div>'}).join(""):'<p class="adm-none">Nothing here.</p>')
+}
+async function rq(k){
+var rows,r;
+if(k==="all"){rows=A.files.filter(function(f){return isPdf(f)&&!A.rev[f.id]}).map(function(f){return{file_id:f.id,status:"queued",requested_at:new Date().toISOString()}})}
+else if(k.charAt(0)==="-"){r=await sb.from("file_reviews").delete().eq("file_id",k.slice(1));if(r.error)throw r.error;delete A.rev[k.slice(1)];refresh();return}
+else rows=[{file_id:k,status:"queued",requested_at:new Date().toISOString()}];
+if(!rows.length)return;
+r=await sb.from("file_reviews").upsert(rows,{onConflict:"file_id"});if(r.error)throw r.error;
+await loadRev();refresh()
 }
 function reviewsTab(){
 if(!ready("reviews"))return loading();
@@ -285,9 +313,9 @@ var d=r.data,pg={home:"Home",library:"Library",upload:"Upload",majors:"Majors",g
 var html='<p class="adm-note">Total: <b>'+fmt(d.total)+'</b></p>'+dayChart(d.daily)+'<h3 class="adm-h3">Subjects</h3>'+(d.subjects.length?tbars(d.subjects,function(x){return x.subject+" ("+x.major+")"},"secs"):'<p class="adm-none">No subject time yet.</p>')+'<h3 class="adm-h3">Recent activity</h3>'+(d.recent.length?d.recent.map(function(x){return'<div class="adm-b"><span class="adm-bl">'+esc(dtt(x.at))+'</span><span>'+esc((pg[x.page]||x.page)+(x.subject?" · "+x.subject:"")+(x.dev==="phone"?" · phone":""))+'</span><b>'+fmt(x.secs)+'</b></div>'}).join(""):'<p class="adm-none">Nothing yet.</p>');
 dlg({title:nm(id),intro:"Time on the hub (day chart follows Bahrain time)",html:html,ok:"Close",run:async function(){}})
 }
-var TABS=[["overview","Overview"],["time","Time"],["activity","Activity"],["files","Files"],["reviews","Reviews"],["reports","Reports"],["users","Users"],["subjects","Subjects"],["cleanup","Cleanup"],["site","Site"],["admins","Admins","owner"],["backup","Backup","owner"]];
+var TABS=[["overview","Overview"],["time","Time"],["activity","Activity"],["files","Files"],["pdfrev","Review PDFs"],["reviews","Reviews"],["reports","Reports"],["users","Users"],["subjects","Subjects"],["cleanup","Cleanup"],["site","Site"],["admins","Admins","owner"],["backup","Backup","owner"]];
 A.html=function(){
-var body={overview:overview,time:timeTab,activity:activity,files:filesTab,reviews:reviewsTab,reports:reportsTab,users:usersTab,subjects:subjectsTab,cleanup:cleanupTab,site:siteTab,admins:adminsTab,backup:backupTab}[A.tab]();
+var body={overview:overview,time:timeTab,activity:activity,files:filesTab,pdfrev:pdfRevTab,reviews:reviewsTab,reports:reportsTab,users:usersTab,subjects:subjectsTab,cleanup:cleanupTab,site:siteTab,admins:adminsTab,backup:backupTab}[A.tab]();
 var openN=(A.reports||[]).filter(function(r){return r.status==="open"}).length;
 return'<div id="adm"><div class="pagehead"><h1>Admin</h1><p>'+(A.role==="owner"?"You are the owner.":"You are a moderator.")+' Deleting a file also removes its stored upload.</p></div>'+
 '<div class="seg adm-tabs" role="group" aria-label="Admin sections">'+TABS.filter(function(t){return !t[2]||A.role===t[2]}).map(function(t){return'<button data-adm-tab="'+t[0]+'" aria-pressed="'+(A.tab===t[0])+'"><b>'+t[1]+(t[0]==="reports"&&openN?' ('+openN+')':'')+'</b></button>'}).join("")+'<button data-adm-reload="1" aria-label="Reload"><b>Reload</b></button></div>'+
@@ -446,12 +474,14 @@ A.busy=false
 }
 document.addEventListener("click",function(e){
 if(!A.ok)return;var t=e.target,x;
-if(x=t.closest("[data-adm-tab]")){A.tab=x.getAttribute("data-adm-tab");A.err="";refresh();return}
-if(t.closest("[data-adm-reload]")){A.stats=A.files=A.ratings=A.users=A.reports=A.admins=A.site=A.time=null;refresh();return}
+if(x=t.closest("[data-adm-tab]")){A.tab=x.getAttribute("data-adm-tab");if(A.tab==="pdfrev")A.rev=null;A.err="";refresh();return}
+if(t.closest("[data-adm-reload]")){A.rev=null;A.stats=A.files=A.ratings=A.users=A.reports=A.admins=A.site=A.time=null;refresh();return}
 if(x=t.closest("[data-adm-df]")){two(x,"Delete",function(){return delFile(x.getAttribute("data-adm-df"))});return}
 if(x=t.closest("[data-adm-dr]")){two(x,"Delete",function(){return delRev(x.getAttribute("data-adm-dr"))});return}
 if(x=t.closest("[data-adm-pu]")){two(x,"Delete content",function(){return purge(x.getAttribute("data-adm-pu"))});return}
 if(x=t.closest("[data-adm-ban]")){var p=x.getAttribute("data-adm-ban").split(":");x.disabled=true;ban(p[0],p[1]==="1").catch(function(er){A.err=er.message;refresh()});return}
+if(x=t.closest("[data-adm-rvf]")){A.revF=x.getAttribute("data-adm-rvf");refresh();return}
+if(x=t.closest("[data-adm-rq]")){x.disabled=true;rq(x.getAttribute("data-adm-rq")).catch(function(er){A.err=/file_reviews/.test(er.message||"")?"Run supabase-admin7.sql first (Supabase > SQL Editor).":er.message;refresh()});return}
 if(x=t.closest("[data-adm-ed]")){editFile(x.getAttribute("data-adm-ed"));return}
 if(x=t.closest("[data-adm-hd]")){toggleHide(x.getAttribute("data-adm-hd"),x);return}
 if(x=t.closest("[data-adm-ft]")){toggleFeat(x.getAttribute("data-adm-ft"),x);return}

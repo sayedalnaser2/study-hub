@@ -181,8 +181,15 @@ label small{font-weight:400;color:var(--muted)}
 .stalt{margin:18px 0 0}
 .cont{width:100%;margin:0 0 16px;border-color:var(--accent)}
 .cont b{display:block;margin-bottom:4px}.cont .cl{display:flex;flex-wrap:wrap;gap:4px;color:var(--muted);font-size:13px}
+.sthead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .adslot{margin:22px 0}.adslot:empty{display:none}
-@media(max-width:560px){.stps{grid-template-columns:1fr}}
+@media(max-width:560px){.stps{grid-template-columns:1fr}
+header.top{position:static}
+main{padding-block:14px 56px;gap:16px}
+.bar{gap:8px;padding-block:8px}
+nav{flex-wrap:nowrap;overflow-x:auto;width:100%;order:3;scrollbar-width:none}nav::-webkit-scrollbar{display:none}
+nav button{white-space:nowrap;padding:6px 10px}
+.bar>.btn.small{padding:5px 9px;font-size:12px}}
 #gate{position:fixed;inset:0;z-index:90;overflow:auto;background:var(--bg);display:grid;place-items:center;padding:20px}
 #gate .gate-box{width:100%;max-width:720px}
 #gate .gate-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;font-size:18px}
@@ -695,7 +702,7 @@ var BUCKET="files";
     if(T.year)c(3,T.year,false);
     if(kind==="lib"){if(T.subject)c(4,T.subject,true);else if(S.libFiles)c(4,'All subjects',true)}
     else if(U.locked){c(4,U.other?'Another subject':U.subject,true)}
-    return h+'</nav>'}
+    return (h.indexOf('<i ')<0?'':h+'</nav>')}
   function stStep(kind){
     var T=tgt(kind),lv=stLevel(kind),x=uni(T.uni),items="",title="";
     if(lv==="u"){title="Choose your university";items=ulist().map(function(u){return stBtn(kind,"u",u.id,u.name,stCount(kind,"u",u.id))}).join("")}
@@ -711,7 +718,7 @@ var BUCKET="files";
     var F=S.filter,files=F.subject||S.libFiles||F.q.trim(),sc=SCH();
     var head='<div class="pagehead"><h1>Library</h1><p>'+(sc?'Tap your stage, grade and subject. One choice on each screen.':'Tap your university, college, major and subject. One choice on each screen.')+'</p></div>';
     var alt='<p class="stalt"><button class="btn small" data-adv="lib:1">Advanced search (dropdown menus)</button></p><div class="adslot" data-slot="bottom"></div>';
-    if(!files)return head+stCrumbs("lib")+'<form class="filters2" id="stsearch" style="margin:0 0 16px"><input type="search" id="fq" placeholder="Search by title or description" aria-label="Search files" value=""><button class="btn small" type="submit">Search</button></form>'+(stLevel("lib")===(sc?"c":"u")?contBlock():"")+stStep("lib")+alt;
+    if(!files)return '<h1 class="sthead">Library</h1>'+stCrumbs("lib")+stStep("lib")+(stLevel("lib")===(sc?"c":"u")?'<div style="margin-top:16px">'+contBlock()+'</div>':"")+'<form class="filters2" id="stsearch" style="margin:16px 0 0"><input type="search" id="fq" placeholder="Search by title or description" aria-label="Search files" value=""><button class="btn small" type="submit">Search</button></form>'+alt;
     return head+stCrumbs("lib")+
     '<div class="filters2"><input type="search" id="fq" placeholder="Search by title or description" aria-label="Search files" value="'+esc(F.q)+'">'+
     '<select id="fk" aria-label="Type"><option value="">All types</option>'+KINDS.map(function(k){return '<option value="'+esc(k)+'"'+(F.kind===k?' selected':'')+'>'+k+'</option>'}).join("")+'</select>'+
@@ -768,9 +775,9 @@ var BUCKET="files";
   }
   function uploadSteps(){
     var can=S.assets&&S.dbOk&&S.me;
-    return '<div class="pagehead"><h1>Upload a file</h1><p>Choose where your file belongs, one step at a time. PDFs, images and text files up to 20 MB.</p></div>'+
-    (!can&&S.loaded?(S.dbOk&&!S.me?'<div class="note">Sign in to upload files. <button class="btn small primary" data-auth="1">Sign in or sign up</button></div>':'<div class="note">Uploading is not available right now. Check that the hub is connected to Supabase.</div>'):'')+
-    stCrumbs("up")+stStep("up")+'<p class="stalt"><button class="btn small" data-adv="up:1">Use dropdown menus instead</button></p><div class="adslot" data-slot="bottom"></div>'
+    return '<h1 class="sthead">Upload a file</h1>'+stCrumbs("up")+stStep("up")+
+    (!can&&S.loaded?(S.dbOk&&!S.me?'<div class="note" style="margin-top:16px">Sign in to upload files. <button class="btn small primary" data-auth="1">Sign in or sign up</button></div>':'<div class="note" style="margin-top:16px">Uploading is not available right now. Check that the hub is connected to Supabase.</div>'):'')+
+    '<p class="stalt"><button class="btn small" data-adv="up:1">Use dropdown menus instead</button></p><div class="adslot" data-slot="bottom"></div>'
   }
   function uploadPage(){
     if(!U.adv&&!(U.locked&&U.uni&&U.college&&U.major&&U.year))return uploadSteps();

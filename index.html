@@ -466,7 +466,7 @@ var BUCKET="files";
    {id:"school",short:"School",name:"Schools in Bahrain",label:"stages",years:["Semester 1","Semester 2"],groups:[
     {g:"Primary (Grades 1–6)",m:["Grade 1","Grade 2","Grade 3","Grade 4","Grade 5","Grade 6"]},
     {g:"Intermediate (Grades 7–9)",m:["Grade 7","Grade 8","Grade 9"]},
-    {g:"Secondary – Unified Pathways",m:["Grade 10 – Common year","Grade 11 – Scientific","Grade 11 – Commercial","Grade 11 – Humanities","Grade 12 – Scientific","Grade 12 – Commercial","Grade 12 – Humanities"]},
+    {g:"Secondary – Unified Pathways",m:["Grade 10 – Common year","Grade 11 – Scientific","Grade 11 – Business","Grade 11 – Humanities","Grade 12 – Scientific","Grade 12 – Business","Grade 12 – Humanities"]},
     {g:"Secondary – Technical & Vocational",m:["Grade 10 – Engineering","Grade 10 – Administrative & Technology","Grade 11 – Engineering","Grade 11 – Administrative & Technology","Grade 12 – Engineering","Grade 12 – Administrative & Technology"]},
     {g:"Secondary – Religious Education",m:["Grade 10","Grade 11","Grade 12"]}
    ]}
@@ -487,8 +487,8 @@ var BUCKET="files";
     put("Grade 10 – Common year",C.concat(SC,["Economic Geography"]));
     put("Grade 11 – Scientific",C.concat(SC,CS,["Applied Mechanics"]));
     put("Grade 12 – Scientific",C.concat(SC,CS,["Applied Mechanics","Energy"],EW));
-    put("Grade 11 – Commercial",C.concat(COM,["Economics"]));
-    put("Grade 12 – Commercial",C.concat(COM,["Economics"],EW));
+    put("Grade 11 – Business",C.concat(COM,["Economics"]));
+    put("Grade 12 – Business",C.concat(COM,["Economics"],EW));
     put("Grade 11 – Humanities",C.concat(HUM,["Economic Geography"]));
     put("Grade 12 – Humanities",C.concat(HUM,["General Psychology","Population Geography","Economic Geography"],EW));
     var T=["Arabic Language","English Language","Mathematics","Islamic Education","Physics","Chemistry","Biology","Energy","Information and Communication Technology","Social Studies","Physical Education","Art Education","Family Education","Citizenship Education"];
@@ -850,7 +850,7 @@ var BUCKET="files";
     "Secondary – Religious Education":"الثانوي – التعليم الديني",
     "Common year":"السنة المشتركة",
     "Scientific":"علمي",
-    "Commercial":"تجاري",
+    "Business":"الأعمال",
     "Humanities":"العلوم الإنسانية",
     "Engineering":"هندسي",
     "Administrative & Technology":"إداري وتكنولوجيا",

@@ -222,6 +222,23 @@ label small{font-weight:400;color:var(--muted)}
 #pdfv .pvrm{background:none;border:0;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;padding:6px}
 #pdfv .pvtoast{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:var(--fg);color:var(--bg);font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.35);white-space:nowrap}
 #pdfv .pvtoast .btn{padding:3px 10px;font-size:12px}
+#pdfv .pvann{display:flex;align-items:center;gap:6px;padding:6px 12px;border-bottom:1px solid var(--line);background:var(--surface);overflow-x:auto;white-space:nowrap}
+#pdfv .pvann .btn{flex:none;padding:6px 10px;font-size:13px}
+#pdfv .pvann .btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+#pdfv .pvcol{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+#pdfv .pvcol[aria-pressed="true"]{border-color:var(--fg);box-shadow:0 0 0 2px var(--surface) inset}
+#pdfv .pvan{position:absolute;inset:0;z-index:2;pointer-events:none}
+#pdfv.pvtool .pvan{pointer-events:auto;touch-action:none;cursor:crosshair}
+#pdfv .pvan svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+#pdfv .pvan .ah{mix-blend-mode:multiply}
+#pdfv.pvnight .pvan .ah{mix-blend-mode:screen}
+#pdfv .pvpin{position:absolute;z-index:3;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;color:#222;cursor:pointer;padding:0;pointer-events:auto}
+#pdfv .pvnote{position:absolute;left:12px;right:12px;bottom:12px;z-index:9;max-width:460px;margin:0 auto;padding:12px;border-radius:14px;background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 28px rgba(0,0,0,.4)}
+#pdfv .pvnote textarea{display:block;width:100%;box-sizing:border-box;padding:8px 10px;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);resize:vertical}
+#pdfv .pvnote .row{display:flex;gap:8px;margin-top:10px}
+#pdfv .pvnote .btn{padding:6px 12px;font-size:13px}
+#pdfv .pvnt{color:var(--muted);font-size:12px;white-space:normal}
+#pdfv .pvdr .pvtabs button{font-size:12px;padding:10px 4px}
 .adslot{margin:22px 0}.adslot:empty{display:none}
 @media(max-width:560px){.stps{grid-template-columns:1fr}
 header.top{position:static}
@@ -357,12 +374,12 @@ var BUCKET="files";
   var LS={g:function(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},s:function(k,o){try{localStorage.setItem(k,JSON.stringify(o))}catch(e){}}};
   function posSave(v){
     if(!v||!v.doc||!v.shownCur)return;var m=LS.g("sh_pdfpos")||{};
-    if(v.cur>1)m[v.id]={p:v.cur,t:Date.now()};else delete m[v.id];
+    m[v.id]={p:v.cur,t:Date.now()};
     var k=Object.keys(m);if(k.length>60){k.sort(function(a,b){return m[a].t-m[b].t});k.slice(0,k.length-60).forEach(function(x){delete m[x]})}
-    LS.s("sh_pdfpos",m)
+    LS.s("sh_pdfpos",m);if(window.__drive)window.__drive.changed()
   }
   function bmGet(id){var m=LS.g("sh_pdfbm")||{};return Array.isArray(m[id])?m[id].slice():[]}
-  function bmSet(id,a){var m=LS.g("sh_pdfbm")||{};if(a.length)m[id]=a;else delete m[id];LS.s("sh_pdfbm",m)}
+  function bmSet(id,a){var m=LS.g("sh_pdfbm")||{},t=LS.g("sh_pdfbm_t")||{};if(a.length)m[id]=a;else delete m[id];t[id]=Date.now();LS.s("sh_pdfbm",m);LS.s("sh_pdfbm_t",t);if(window.__drive)window.__drive.changed()}
   function pdfCur(v){
     var els=v.els,t=v.sc.scrollTop+v.sc.clientHeight*0.35,lo=0,hi=els.length-1;
     while(lo<hi){var mid=(lo+hi+1)>>1;if(els[mid].offsetTop-10<=t)lo=mid;else hi=mid-1}
@@ -406,7 +423,7 @@ var BUCKET="files";
       if(en.isIntersecting){if(!el.dataset.done){el.dataset.done="1";pdfRender(v,+el.dataset.n,el)}}
       else if(el.dataset.done){delete el.dataset.done;el._k=(el._k||0)+1;var c=el.querySelector("canvas");if(c)c.remove()}})},
       {root:sc,rootMargin:"900px 0px 900px 0px"});
-    v.sizes.forEach(function(s,i){var h=Math.round(w*s[1]/s[0]),d=document.createElement("div");d.className="pvp";d.setAttribute("data-n",i+1);d.style.width=Math.round(w)+"px";d.style.height=h+"px";box.appendChild(d);v.els.push(d);pdfHl(v,i+1,d);v.io.observe(d)});
+    v.sizes.forEach(function(s,i){var h=Math.round(w*s[1]/s[0]),d=document.createElement("div");d.className="pvp";d.setAttribute("data-n",i+1);d.style.width=Math.round(w)+"px";d.style.height=h+"px";box.appendChild(d);v.els.push(d);pdfHl(v,i+1,d);annPage(v,i+1,d);v.io.observe(d)});
     if(f){sc.scrollLeft=f.fx*sc.scrollWidth-f.px;sc.scrollTop=f.fy*sc.scrollHeight-f.py;pdfSetCur(v,pdfCur(v))}
     else{var n=Math.min(Math.max(v.cur||1,1),v.els.length),t=v.els[n-1];if(t)sc.scrollTop=t.offsetTop-10;v.shownCur=0;pdfSetCur(v,n)}
     pdfFitLabel(v)
@@ -420,6 +437,115 @@ var BUCKET="files";
       var vp=pg.getViewport({scale:s}),c=document.createElement("canvas");c.width=Math.floor(vp.width);c.height=Math.floor(vp.height);
       pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise.then(function(){if(PV===v&&el._k===k&&el.isConnected)el.insertBefore(c,el.firstChild)}).catch(function(){})
     }).catch(function(){})
+  }
+  /* annotations: highlights, pen, notes (stored locally, synced with Drive when enabled) */
+  var ACOL=["#ffd400","#4cd98a","#ff7eb6","#4da3ff"],ADAY=864e5;
+  function annAll(){var m=LS.g("sh_pdfann");return m&&typeof m==="object"?m:{}}
+  function annLoad(v){var a=annAll()[v.id];v.ann=Array.isArray(a)?a.filter(function(x){return x&&x.i&&x.p>0}):[];v.undo=[]}
+  function annSave(v){
+    var now=Date.now(),m=annAll();v.ann=v.ann.filter(function(x){return !x.del||now-x.t<60*ADAY});
+    if(v.ann.length)m[v.id]=v.ann;else delete m[v.id];
+    LS.s("sh_pdfann",m);if(window.__drive)window.__drive.changed()
+  }
+  function annLive(v){return v.ann.filter(function(x){return !x.del})}
+  function annNew(v,o){
+    if(annLive(v).length>=600)return null;
+    o.i=Date.now().toString(36)+Math.random().toString(36).slice(2,6);o.t=Date.now();v.ann.push(o);v.undo.push(o.i);annSave(v);return o
+  }
+  function annDel(v,a){a.del=1;a.t=Date.now();a.pts=null;a.tx=null;annSave(v)}
+  function annNum(x){x=+x;return isFinite(x)?Math.round(x*10000)/10000:0}
+  function annCol(c){return ACOL.indexOf(c)>-1?c:ACOL[0]}
+  function annPage(v,n,d){
+    var old=d.querySelector(".pvan");if(old)old.remove();
+    var sz=v.sizes[n-1],H=sz[1]/sz[0],o=document.createElement("div");o.className="pvan";o.setAttribute("data-n",n);
+    var s='<svg viewBox="0 0 1 '+H+'" preserveAspectRatio="none">';
+    v.ann.forEach(function(a){
+      if(a.del||a.p!==n)return;
+      if(a.k==="h")s+='<rect class="ah" x="'+annNum(a.x)+'" y="'+annNum(a.y)+'" width="'+annNum(a.w)+'" height="'+annNum(a.h)+'" fill="'+annCol(a.c)+'" fill-opacity=".45"/>';
+      else if(a.k==="d"&&Array.isArray(a.pts)){var pt=[];for(var i=0;i+1<a.pts.length;i+=2)pt.push(annNum(a.pts[i])+","+annNum(a.pts[i+1]));
+        s+='<polyline points="'+pt.join(" ")+'" fill="none" stroke="'+annCol(a.c)+'" stroke-width=".006" stroke-linecap="round" stroke-linejoin="round"/>'}
+    });
+    o.innerHTML=s+"</svg>";
+    v.ann.forEach(function(a){
+      if(a.del||a.p!==n||a.k!=="n")return;
+      var b=document.createElement("button");b.type="button";b.className="pvpin";b.setAttribute("data-ni",a.i);b.setAttribute("aria-label","Note");
+      b.style.left=annNum(a.x)*100+"%";b.style.top=annNum(a.y)/H*100+"%";b.style.background=annCol(a.c);
+      b.innerHTML='<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M4 4h16v12H9l-5 5z" fill="currentColor"/></svg>';o.appendChild(b)
+    });
+    d.appendChild(o)
+  }
+  function annRefresh(v,n){var d=v.els&&v.els[n-1];if(d)annPage(v,n,d);if(v.tab==="notes"&&v.el.querySelector(".pvdr")&&!v.el.querySelector(".pvdr").hidden)pdfTab(v,"notes")}
+  function annHit(v,n,p){
+    for(var i=v.ann.length-1;i>=0;i--){
+      var a=v.ann[i];if(a.del||a.p!==n)continue;
+      if(a.k==="h"&&p[0]>=a.x&&p[0]<=a.x+a.w&&p[1]>=a.y&&p[1]<=a.y+a.h)return a;
+      if(a.k==="n"&&Math.hypot(p[0]-a.x,p[1]-a.y)<0.03)return a;
+      if(a.k==="d"&&a.pts)for(var j=0;j+3<a.pts.length;j+=2){
+        var x1=a.pts[j],y1=a.pts[j+1],x2=a.pts[j+2],y2=a.pts[j+3],dx=x2-x1,dy=y2-y1,L=dx*dx+dy*dy,t=L?Math.max(0,Math.min(1,((p[0]-x1)*dx+(p[1]-y1)*dy)/L)):0;
+        if(Math.hypot(p[0]-(x1+t*dx),p[1]-(y1+t*dy))<0.014)return a}
+    }
+    return null
+  }
+  function annNote(v,a,isNew){
+    var old=v.el.querySelector(".pvnote");if(old)old.remove();
+    var s=document.createElement("div");s.className="pvnote";
+    s.innerHTML='<textarea maxlength="500" rows="4" placeholder="Write a note…" aria-label="Note"></textarea><div class="row"><button type="button" class="btn primary" data-ns="1">Save</button><button type="button" class="btn" data-nd="1">Delete</button><button type="button" class="btn" data-nc="1">Cancel</button></div>';
+    var ta=s.querySelector("textarea");ta.value=a.tx||"";v.el.appendChild(s);v.noteEl=s;ta.focus();
+    function close(){s.remove();v.noteEl=null}
+    s.querySelector("[data-nc]").onclick=close;
+    s.querySelector("[data-nd]").onclick=function(){if(!isNew)annDel(v,a);close();annRefresh(v,a.p)};
+    s.querySelector("[data-ns]").onclick=function(){
+      var tx=ta.value.trim();
+      if(!tx){if(!isNew)annDel(v,a);close();annRefresh(v,a.p);return}
+      a.tx=tx;
+      if(isNew){if(!annNew(v,a)){close();return}}else{a.t=Date.now();annSave(v)}
+      close();annRefresh(v,a.p)
+    }
+  }
+  function annTool(v,t){
+    v.tool=t||null;v.el.classList.toggle("pvtool",!!v.tool);
+    [].forEach.call(v.el.querySelectorAll("[data-atool]"),function(b){b.classList.toggle("on",(b.getAttribute("data-atool")||null)===v.tool)})
+  }
+  function annColor(v,i){v.col=ACOL[i]||ACOL[0];LS.s("sh_pdfcol",i|0);[].forEach.call(v.el.querySelectorAll("[data-acol]"),function(b){b.setAttribute("aria-pressed",+b.getAttribute("data-acol")===(i|0)?"true":"false")})}
+  function annPtr(v){
+    var box=v.pages,st=null;
+    function pos(e,d){var r=d.getBoundingClientRect();return[Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),Math.min(r.height/r.width,Math.max(0,(e.clientY-r.top)/r.width))]}
+    function svg(){return st.an.querySelector("svg")}
+    function mkp(tag,attrs){var e=document.createElementNS("http://www.w3.org/2000/svg",tag);for(var k in attrs)e.setAttribute(k,attrs[k]);return e}
+    function cancel(){if(st&&st.el)st.el.remove();st=null}
+    box.addEventListener("pointerdown",function(e){
+      if(!e.isPrimary){cancel();return}
+      if(!v.tool)return;var an=e.target.closest&&e.target.closest(".pvan");if(!an||e.target.closest(".pvpin"))return;
+      e.preventDefault();var d=an.parentNode,n=+an.getAttribute("data-n"),p=pos(e,d);
+      st={t:v.tool,n:n,d:d,an:an,p0:p,pts:[p[0],p[1]],el:null,moved:false};
+      try{an.setPointerCapture(e.pointerId)}catch(x){}
+      if(st.t==="d"){st.el=mkp("polyline",{points:p[0]+","+p[1],fill:"none",stroke:v.col,"stroke-width":".006","stroke-linecap":"round","stroke-linejoin":"round"});svg().appendChild(st.el)}
+      else if(st.t==="h"){st.el=mkp("rect",{x:p[0],y:p[1],width:0,height:0,fill:v.col,"fill-opacity":".45",class:"ah"});svg().appendChild(st.el)}
+      else if(st.t==="e"){var a=annHit(v,n,p);if(a&&a.k!=="n"){annDel(v,a);annRefresh(v,n);st.an=d.querySelector(".pvan")}}
+    });
+    box.addEventListener("pointermove",function(e){
+      if(!st||!e.isPrimary)return;var p=pos(e,st.d);
+      if(Math.hypot(p[0]-st.p0[0],p[1]-st.p0[1])>0.004)st.moved=true;
+      if(st.t==="d"){var l=st.pts.length;if(Math.hypot(p[0]-st.pts[l-2],p[1]-st.pts[l-1])>0.003){st.pts.push(p[0],p[1]);st.el.setAttribute("points",st.el.getAttribute("points")+" "+p[0]+","+p[1])}}
+      else if(st.t==="h"){st.el.setAttribute("x",Math.min(p[0],st.p0[0]));st.el.setAttribute("y",Math.min(p[1],st.p0[1]));st.el.setAttribute("width",Math.abs(p[0]-st.p0[0]));st.el.setAttribute("height",Math.abs(p[1]-st.p0[1]))}
+      else if(st.t==="e"){var a=annHit(v,st.n,p);if(a&&a.k!=="n"){annDel(v,a);annRefresh(v,st.n);st.an=st.d.querySelector(".pvan")}}
+    });
+    box.addEventListener("pointerup",function(e){
+      if(!st||!e.isPrimary)return;var s0=st,p=pos(e,s0.d);st=null;if(s0.el)s0.el.remove();
+      if(s0.t==="h"){var x=Math.min(p[0],s0.p0[0]),y=Math.min(p[1],s0.p0[1]),w=Math.abs(p[0]-s0.p0[0]),h=Math.abs(p[1]-s0.p0[1]);
+        if(w>0.015&&h>0.004){annNew(v,{p:s0.n,k:"h",c:v.col,x:annNum(x),y:annNum(y),w:annNum(w),h:annNum(h)});annRefresh(v,s0.n)}}
+      else if(s0.t==="d"){if(s0.pts.length>=4){var q=s0.pts.map(annNum);annNew(v,{p:s0.n,k:"d",c:v.col,pts:q});annRefresh(v,s0.n)}}
+      else if(s0.t==="n"&&!s0.moved){annNote(v,{p:s0.n,k:"n",c:v.col,x:annNum(p[0]),y:annNum(p[1]),tx:""},true)}
+      else if(s0.t==="e"&&!s0.moved){var a=annHit(v,s0.n,p);if(a&&a.k==="n")annNote(v,a,false)}
+    });
+    box.addEventListener("pointercancel",cancel)
+  }
+  function pdfNotes(v,c){
+    var a=annLive(v).filter(function(x){return x.k==="n"}).sort(function(x,y){return x.p-y.p||x.y-y.y});
+    if(!a.length){c.innerHTML='<div class="pvm">No notes yet. Use the Note tool to add one.</div>';return}
+    a.forEach(function(x){var r=document.createElement("div");r.className="pvsv";
+      r.innerHTML='<button type="button" class="pvlink" data-pg="'+(x.p|0)+'"><span>Page</span> <b>'+(x.p|0)+'</b><br><small class="pvnt"></small></button>';
+      r.querySelector(".pvnt").textContent=(x.tx||"").slice(0,140);c.appendChild(r)})
   }
   /* search */
   function pdfIndex(v){
@@ -477,7 +603,7 @@ var BUCKET="files";
   function pdfTab(v,t){
     v.tab=t;[].forEach.call(v.el.querySelectorAll("[data-ptab]"),function(b){b.classList.toggle("on",b.getAttribute("data-ptab")===t)});
     var c=v.el.querySelector(".pvdc");c.innerHTML="";if(v.thio){v.thio.disconnect();v.thio=null}
-    if(t==="pages")pdfThumbs(v,c);else if(t==="toc")pdfToc(v,c);else pdfSaved(v,c)
+    if(t==="pages")pdfThumbs(v,c);else if(t==="toc")pdfToc(v,c);else if(t==="notes")pdfNotes(v,c);else pdfSaved(v,c)
   }
   function pdfThumbs(v,c){
     v.thio=new IntersectionObserver(function(es){es.forEach(function(en){
@@ -528,11 +654,16 @@ var BUCKET="files";
       if(Math.abs(v.zoom-1)<0.03){var s=v.sizes[v.cur-1]||v.sizes[0];pdfZoomTo(v,(sc.clientHeight-24)/(v.w0*s[1]/s[0]))}
       else pdfZoomTo(v,1);return 1}
     if(t.closest("[data-pnum]")){var g=v.el.querySelector(".pvgo");t.closest("[data-pnum]").hidden=true;g.hidden=false;g.max=v.doc.numPages;g.value=v.cur;g.focus();g.select();return 1}
+    if(t.closest("[data-pann]")){var ar=v.el.querySelector(".pvann"),on2=ar.hidden;ar.hidden=!on2;t.closest("[data-pann]").setAttribute("aria-pressed",on2?"true":"false");if(!on2)annTool(v,null);return 1}
+    if(b=t.closest("[data-atool]")){annTool(v,b.getAttribute("data-atool")||null);return 1}
+    if(b=t.closest("[data-acol]")){annColor(v,+b.getAttribute("data-acol"));return 1}
+    if(t.closest("[data-aundo]")){var ui=v.undo.pop();if(ui){var ua=v.ann.filter(function(x){return x.i===ui&&!x.del})[0];if(ua){annDel(v,ua);annRefresh(v,ua.p)}}return 1}
+    if(b=t.closest("[data-ni]")){var na=v.ann.filter(function(x){return x.i===b.getAttribute("data-ni")&&!x.del})[0];if(na)annNote(v,na,false);return 1}
     if(t.closest("[data-pfind]")){pdfFind(v);return 1}
     if(t.closest("[data-pfx]")){pdfFind(v,false);return 1}
     if(t.closest("[data-pfn]")||t.closest("[data-pfp]")){
       if(v.hits&&v.hits.length){var d=t.closest("[data-pfn]")?1:-1;pdfHit(v,(v.hi+d+v.hits.length)%v.hits.length)}return 1}
-    if(t.closest("[data-pnight]")){var on=!v.el.classList.contains("pvnight");v.el.classList.toggle("pvnight",on);t.closest("[data-pnight]").setAttribute("aria-pressed",on?"true":"false");LS.s("sh_pdfnight",on?1:0);return 1}
+    if(t.closest("[data-pnight]")){var on=!v.el.classList.contains("pvnight");v.el.classList.toggle("pvnight",on);t.closest("[data-pnight]").setAttribute("aria-pressed",on?"true":"false");LS.s("sh_pdfnight",on?1:0);LS.s("sh_pdfnight_t",Date.now());if(window.__drive)window.__drive.changed();return 1}
     if(t.closest("[data-pdr]")){pdfPanel(v);return 1}
     if(b=t.closest("[data-ptab]")){pdfTab(v,b.getAttribute("data-ptab"));return 1}
     if(b=t.closest("[data-ti]")){pdfDest(v,v.ti[+b.getAttribute("data-ti")]).then(function(n){if(PV===v&&n){goPage(v,n);if(window.innerWidth<700)pdfPanel(v,false)}});return 1}
@@ -545,7 +676,7 @@ var BUCKET="files";
   function pdfTouch(v){
     var sc=v.sc,d0=0,z0=1,mid=null,lt=0,lx=0,ly=0,pinch=false,sx=0,sy=0,mv=false;
     function dist(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)}
-    function tapZoom(px,py){pdfZoomTo(v,v.zoom>1.2?1:2.5,pdfFocus(v,px,py))}
+    function tapZoom(px,py){if(v.tool)return;pdfZoomTo(v,v.zoom>1.2?1:2.5,pdfFocus(v,px,py))}
     sc.addEventListener("touchstart",function(e){
       if(!v.els)return;
       if(e.touches.length===2){
@@ -588,18 +719,21 @@ var BUCKET="files";
       '<button type="button" class="btn" data-pdoc="1" data-pfit="1">Fit page</button>'+
       '<button type="button" class="btn pvn" data-pdoc="1" data-pnum="1" aria-label="Go to page">–</button><input type="number" class="pvgo" min="1" inputmode="numeric" hidden aria-label="Go to page">'+
       '<button type="button" class="btn" data-pdoc="1" data-pfind="1">Search</button>'+
-      '<button type="button" class="btn" data-pdoc="1" data-pnight="1" aria-pressed="false">Night</button>'+
+      '<button type="button" class="btn" data-pdoc="1" data-pann="1" aria-pressed="false">Annotate</button><button type="button" class="btn" data-pdoc="1" data-pnight="1" aria-pressed="false">Night</button>'+
       '<button type="button" class="btn" data-pdoc="1" data-psave="1" aria-pressed="false">Save page</button>'+
       '<a class="btn" data-pdl="1" href="#" target="_blank" rel="noopener">Download</a><a class="btn" data-pnew="1" href="#" target="_blank" rel="noopener">Open in new tab</a></div>'+
+      '<div class="pvann" hidden><button type="button" class="btn on" data-atool="">Scroll</button><button type="button" class="btn" data-atool="h">Highlight</button><button type="button" class="btn" data-atool="d">Pen</button><button type="button" class="btn" data-atool="n">Note</button><button type="button" class="btn" data-atool="e">Erase</button>'+
+      '<button type="button" class="pvcol" data-acol="0" aria-label="Yellow" aria-pressed="true" style="background:#ffd400"></button><button type="button" class="pvcol" data-acol="1" aria-label="Green" aria-pressed="false" style="background:#4cd98a"></button><button type="button" class="pvcol" data-acol="2" aria-label="Pink" aria-pressed="false" style="background:#ff7eb6"></button><button type="button" class="pvcol" data-acol="3" aria-label="Blue" aria-pressed="false" style="background:#4da3ff"></button>'+
+      '<button type="button" class="btn" data-aundo="1">Undo</button></div>'+
       '<div class="pvfind" hidden><input type="search" class="pvq" placeholder="Search in this PDF" aria-label="Search in this PDF"><span class="pvc" aria-live="polite"></span>'+
       '<button type="button" class="btn" data-pfp="1" aria-label="Previous result">↑</button><button type="button" class="btn" data-pfn="1" aria-label="Next result">↓</button><button type="button" class="btn" data-pfx="1">Done</button></div>'+
       '<div class="pvbody"><div class="pvs"><div class="pvm">Loading PDF…</div></div>'+
-      '<div class="pvdr" hidden><div class="pvtabs"><button type="button" data-ptab="pages" class="on">Pages</button><button type="button" data-ptab="toc">Contents</button><button type="button" data-ptab="saved">Saved</button></div><div class="pvdc"></div></div></div>'+
+      '<div class="pvdr" hidden><div class="pvtabs"><button type="button" data-ptab="pages" class="on">Pages</button><button type="button" data-ptab="toc">Contents</button><button type="button" data-ptab="saved">Saved</button><button type="button" data-ptab="notes">Notes</button></div><div class="pvdc"></div></div></div>'+
       '<div class="pvtoast" hidden><span>Resumed at page</span> <b></b> <button type="button" class="btn" data-pstart="1">Start over</button></div>';
     el.querySelector(".pvt").textContent=title||"PDF";
     var night=LS.g("sh_pdfnight")===1;if(night){el.classList.add("pvnight");el.querySelector("[data-pnight]").setAttribute("aria-pressed","true")}
     document.body.appendChild(el);document.body.style.overflow="hidden";
-    var v=PV={id:id,el:el,opener:opener,sc:el.querySelector(".pvs"),num:el.querySelector(".pvn"),zoom:1,cur:1,pushed:false,bm:bmGet(id),q:""};
+    var v=PV={id:id,el:el,opener:opener,sc:el.querySelector(".pvs"),num:el.querySelector(".pvn"),zoom:1,cur:1,pushed:false,bm:bmGet(id),q:"",tool:null,ann:[],undo:[],col:ACOL[LS.g("sh_pdfcol")|0]||ACOL[0]};
     try{history.pushState({pdf:1},"",location.href);v.pushed=true}catch(e){}
     el.querySelector("[data-pclose]").focus();
     var go=el.querySelector(".pvgo");
@@ -620,7 +754,7 @@ var BUCKET="files";
         return blob.arrayBuffer().then(function(buf){return lib.getDocument({data:buf}).promise}).then(function(doc){
           if(PV!==v){doc.destroy();return}v.doc=doc;
           return Promise.all(Array.from({length:doc.numPages},function(_,i){return doc.getPage(i+1).then(function(pg){var vp=pg.getViewport({scale:1});return[vp.width,vp.height]})})).then(function(sz){
-            if(PV!==v)return;v.sizes=sz;v.sc.innerHTML='<div class="pvl"></div>';v.pages=v.sc.firstChild;
+            if(PV!==v)return;v.sizes=sz;v.sc.innerHTML='<div class="pvl"></div>';v.pages=v.sc.firstChild;annLoad(v);annPtr(v);annColor(v,Math.max(0,ACOL.indexOf(v.col)));
             var m=LS.g("sh_pdfpos")||{},sp=m[id]&&m[id].p;
             if(sp>1&&sp<=doc.numPages){v.cur=sp;el.querySelector(".pvtoast b").textContent=sp}else sp=0;
             pdfTouch(v);pdfLayout(v);if(sp)pdfToast(v)})})
@@ -643,6 +777,7 @@ var BUCKET="files";
   window.__pdf={pop:function(){if(SKIPPOP){SKIPPOP=false;return true}if(PV){pdfTeardown();return true}return false}};
   document.addEventListener("keydown",function(e){
     if(!PV||e.key!=="Escape")return;e.stopPropagation();var v=PV;
+    if(v.noteEl){v.noteEl.remove();v.noteEl=null;return}
     if(!v.el.querySelector(".pvgo").hidden){pdfGoEnd(v);return}
     if(!v.el.querySelector(".pvfind").hidden){pdfFind(v,false);return}
     if(!v.el.querySelector(".pvdr").hidden){pdfPanel(v,false);return}
@@ -988,7 +1123,7 @@ var BUCKET="files";
   var LAST=null;try{LAST=JSON.parse(localStorage.getItem("sh_last")||"null")}catch(e){LAST=null}
   function lastParts(kind){var T=tgt(kind),p=[],a=[];if(!SCH())a.push(T.uni);a.push(T.college,T.major,T.year);if(kind==="lib"){if(T.subject)a.push(T.subject)}else if(U.locked&&U.subject&&!U.other)a.push(U.subject);
     for(var i=0;i<a.length;i++){if(!a[i])break;p.push(a[i])}return p}
-  function saveLast(kind){var p=lastParts(kind);if(p.length<(SCH()?3:4))return;LAST={l:LEVEL,p:p};try{localStorage.setItem("sh_last",JSON.stringify(LAST))}catch(e){}}
+  function saveLast(kind){var p=lastParts(kind);if(p.length<(SCH()?3:4))return;LAST={l:LEVEL,p:p,t:Date.now()};try{localStorage.setItem("sh_last",JSON.stringify(LAST))}catch(e){}if(window.__drive)window.__drive.changed()}
   function lastOk(){if(!LAST||LAST.l!==LEVEL||!LAST.p||LAST.p.length<(SCH()?3:4))return false;var p=LAST.p,i=0,u=SCH()?"school":p[i++],x=uni(u);if(!x||(SCH()!==(u==="school")))return false;
     var c=p[i++],m=p[i++],y=p[i++];return x.groups.some(function(g){return g.g===c&&g.m.indexOf(m)>-1})&&x.years.indexOf(y)>-1}
   function contBlock(){
@@ -1267,7 +1402,7 @@ var BUCKET="files";
     try{var ps=await S.user.profiles(ids);ids.forEach(function(i){var n=ps[i]&&ps[i].name;if(n)S.names[i]=n});if(typing())S.stale=true;else refreshData()}catch(e){}
   }
   async function init(){
-    window.__sh={U:U,render:render,go:go,stGo:stGo,UNIS:UNIS,COURSES:COURSES,S:S};
+    window.__sh={setLast:function(o){LAST=o},U:U,render:render,go:go,stGo:stGo,UNIS:UNIS,COURSES:COURSES,S:S};
     var h="";try{h=(location.hash||"").slice(1)}catch(e){}
     var hp=hashParts();if(PAGES.some(function(p){return p[0]===hp[0]}))S.page=hp[0];
     applyLevel();mountSwitch();if(!LEVEL)showGate();
@@ -1300,6 +1435,9 @@ var BUCKET="files";
   var AR={
     "Universities":"الجامعات",
     "Download":"تنزيل","Open in new tab":"فتح في تبويب جديد","Close":"إغلاق","Loading PDF…":"جارٍ تحميل الملف…","PDF viewer":"عارض PDF","Zoom in":"تكبير","Zoom out":"تصغير",
+    "Save your progress to your Google Drive?":"هل تريد حفظ تقدمك في Google Drive؟","Study Hub can remember where you stopped in each PDF, your saved pages and your reading settings, and bring them with you to any phone or computer you sign in on.":"يستطيع Study Hub تذكّر المكان الذي توقفت عنده في كل ملف PDF وصفحاتك المحفوظة وإعدادات القراءة، ونقلها معك إلى أي هاتف أو حاسوب تسجّل الدخول منه.","To do this, Google will ask you to let Study Hub keep one tiny hidden file in your own Google Drive. Study Hub cannot see or change any of your other files, and no one else can read this file. You can remove it any time in your Google account under Third-party apps.":"لتحقيق ذلك ستطلب منك Google السماح لـ Study Hub بحفظ ملف صغير مخفي في Google Drive الخاص بك. لا يستطيع Study Hub رؤية أو تعديل أي ملفات أخرى لديك، ولا يستطيع أحد غيرك قراءة هذا الملف. يمكنك إزالته في أي وقت من حساب Google ضمن «التطبيقات التابعة لجهات خارجية».","Allow access":"السماح بالوصول","Not now":"ليس الآن","Study Hub could not get access":"تعذّر على Study Hub الحصول على الإذن","Without access, your place in PDFs, your saved pages and your reading settings stay on this device only. They will not follow you to another phone or computer.":"بدون الإذن ستبقى مواضع توقفك في ملفات PDF وصفحاتك المحفوظة وإعدادات القراءة على هذا الجهاز فقط، ولن تنتقل معك إلى هاتف أو حاسوب آخر.","We ask because Google Drive is where we keep this small file, so it stays in your own account. When Google asks, keep the Google Drive box ticked and press Allow. If a school or organisation account is being used, its admin may have blocked this.":"نطلب ذلك لأن Google Drive هو المكان الذي نحفظ فيه هذا الملف الصغير، ليبقى في حسابك أنت. عندما تسألك Google، أبقِ خانة Google Drive محددة واضغط «السماح». وإذا كان الحساب تابعًا لمدرسة أو جهة، فقد يكون المسؤول قد حظر ذلك.","Try again":"حاول مرة أخرى","Keep on this device":"الاحتفاظ بها على هذا الجهاز","School accounts cannot sync":"حسابات المدارس لا تدعم المزامنة","You are signed in with a school or organisation email. Schools usually block apps from saving to Google Drive, so your progress stays on this device only for now.":"أنت مسجّل الدخول ببريد تابع لمدرسة أو جهة. تمنع المدارس عادةً التطبيقات من الحفظ في Google Drive، لذلك سيبقى تقدمك على هذا الجهاز فقط حاليًا.","To keep your progress on every device: sign out, then sign in with a personal Gmail account. Or ask your school's IT admin to allow Study Hub to use Google Drive app data, then press Try anyway.":"للاحتفاظ بتقدمك على كل أجهزتك: سجّل الخروج ثم سجّل الدخول بحساب Gmail شخصي. أو اطلب من مسؤول تقنية المعلومات في مدرستك السماح لـ Study Hub باستخدام بيانات التطبيق في Google Drive، ثم اضغط «حاول على أي حال».","Try anyway":"حاول على أي حال","OK":"حسنًا","Could not reach Google Drive":"تعذّر الوصول إلى Google Drive","Something went wrong while connecting. Your progress stays on this device and Study Hub will try again next time.":"حدث خطأ أثناء الاتصال. سيبقى تقدمك على هذا الجهاز وسيحاول Study Hub مرة أخرى في المرة القادمة.","Connected to your Google Drive":"تم الاتصال بـ Google Drive","Your PDF progress, saved pages and reading settings will now follow you to any device where you sign in with this Google account.":"سينتقل تقدمك في ملفات PDF وصفحاتك المحفوظة وإعدادات القراءة الآن إلى أي جهاز تسجّل الدخول منه بحساب Google هذا.","Done":"تم",
+    "Save":"حفظ","Delete":"حذف",
+    "Annotate":"تعليق","Scroll":"تمرير","Highlight":"تظليل","Pen":"قلم","Note":"ملاحظة","Erase":"محو","Undo":"تراجع","Yellow":"أصفر","Green":"أخضر","Pink":"وردي","Blue":"أزرق","Notes":"الملاحظات","Write a note…":"اكتب ملاحظة…","No notes yet. Use the Note tool to add one.":"لا توجد ملاحظات بعد. استخدم أداة «ملاحظة» لإضافة واحدة.",
     "Pages":"الصفحات","Contents":"المحتويات","Saved":"المحفوظة","Fit page":"ملاءمة الصفحة","Fit width":"ملاءمة العرض","Night":"ليلي","Save page":"حفظ الصفحة","Unsave page":"إزالة الحفظ","Done":"تم","Page":"صفحة","Go to page":"الانتقال إلى صفحة","Search in this PDF":"البحث في هذا الملف","Indexing…":"جارٍ الفهرسة…","No results":"لا توجد نتائج","No text to search in this PDF":"لا يوجد نص قابل للبحث في هذا الملف (قد يكون مصوّرًا)","Resumed at page":"تمت المتابعة من الصفحة","Start over":"البدء من جديد","Previous result":"النتيجة السابقة","Next result":"النتيجة التالية","Loading…":"جارٍ التحميل…","This PDF has no contents list.":"لا يحتوي هذا الملف على فهرس للمحتويات.","No saved pages yet. Use Save page while reading.":"لا توجد صفحات محفوظة بعد. استخدم «حفظ الصفحة» أثناء القراءة.",
     "This PDF could not be shown here. Close this and try again.":"تعذّر عرض هذا الملف هنا. أغلق هذه النافذة وحاول مرة أخرى.",
     "Continue where you left off":"تابع من حيث توقفت",
@@ -1583,6 +1721,152 @@ var BUCKET="files";
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setup);else setup()
 })();
 </script>
+<script>
+/* Google Drive sync: keeps reading progress, saved pages and settings in the student's own hidden Drive app-data file */
+(function(){
+  var CID="631371036464-e26qa6s03vtk3ao8q10dkplpvqf0kbd0.apps.googleusercontent.com",SCOPE="https://www.googleapis.com/auth/drive.appdata",FN="study-hub-data.json",DAY=864e5;
+  var KEYS=["sh_pdfpos","sh_pdfbm","sh_pdfbm_t","sh_pdfnight","sh_pdfnight_t","sh_last","sh_pdfann"];
+  function lg(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+  function ls(k,v){try{if(v===null||v===undefined)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  var sb=window.__sb,user=null,tok=null,tokExp=0,fileId=null,timer=0,busy=false,again=false,gsiP=null,clickHook=false,dlg=null;
+  var ENABLED=false;
+  if(!sb||!ENABLED)return;
+  function st(){var s=lg("sh_drive");return s&&user&&s.u===user.id?s:null}
+  function setSt(s){ls("sh_drive",{s:s,u:user.id,t:Date.now()})}
+  function personal(){return /@(gmail|googlemail)\.com$/i.test(user.email||"")}
+  function wipe(){KEYS.forEach(function(k){ls(k,null)});ls("sh_owner",null)}
+
+  /* dialog */
+  function css(){if(document.getElementById("dr-css"))return;var c=document.createElement("style");c.id="dr-css";
+    c.textContent='#dr-dlg{border:1px solid var(--line);border-radius:14px;padding:22px;max-width:420px;width:calc(100% - 32px);background:var(--surface);color:var(--fg);font-family:inherit}#dr-dlg::backdrop{background:rgba(0,0,0,.45)}#dr-dlg h2{margin:0 0 8px;font-size:19px}#dr-dlg p{margin:8px 0;font-size:14px;line-height:1.5;color:var(--muted)}#dr-dlg p b{color:var(--fg)}#dr-dlg .row2{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}';document.head.appendChild(c)}
+  function show(title,paras,btns,esc){
+    css();if(!dlg){dlg=document.createElement("dialog");dlg.id="dr-dlg";document.body.appendChild(dlg)}
+    var h='<h2></h2>'+paras.map(function(){return "<p></p>"}).join("")+'<div class="row2"></div>';dlg.innerHTML=h;
+    dlg.querySelector("h2").textContent=title;
+    [].forEach.call(dlg.querySelectorAll("p"),function(p,i){p.textContent=paras[i]});
+    var row=dlg.querySelector(".row2");
+    dlg._done=false;dlg._esc=esc||null;dlg.onclose=function(){if(!dlg._done&&dlg._esc)dlg._esc()};
+    btns.forEach(function(b,i){var e=document.createElement("button");e.type="button";e.className="btn"+(i===0?" primary":"");e.textContent=b[0];e.onclick=function(){dlg._done=true;dlg.close();b[1]&&b[1]()};row.appendChild(e)});
+    if(!dlg.open)dlg.showModal()
+  }
+  function askDlg(){
+    show("Save your progress to your Google Drive?",
+      ["Study Hub can remember where you stopped in each PDF, your saved pages and your reading settings, and bring them with you to any phone or computer you sign in on.",
+       "To do this, Google will ask you to let Study Hub keep one tiny hidden file in your own Google Drive. Study Hub cannot see or change any of your other files, and no one else can read this file. You can remove it any time in your Google account under Third-party apps."],
+      [["Allow access",function(){connect("")}],["Not now",function(){setSt("no")}]],function(){setSt("no")})
+  }
+  function deniedDlg(){
+    show("Study Hub could not get access",
+      ["Without access, your place in PDFs, your saved pages and your reading settings stay on this device only. They will not follow you to another phone or computer.",
+       "We ask because Google Drive is where we keep this small file, so it stays in your own account. When Google asks, keep the Google Drive box ticked and press Allow. If a school or organisation account is being used, its admin may have blocked this."],
+      [["Try again",function(){connect("consent")}],["Keep on this device",function(){setSt("no")}]],function(){setSt("no")})
+  }
+  function schoolDlg(){
+    show("School accounts cannot sync",
+      ["You are signed in with a school or organisation email. Schools usually block apps from saving to Google Drive, so your progress stays on this device only for now.",
+       "To keep your progress on every device: sign out, then sign in with a personal Gmail account. Or ask your school's IT admin to allow Study Hub to use Google Drive app data, then press Try anyway."],
+      [["OK",function(){setSt("school")}],["Try anyway",function(){connect("")}]],function(){setSt("school")});
+    dlg.querySelector(".btn").classList.remove("primary")
+  }
+  function errDlg(){
+    show("Could not reach Google Drive",["Something went wrong while connecting. Your progress stays on this device and Study Hub will try again next time."],[["OK"]])
+  }
+  function okDlg(){
+    show("Connected to your Google Drive",
+      ["Your PDF progress, saved pages and reading settings will now follow you to any device where you sign in with this Google account."],
+      [["Done"]])
+  }
+
+  /* Google token */
+  function gsi(){return gsiP||(gsiP=new Promise(function(ok,no){var s=document.createElement("script");s.src="https://accounts.google.com/gsi/client";s.async=true;s.onload=ok;s.onerror=function(){gsiP=null;no()};document.head.appendChild(s)}))}
+  function getToken(prompt){
+    return gsi().then(function(){return new Promise(function(res,rej){
+      var c=window.google.accounts.oauth2.initTokenClient({client_id:CID,scope:SCOPE,hint:user.email,prompt:prompt,
+        callback:function(r){if(r&&r.access_token&&(!window.google.accounts.oauth2.hasGrantedAllScopes||window.google.accounts.oauth2.hasGrantedAllScopes(r,SCOPE))){tok=r.access_token;tokExp=Date.now()+((r.expires_in||3600)-90)*1000;res(tok)}else rej({denied:true})},
+        error_callback:function(e){rej({popup:true,type:e&&e.type})}});
+      c.requestAccessToken()})})
+  }
+  function ensure(){
+    if(tok&&Date.now()<tokExp)return Promise.resolve(tok);
+    return getToken("none").catch(function(e){
+      if(e&&e.popup&&!clickHook){clickHook=true;var f=function(){document.removeEventListener("click",f,true);clickHook=false;if(st()&&st().s==="on")sync()};document.addEventListener("click",f,true)}
+      throw e})
+  }
+  function connect(prompt){
+    getToken(prompt).then(function(){setSt("on");ls("sh_owner",user.id);return sync(true)}).then(function(){okDlg()})
+      .catch(function(e){if(e&&(e.denied||e.popup))deniedDlg();else errDlg()})
+  }
+
+  /* Drive REST */
+  function dapi(url,opt){
+    return ensure().then(function(t){opt=opt||{};opt.headers=Object.assign({Authorization:"Bearer "+t},opt.headers||{});return fetch(url,opt)}).then(function(r){
+      if(r.status===401){tok=null;throw{auth:true}}if(!r.ok)throw{http:r.status};return r})
+  }
+  function find(){
+    return dapi("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&pageSize=1&fields=files(id)&q="+encodeURIComponent("name='"+FN+"'")).then(function(r){return r.json()}).then(function(j){fileId=j.files&&j.files[0]?j.files[0].id:null})
+  }
+  function download(){return fileId?dapi("https://www.googleapis.com/drive/v3/files/"+fileId+"?alt=media").then(function(r){return r.json()}).catch(function(){return null}):Promise.resolve(null)}
+  function upload(o){
+    var body=JSON.stringify(o);
+    if(fileId)return dapi("https://www.googleapis.com/upload/drive/v3/files/"+fileId+"?uploadType=media",{method:"PATCH",headers:{"Content-Type":"application/json"},body:body});
+    var b="shb"+Date.now(),meta=JSON.stringify({name:FN,parents:["appDataFolder"],mimeType:"application/json"});
+    return dapi("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",{method:"POST",headers:{"Content-Type":"multipart/related; boundary="+b},
+      body:"--"+b+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+meta+"\r\n--"+b+"\r\nContent-Type: application/json\r\n\r\n"+body+"\r\n--"+b+"--"}).then(function(r){return r.json()}).then(function(j){fileId=j.id})
+  }
+
+  /* merge */
+  function snap(){return{v:1,pos:lg("sh_pdfpos")||{},bm:lg("sh_pdfbm")||{},bmt:lg("sh_pdfbm_t")||{},night:lg("sh_pdfnight")===1?1:0,nt:lg("sh_pdfnight_t")||0,last:lg("sh_last"),ann:lg("sh_pdfann")||{}}}
+  function merge(a,b){
+    b=b||{};var r={v:1,pos:{},bm:{},bmt:{}},k;
+    var pa=a.pos||{},pb=b.pos||{};
+    Object.keys(pa).concat(Object.keys(pb)).forEach(function(id){var x=pa[id],y=pb[id];r.pos[id]=!x?y:!y?x:(x.t>=y.t?x:y)});
+    var ids={};Object.keys(a.bm||{}).concat(Object.keys(b.bm||{}),Object.keys(a.bmt||{}),Object.keys(b.bmt||{})).forEach(function(id){ids[id]=1});
+    Object.keys(ids).forEach(function(id){var ta=(a.bmt||{})[id]||0,tb=(b.bmt||{})[id]||0,src=ta>=tb?a:b;r.bmt[id]=Math.max(ta,tb);if((src.bm||{})[id])r.bm[id]=src.bm[id]});
+    r.ann={};var aids={},now=Date.now();Object.keys(a.ann||{}).concat(Object.keys(b.ann||{})).forEach(function(id){aids[id]=1});
+    Object.keys(aids).forEach(function(id){var mp={};((a.ann||{})[id]||[]).concat((b.ann||{})[id]||[]).forEach(function(it){if(!it||!it.i)return;var o=mp[it.i];if(!o||it.t>o.t)mp[it.i]=it});
+      var l=Object.keys(mp).map(function(k){return mp[k]}).filter(function(it){return !it.del||now-it.t<60*864e5});if(l.length)r.ann[id]=l});
+    var na=a.nt||0,nb=b.nt||0;if(na>=nb){r.night=a.night||0;r.nt=na}else{r.night=b.night||0;r.nt=nb}
+    var la=a.last,lb=b.last;r.last=!la?lb:!lb?la:((la.t||0)>=(lb.t||0)?la:lb);
+    Object.keys(r.pos).forEach(function(x){if(!r.pos[x])delete r.pos[x]});
+    var keys=Object.keys(r.pos);if(keys.length>60){keys.sort(function(x,y){return r.pos[y].t-r.pos[x].t});keys.slice(60).forEach(function(x){delete r.pos[x]})}
+    return r
+  }
+  function apply(r){
+    ls("sh_pdfann",r.ann);ls("sh_pdfpos",r.pos);ls("sh_pdfbm",r.bm);ls("sh_pdfbm_t",r.bmt);ls("sh_pdfnight",r.night?1:0);ls("sh_pdfnight_t",r.nt);ls("sh_last",r.last||null);
+    if(window.__sh&&window.__sh.setLast&&r.last){window.__sh.setLast(r.last)}
+  }
+  function sync(first){
+    if(busy){again=true;return Promise.resolve()}
+    busy=true;
+    var owner=lg("sh_owner");if(owner&&owner!==user.id)wipe();ls("sh_owner",user.id);
+    return (fileId?Promise.resolve():find()).then(download).then(function(remote){
+      var local=snap(),m=merge(local,remote);apply(m);
+      if(!remote||JSON.stringify(m)!==JSON.stringify(remote))return upload(m)
+    }).then(function(){busy=false;if(again){again=false;changed()}}).catch(function(e){busy=false;again=false;if(first)throw e})
+  }
+  function changed(){
+    var s=st();if(!s||s.s!=="on")return;
+    clearTimeout(timer);timer=setTimeout(function(){sync()},4000)
+  }
+  window.__drive={changed:changed,sync:function(){return sync()}};
+  document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden"&&timer){clearTimeout(timer);timer=0;var s=st();if(s&&s.s==="on")sync()}});
+
+  /* start */
+  function start(){
+    var s=st();
+    if(s&&s.s==="on"){ensure().then(function(){return sync()}).catch(function(){});return}
+    if(!personal()){if(!s||s.s!=="school")setTimeout(schoolDlg,2500);return}
+    if(s&&s.s==="no"&&Date.now()-s.t<7*DAY)return;
+    if(s&&s.s==="school")return;
+    setTimeout(askDlg,2500)
+  }
+  sb.auth.getSession().then(function(r){var ses=r&&r.data&&r.data.session;if(ses){user=ses.user;start()}});
+  sb.auth.onAuthStateChange(function(ev,ses){
+    if(ev==="SIGNED_OUT"){var s0=lg("sh_drive");if(s0&&s0.s==="on")wipe();tok=null;fileId=null;user=null;ls("sh_drive",s0&&s0.s==="on"?null:s0)}
+  })
+})();
+</script>
+
 <script src="admin.js?v=7"></script>
 </body>
 </html>

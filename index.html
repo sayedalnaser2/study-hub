@@ -354,11 +354,15 @@ var BUCKET="files";
   }
   function loadPdfjs(){
     if(PDFJS)return PDFJS;
-    var B="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
-    PDFJS=new Promise(function(ok,no){var s=document.createElement("script");s.src=B+"pdf.min.js";
-      s.onload=function(){fetch(B+"pdf.worker.min.js").then(function(r){return r.text()}).then(function(c){
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([c],{type:"text/javascript"}));ok(window.pdfjsLib)}).catch(no)};
-      s.onerror=no;document.head.appendChild(s)});
+    var BS=["https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/","https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/","https://unpkg.com/pdfjs-dist@3.11.174/build/"];
+    function one(B){return new Promise(function(ok,no){
+      if(window.pdfjsLib)return ok();
+      var s=document.createElement("script");s.src=B+"pdf.min.js";var t=setTimeout(function(){no(new Error("timeout"))},15000);
+      s.onload=function(){clearTimeout(t);ok()};s.onerror=function(){clearTimeout(t);s.remove();no(new Error("load"))};document.head.appendChild(s)
+    }).then(function(){
+      return fetch(B+"pdf.worker.min.js").then(function(r){if(!r.ok)throw new Error("worker");return r.text()}).then(function(c){
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([c],{type:"text/javascript"}));return window.pdfjsLib})})}
+    PDFJS=BS.reduce(function(p,B){return p.catch(function(){return one(B)})},Promise.reject()) ;
     PDFJS.catch(function(){PDFJS=null});return PDFJS
   }
   function pdfTeardown(){
@@ -418,7 +422,7 @@ var BUCKET="files";
   function pdfHlAll(v){v.els.forEach(function(d,i){pdfHl(v,i+1,d)})}
   function pdfLayout(v,f){
     var sc=v.sc,box=v.pages;box.style.transform="";box.innerHTML="";if(v.io)v.io.disconnect();
-    v.w0=Math.max(200,sc.clientWidth-24);var w=v.w0*v.zoom;v.els=[];
+    v.w0=Math.min(1100,Math.max(200,sc.clientWidth-24));var w=v.w0*v.zoom;v.els=[];
     v.io=new IntersectionObserver(function(es){es.forEach(function(en){var el=en.target;
       if(en.isIntersecting){if(!el.dataset.done){el.dataset.done="1";pdfRender(v,+el.dataset.n,el)}}
       else if(el.dataset.done){delete el.dataset.done;el._k=(el._k||0)+1;var c=el.querySelector("canvas");if(c)c.remove()}})},
@@ -742,10 +746,10 @@ var BUCKET="files";
     var q=el.querySelector(".pvq"),qt=0;
     q.addEventListener("input",function(){v.q=q.value;clearTimeout(qt);qt=setTimeout(function(){if(PV===v)pdfFindRun(v)},250)});
     q.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();if(v.hits&&v.hits.length)pdfHit(v,(v.hi+(e.shiftKey?-1:1)+v.hits.length)%v.hits.length)}});
-    var fail=function(url){if(PV!==v)return;
+    var fail=function(url,why){if(PV!==v)return;
       [].forEach.call(el.querySelectorAll("[data-pdoc]"),function(b){b.hidden=true});
-      if(url){el.querySelector("[data-pnew]").href=url;el.querySelector("[data-pdl]").href=url;v.sc.innerHTML='<iframe title="PDF" src="'+url.replace(/"/g,"&quot;")+'"></iframe>'}
-      else v.sc.innerHTML='<div class="pvm">This PDF could not be shown here. Close this and try again.</div>'};
+      v.sc.innerHTML='<div class="pvm"><p>This PDF could not be shown in the viewer'+(why?' ('+String(why).replace(/[<>&]/g,"")+')':'')+'.</p><p><button type="button" class="btn primary" data-pretry="1">Try again</button> '+(url?'<a class="btn" target="_blank" rel="noopener" href="'+url.replace(/"/g,"&quot;")+'">Open in new tab</a>':'')+'</p></div>';
+      var r=v.sc.querySelector("[data-pretry]");if(r)r.onclick=function(){pdfTeardown();openPdf(id,title,opener)}};
     fileUrl(id).then(function(url){
       el.querySelector("[data-pnew]").href=url;
       return Promise.all([loadPdfjs(),fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob()})]).then(function(a){
@@ -758,8 +762,8 @@ var BUCKET="files";
             var m=LS.g("sh_pdfpos")||{},sp=m[id]&&m[id].p;
             if(sp>1&&sp<=doc.numPages){v.cur=sp;el.querySelector(".pvtoast b").textContent=sp}else sp=0;
             pdfTouch(v);pdfLayout(v);if(sp)pdfToast(v)})})
-      }).catch(function(){fail(url)})
-    }).catch(function(){fail(null)})
+      }).catch(function(e){fail(url,e&&e.message)})
+    }).catch(function(e){fail(null,e&&e.message)})
   }
   document.addEventListener("click",function(e){
     if(PV&&e.target.closest&&e.target.closest("#pdfv")&&pdfUi(e))return;

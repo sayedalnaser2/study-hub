@@ -654,38 +654,14 @@ var BUCKET="files";
   var mode="in",dlg;
   function build(){
     dlg=document.createElement("dialog");dlg.id="auth-dlg";
-    dlg.innerHTML='<form method="dialog" id="auth-f"><h2 id="auth-t">Sign in</h2><p style="margin:0;color:var(--muted);font-size:14px">You need an account to upload files and write reviews. Browsing is open to everyone.</p><div class="oauth"><button type="button" class="btn" data-oa="google">Continue with Google</button></div><p class="or">or use your email</p><label id="auth-nl" hidden>Choose your username (shown on your uploads and reviews)<input id="auth-n" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false"><small>3 to 20 letters, numbers, dots, dashes or underscores. No spaces. It must be unique and cannot be changed later.</small></label><label>Email<input id="auth-e" type="email" required autocomplete="email"></label><label>Password<input id="auth-p" type="password" required minlength="6" autocomplete="current-password"></label><div class="row2"><button class="btn primary" id="auth-go" value="x">Sign in</button><button type="button" class="btn" id="auth-sw">Create an account</button><button type="button" class="btn" id="auth-x">Cancel</button></div><div id="auth-msg" role="status"></div></form>';
+    dlg.innerHTML='<form method="dialog" id="auth-f"><h2 id="auth-t">Sign in</h2><p style="margin:0;color:var(--muted);font-size:14px">You need an account to upload files and write reviews. Browsing is open to everyone.</p><div class="oauth"><button type="button" class="btn primary" data-oa="google">Continue with Google</button></div><div class="row2"><button type="button" class="btn" id="auth-x">Cancel</button></div><div id="auth-msg" role="status"></div></form>';
     document.body.appendChild(dlg);
     dlg.querySelector("#auth-x").onclick=function(){dlg.close()};
     dlg.querySelectorAll("[data-oa]").forEach(function(b){b.onclick=async function(){var m=dlg.querySelector("#auth-msg");m.textContent="Opening "+b.getAttribute("data-oa")+"…";
       var r=await sb.auth.signInWithOAuth({provider:b.getAttribute("data-oa"),options:{redirectTo:location.origin+location.pathname}});
       if(r.error)m.textContent=r.error.message}});
-    dlg.querySelector("#auth-sw").onclick=function(){mode=mode==="in"?"up":"in";paint()};
-    dlg.querySelector("#auth-f").onsubmit=async function(ev){ev.preventDefault();
-      var m=dlg.querySelector("#auth-msg"),em=dlg.querySelector("#auth-e").value.trim(),pw=dlg.querySelector("#auth-p").value,nm=dlg.querySelector("#auth-n").value.trim();
-      if(mode==="up"){
-        if(!/^[A-Za-z0-9_.\u0600-\u06FF-]{3,20}$/.test(nm)){m.textContent="Choose a username of 3 to 20 letters or numbers (no spaces).";return}
-        m.textContent="Checking the username…";
-        var ck=await sb.rpc("name_available",{n:nm});
-        if(ck.error){m.textContent="Could not check the username. Try again.";return}
-        if(ck.data===false){m.textContent="That username is already taken. Choose another.";return}
-      }
-      m.textContent="One moment…";
-      var r=mode==="up"?await sb.auth.signUp({email:em,password:pw,options:{data:{name:nm,picked:"true"}}}):await sb.auth.signInWithPassword({email:em,password:pw});
-      if(r.error){m.textContent=/database error/i.test(r.error.message)?"That username may have just been taken. Try a different one.":r.error.message;return}
-      if(r.data&&r.data.session){location.reload()}else{m.textContent="Check your email and click the confirmation link, then sign in."}
-    };
-    paint()
   }
-  function paint(){
-    dlg.querySelector("#auth-t").textContent=mode==="in"?"Sign in":"Create an account";
-    dlg.querySelector("#auth-go").textContent=mode==="in"?"Sign in":"Sign up";
-    dlg.querySelector("#auth-sw").textContent=mode==="in"?"Create an account":"I have an account";
-    dlg.querySelector("#auth-nl").hidden=mode==="in";
-    dlg.querySelector("#auth-p").autocomplete=mode==="in"?"current-password":"new-password";
-    dlg.querySelector("#auth-msg").textContent=""
-  }
-  window.__shAuth=function(){if(!dlg)build();mode="in";paint();dlg.showModal()};
+  window.__shAuth=function(){if(!dlg)build();dlg.querySelector("#auth-msg").textContent="";dlg.showModal()};
   document.addEventListener("click",function(e){if(e.target.closest&&e.target.closest("[data-auth]")){e.preventDefault();window.__shAuth()}});
 
   /* Everyone (Google or email) must pick a unique username once. Until then they can browse but not post. */

@@ -179,6 +179,8 @@ label small{font-weight:400;color:var(--muted)}
 .sttitle{margin:0 0 12px;font-size:20px}
 .stq{width:100%;margin:0 0 12px}
 .stalt{margin:18px 0 0}
+.cont{width:100%;margin:0 0 16px;border-color:var(--accent)}
+.cont b{display:block;margin-bottom:4px}.cont .cl{display:flex;flex-wrap:wrap;gap:4px;color:var(--muted);font-size:13px}
 .adslot{margin:22px 0}.adslot:empty{display:none}
 @media(max-width:560px){.stps{grid-template-columns:1fr}}
 #gate{position:fixed;inset:0;z-index:90;overflow:auto;background:var(--bg);display:grid;place-items:center;padding:20px}
@@ -613,7 +615,7 @@ var BUCKET="files";
       '<p class="lead">'+(SCH()?'Pick your grade and semester, then upload notes, worksheets and past papers. Or find what your classmates already shared before the exam.':'Pick your university, major and year, then upload notes, slides and past papers. Or find what your classmates already shared before the exam.')+'</p>'+
       '<div class="cta"><button class="btn primary" data-go="upload">Upload a file</button><button class="btn" data-go="library">Browse the library</button></div></div>'+
       '<div class="stats"><div><b>'+lv().length+'</b><span>Files</span></div><div><b>'+Object.keys(majors).length+'</b><span>'+(SCH()?'Grades':'Majors')+'</span></div><div><b>'+Object.keys(people).length+'</b><span>Sharers</span></div></div></section>'+
-      '<section><div class="sec-head"><h2>'+(SCH()?'Choose your stage or track':'Choose your university')+'</h2></div><div class="tiles">'+(SCH()?stageTiles():ulist().map(function(u){var n=count({uni:u.id}),m=0;u.groups.forEach(function(g){m+=g.m.length});
+      '<section>'+contBlock()+'<div class="sec-head"><h2>'+(SCH()?'Choose your stage or track':'Choose your university')+'</h2></div><div class="tiles">'+(SCH()?stageTiles():ulist().map(function(u){var n=count({uni:u.id}),m=0;u.groups.forEach(function(g){m+=g.m.length});
         return '<button class="tile" data-uni="'+u.id+'"><span class="eyebrow">'+u.short+'</span><h3>'+esc(u.name)+'</h3><span>'+u.groups.length+' '+(u.label||(u.id==="poly"?'schools':'colleges'))+' · '+m+' programmes · '+n+(n===1?' file':' files')+'</span></button>'}).join(""))+'</div></section>'+
       (feat.length?'<section><div class="sec-head"><h2>Featured</h2></div><div class="list">'+feat.map(function(f){return fileRow(f,false)}).join("")+'</div></section>':'')+'<section><div class="sec-head"><h2>Latest uploads</h2>'+(S.files.length?'<button class="btn small" data-go="library">See all</button>':'')+'</div>'+
       '<div class="list">'+(!S.loaded?'<div class="empty">Loading files…</div>':recent.length?recent.map(function(f){return fileRow(f,false)}).join(""):emptyList())+'</div></section>'
@@ -653,7 +655,17 @@ var BUCKET="files";
   function stUrl(kind){var T=tgt(kind),p=[];if(!SCH()&&T.uni)p.push(T.uni);["college","major","year"].forEach(function(k){if(T[k]&&p.length>=(SCH()?0:1)+["college","major","year"].indexOf(k))p.push(T[k])});
     if(kind==="up"){if(U.locked&&U.other)p.push("_other");else if(U.locked&&U.subject)p.push(U.subject)}else{if(T.subject)p.push(T.subject);else if(S.libFiles)p.push("_all")}
     return (kind==="up"?"upload":"library")+(p.length?"/"+p.map(encodeURIComponent).join("/"):"")}
-  function stGo(kind){S.page=kind==="up"?"upload":"library";S.msg=null;S.toast=null;
+  var LAST=null;try{LAST=JSON.parse(localStorage.getItem("sh_last")||"null")}catch(e){LAST=null}
+  function lastParts(kind){var T=tgt(kind),p=[],a=[];if(!SCH())a.push(T.uni);a.push(T.college,T.major,T.year);if(kind==="lib"){if(T.subject)a.push(T.subject)}else if(U.locked&&U.subject&&!U.other)a.push(U.subject);
+    for(var i=0;i<a.length;i++){if(!a[i])break;p.push(a[i])}return p}
+  function saveLast(kind){var p=lastParts(kind);if(p.length<(SCH()?3:4))return;LAST={l:LEVEL,p:p};try{localStorage.setItem("sh_last",JSON.stringify(LAST))}catch(e){}}
+  function lastOk(){if(!LAST||LAST.l!==LEVEL||!LAST.p||LAST.p.length<(SCH()?3:4))return false;var p=LAST.p,i=0,u=SCH()?"school":p[i++],x=uni(u);if(!x||(SCH()!==(u==="school")))return false;
+    var c=p[i++],m=p[i++],y=p[i++];return x.groups.some(function(g){return g.g===c&&g.m.indexOf(m)>-1})&&x.years.indexOf(y)>-1}
+  function contBlock(){
+    if(!lastOk())return"";var p=LAST.p.slice(),F=S.filter,cur=lastParts("lib").join("|");if(cur&&cur===p.join("|")&&S.page==="library")return"";
+    if(!SCH()){var x=uni(p[0]);p[0]=x?x.short:p[0]}
+    return '<button type="button" class="stp cont" data-cont="1"><span><b>Continue where you left off</b><span class="cl">'+p.map(function(s){return '<span>'+esc(s)+'</span>'}).join('<i aria-hidden="true">›</i>')+'</span></span><em aria-hidden="true">›</em></button>'}
+  function stGo(kind){saveLast(kind);S.page=kind==="up"?"upload":"library";S.msg=null;S.toast=null;
     try{history.pushState({k:kind,F:JSON.stringify(S.filter),U:JSON.stringify(U),L:S.libFiles},"","#"+stUrl(kind))}catch(e){}
     render();window.scrollTo(0,0);pv()}
   function stParse(kind,parts){var T=tgt(kind),i=0;T.college=T.major=T.year=T.subject="";if(kind==="lib")S.libFiles=false;else{U.locked=false;U.other=false}
@@ -699,7 +711,7 @@ var BUCKET="files";
     var F=S.filter,files=F.subject||S.libFiles||F.q.trim(),sc=SCH();
     var head='<div class="pagehead"><h1>Library</h1><p>'+(sc?'Tap your stage, grade and subject. One choice on each screen.':'Tap your university, college, major and subject. One choice on each screen.')+'</p></div>';
     var alt='<p class="stalt"><button class="btn small" data-adv="lib:1">Advanced search (dropdown menus)</button></p><div class="adslot" data-slot="bottom"></div>';
-    if(!files)return head+stCrumbs("lib")+'<form class="filters2" id="stsearch" style="margin:0 0 16px"><input type="search" id="fq" placeholder="Search by title or description" aria-label="Search files" value=""><button class="btn small" type="submit">Search</button></form>'+stStep("lib")+alt;
+    if(!files)return head+stCrumbs("lib")+'<form class="filters2" id="stsearch" style="margin:0 0 16px"><input type="search" id="fq" placeholder="Search by title or description" aria-label="Search files" value=""><button class="btn small" type="submit">Search</button></form>'+(stLevel("lib")===(sc?"c":"u")?contBlock():"")+stStep("lib")+alt;
     return head+stCrumbs("lib")+
     '<div class="filters2"><input type="search" id="fq" placeholder="Search by title or description" aria-label="Search files" value="'+esc(F.q)+'">'+
     '<select id="fk" aria-label="Type"><option value="">All types</option>'+KINDS.map(function(k){return '<option value="'+esc(k)+'"'+(F.kind===k?' selected':'')+'>'+k+'</option>'}).join("")+'</select>'+
@@ -862,7 +874,7 @@ var BUCKET="files";
       await S.db.collection("files").add({title:title,uni:U.uni,college:U.college,major:U.major,year:U.year,subject:subj,kind:U.kind,description:U.desc.trim(),assetId:a.id,contentType:a.contentType,sizeBytes:a.sizeBytes,fileName:picked.name,uploaderId:S.me||"",createdAt:Date.now()});
       var okText="Shared. Classmates in "+U.major+", "+U.year+" can now find \""+title+"\" in the Library.";
       picked=null;S.filter={uni:U.uni,college:U.college,major:U.major,year:U.year,subject:subj,kind:"",q:"",sort:"new"};U.title=U.subject=U.desc="";U.locked=false;
-      S.msg=null;S.page="library";try{history.replaceState(null,"","#library")}catch(e){}render();window.scrollTo(0,0);
+      saveLast("lib");S.msg=null;S.page="library";try{history.replaceState(null,"","#library")}catch(e){}render();window.scrollTo(0,0);
       showToast(okText)
     }catch(err){
       var c=err&&err.code,t="The upload did not finish. Try again in a moment.";
@@ -897,6 +909,8 @@ var BUCKET="files";
   function typing(){var a=document.activeElement;return !!(a&&a.classList&&a.classList.contains("rv-text"))}
   document.addEventListener("click",function(e){
     var t=e.target;
+    if(t.closest("[data-cont]")){if(lastOk()){S.filter.q="";S.filter.kind="";stParse("lib",LAST.p.slice(SCH()?0:0));S.libFiles=false;if(LAST.p.length>(SCH()?3:4)){}}
+      stGo("lib");return}
     var st=t.closest("[data-st]");if(st){stPick(st);return}
     var sb=t.closest("[data-sb]");if(sb){var kk=sb.getAttribute("data-k");stClear(kk,+sb.getAttribute("data-sb"));stGo(kk);return}
     var ad=t.closest("[data-adv]");if(ad){var ap=ad.getAttribute("data-adv").split(":");if(ap[0]==="lib")S.adv=ap[1]==="1";else U.adv=ap[1]==="1";render();window.scrollTo(0,0);return}
@@ -954,6 +968,7 @@ var BUCKET="files";
 (function(){
   var AR={
     "Universities":"الجامعات",
+    "Continue where you left off":"تابع من حيث توقفت",
     "Search":"بحث",
     "Another subject":"مادة أخرى",
     "Where you are":"أين أنت الآن",

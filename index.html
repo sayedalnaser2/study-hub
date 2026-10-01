@@ -168,6 +168,19 @@ label small{font-weight:400;color:var(--muted)}
 .rp-mini{margin-inline-start:6px;background:none;border:0;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;padding:0}.rp-mini:hover{color:var(--bad)}
 .feat{background:var(--accent);color:var(--accent-fg)}
 .hid{background:#6b7280;color:#fff}
+.stps{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.stp{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:60px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);font:inherit;text-align:start;cursor:pointer}
+.stp:hover,.stp:focus-visible{border-color:var(--accent)}
+.stp em{font-style:normal;color:var(--muted);font-size:13px;white-space:nowrap}
+.stp.alt{border-style:dashed}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 16px;font-size:14px}
+.crumbs button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 12px;font:inherit;cursor:pointer}
+.crumbs b{padding:6px 4px}.crumbs i{color:var(--muted);font-style:normal}
+.sttitle{margin:0 0 12px;font-size:20px}
+.stq{width:100%;margin:0 0 12px}
+.stalt{margin:18px 0 0}
+.adslot{margin:22px 0}.adslot:empty{display:none}
+@media(max-width:560px){.stps{grid-template-columns:1fr}}
 #gate{position:fixed;inset:0;z-index:90;overflow:auto;background:var(--bg);display:grid;place-items:center;padding:20px}
 #gate .gate-box{width:100%;max-width:720px}
 #gate .gate-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;font-size:18px}
@@ -504,8 +517,8 @@ var BUCKET="files";
   var KINDS=["Slides","Notes","Past paper","Summary","Worksheet","Other"];
   var OK_EXT={pdf:"application/pdf",png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",gif:"image/gif",webp:"image/webp",svg:"image/svg+xml",txt:"text/plain",md:"text/markdown",csv:"text/csv"};
   var PAGES=[["home","Home"],["library","Library"],["upload","Upload"],["majors","Majors"],["guidelines","Guidelines"]];
-  var S={page:"home",files:[],ratings:{},open:{},draft:{},loaded:false,dbOk:null,assets:null,user:null,me:null,names:{},canEdit:false,filter:{uni:"",college:"",major:"",year:"",subject:"",kind:"",q:"",sort:"new"},msg:null,db:null,majorsUni:"uob"};
-  var U={uni:"",college:"",major:"",year:"",subject:"",other:false,title:"",kind:"Notes",desc:""};
+  var S={page:"home",files:[],ratings:{},open:{},draft:{},loaded:false,dbOk:null,assets:null,user:null,me:null,names:{},canEdit:false,filter:{uni:"",college:"",major:"",year:"",subject:"",kind:"",q:"",sort:"new"},msg:null,db:null,majorsUni:"uob",adv:false,libFiles:false};
+  var U={adv:false,uni:"",college:"",major:"",year:"",subject:"",other:false,title:"",kind:"Notes",desc:""};
   var picked=null;
   /* School or university: asked on the first visit, remembered in this browser. */
   var LEVEL="";try{LEVEL=localStorage.getItem("sh_level")||""}catch(e){}
@@ -557,7 +570,8 @@ var BUCKET="files";
   function subjectsFor(o){var m={};listed(o).forEach(function(k){m[k]=0});S.files.forEach(function(f){if(within(f,o)&&f.subject)m[f.subject]=(m[f.subject]||0)+1});return Object.keys(m).sort().map(function(k){return[k,m[k]]})}
   function count(o){return S.files.filter(function(f){return within(f,o)}).length}
 
-  function go(p){S.page=p;S.msg=null;S.toast=null;try{history.replaceState(null,"","#"+p)}catch(e){}render();window.scrollTo(0,0)}
+  function pv(){try{document.dispatchEvent(new CustomEvent("sh:pageview",{detail:{page:S.page,path:location.hash}}))}catch(e){}}
+  function go(p){S.page=p;S.msg=null;S.toast=null;try{history.replaceState(null,"","#"+p)}catch(e){}render();window.scrollTo(0,0);pv()}
   function nav(){$("#nav").innerHTML=PAGES.concat(window.__adm&&window.__adm.ok?[["admin","Admin"]]:[]).map(function(p){return '<button data-go="'+p[0]+'"'+(S.page===p[0]?' aria-current="page"':'')+'>'+(p[0]==="majors"&&SCH()?"Grades":p[1])+'</button>'}).join("")}
 
   function stats(id){var r=S.ratings[id]||{},k=Object.keys(r),n=k.length,t=0;k.forEach(function(x){t+=r[x].stars});return{n:n,avg:n?t/n:0,mine:S.me&&r[S.me]?r[S.me]:null}}
@@ -613,10 +627,11 @@ var BUCKET="files";
     r.sort(function(a,b){if(F.sort==="az")return String(a.title).localeCompare(String(b.title));if(F.sort==="top"){var x=stats(a.id),y=stats(b.id);return (y.avg-x.avg)||(y.n-x.n)||(b.createdAt-a.createdAt)}return b.createdAt-a.createdAt});
     return r.length?r.map(function(f){return fileRow(f,true)}).join(""):(S.files.length?'<div class="empty"><b>Nothing matches</b>Try another subject or clear a filter.</div>':emptyList())
   }
-  function library(){
+  function libraryAdv(){
     var F=S.filter;
     var subs=subjectsFor(F),sc=SCH();
     return '<div class="pagehead"><h1>Library</h1><p>'+(sc?'Narrow it down in order: stage or track, grade or major, semester, then subject.':'Narrow it down in order: university, college or school, major, year, then subject.')+'</p></div>'+
+    '<p class="stalt" style="margin:0 0 14px"><button class="btn small" data-adv="lib:0">Use buttons instead</button></p>'+
     '<div class="filters">'+
     '<label'+(sc?' hidden':'')+'>1 · University<select id="fu"><option value="">All universities</option>'+ulist().map(function(u){return '<option value="'+u.id+'"'+(F.uni===u.id?' selected':'')+'>'+esc(u.name)+'</option>'}).join("")+'</select></label>'+
     '<label>'+(sc?1:2)+' · '+(F.uni?unitWord(F.uni):'College / School')+'<select id="fc"'+(F.uni?'':' disabled')+'><option value="">All</option>'+collegeOpts(F.uni,F.college)+'</select></label>'+
@@ -629,7 +644,78 @@ var BUCKET="files";
     (F.uni&&F.college&&F.major&&F.year?'<div class="here"><span>Adding to <b>'+esc(uni(F.uni).short)+' · '+esc(F.major)+' · '+esc(F.year)+(F.subject?' · '+esc(F.subject):'')+'</b></span><button class="btn small primary" data-here="1">Upload a file here</button></div>':'')+
     '<div class="list" id="lib">'+(S.loaded?libraryList():'<div class="empty">Loading files…</div>')+'</div>'
   }
+
+  /* ---- Button steps for Library and Upload (one choice per screen, each with its own address) ---- */
+  var ORDK=["uni","college","major","year","subject"],ORDL=["u","c","m","y","s"];
+  function tgt(kind){return kind==="up"?U:S.filter}
+  function stLevel(kind){var T=tgt(kind);if(!SCH()&&!T.uni)return"u";if(!T.college)return"c";if(!T.major)return"m";if(!T.year)return"y";if(kind==="up"?!T.locked:(!T.subject&&!S.libFiles))return"s";return""}
+  function stClear(kind,from){var T=tgt(kind);for(var j=from;j<5;j++){if(j===0&&SCH())continue;T[ORDK[j]]=""}if(kind==="lib"){S.libFiles=false;T.q=""}else{U.locked=false;U.other=false}}
+  function stUrl(kind){var T=tgt(kind),p=[];if(!SCH()&&T.uni)p.push(T.uni);["college","major","year"].forEach(function(k){if(T[k]&&p.length>=(SCH()?0:1)+["college","major","year"].indexOf(k))p.push(T[k])});
+    if(kind==="up"){if(U.locked&&U.other)p.push("_other");else if(U.locked&&U.subject)p.push(U.subject)}else{if(T.subject)p.push(T.subject);else if(S.libFiles)p.push("_all")}
+    return (kind==="up"?"upload":"library")+(p.length?"/"+p.map(encodeURIComponent).join("/"):"")}
+  function stGo(kind){S.page=kind==="up"?"upload":"library";S.msg=null;S.toast=null;
+    try{history.pushState({k:kind,F:JSON.stringify(S.filter),U:JSON.stringify(U),L:S.libFiles},"","#"+stUrl(kind))}catch(e){}
+    render();window.scrollTo(0,0);pv()}
+  function stParse(kind,parts){var T=tgt(kind),i=0;T.college=T.major=T.year=T.subject="";if(kind==="lib")S.libFiles=false;else{U.locked=false;U.other=false}
+    if(!SCH()){var u=uni(parts[0]);if(u&&u.id!=="school"){T.uni=u.id;i=1}else{T.uni="";return}}
+    var x=uni(T.uni);if(!x)return;
+    var c=parts[i++];if(!c||!x.groups.some(function(g){return g.g===c}))return;T.college=c;
+    var m=parts[i++];if(!m||collegeOf(T.uni,m)!==c)return;T.major=m;
+    var y=parts[i++];if(!y||x.years.indexOf(y)<0)return;T.year=y;
+    var s=parts[i++];if(!s)return;
+    if(kind==="lib"){if(s==="_all")S.libFiles=true;else T.subject=s}else{U.locked=true;if(s==="_other"){U.other=true;U.subject=""}else U.subject=s}}
+  function hashParts(){var h="";try{h=(location.hash||"").slice(1)}catch(e){}return h.split("/").map(function(x){try{return decodeURIComponent(x)}catch(e){return x}})}
+  window.addEventListener("popstate",function(e){
+    var st=e.state,hp=hashParts();
+    if(st&&st.k){try{S.filter=JSON.parse(st.F);var u=JSON.parse(st.U);for(var k in u)U[k]=u[k];S.libFiles=!!st.L}catch(x){}}
+    if(PAGES.some(function(p){return p[0]===hp[0]}))S.page=hp[0];
+    if(!(st&&st.k)&&LEVEL&&(hp[0]==="library"||hp[0]==="upload"))stParse(hp[0]==="upload"?"up":"lib",hp.slice(1));
+    render();window.scrollTo(0,0);pv()});
+  function stCount(kind,lv,v){if(kind!=="lib")return"";var T=S.filter,o={uni:T.uni,college:T.college,major:T.major,year:T.year};if(lv==="u")o={uni:v};else if(lv==="c")o={uni:T.uni,college:v};else if(lv==="m")o={uni:T.uni,college:T.college,major:v};else if(lv==="y")o={uni:T.uni,college:T.college,major:T.major,year:v};var n=count(o);return '<em>'+n+(n===1?' file':' files')+'</em>'}
+  function stBtn(kind,lv,v,label,extra,cls){return '<button type="button" class="stp'+(cls?' '+cls:'')+'" data-st="'+lv+'" data-k="'+kind+'" data-v="'+esc(v)+'"><span>'+esc(label)+'</span>'+(extra||"")+'</button>'}
+  function stCrumbs(kind){
+    var T=tgt(kind),x=uni(T.uni),h='<nav class="crumbs" aria-label="Where you are"><button type="button" data-sb="'+(SCH()?1:0)+'" data-k="'+kind+'">'+(SCH()?'School':'Universities')+'</button>';
+    function c(i,label,cur){h+='<i aria-hidden="true">›</i>'+(cur?'<b>'+esc(label)+'</b>':'<button type="button" data-sb="'+(i+1)+'" data-k="'+kind+'">'+esc(label)+'</button>')}
+    var cur=stLevel(kind),L=ORDL.indexOf(cur);
+    if(!SCH()&&T.uni)c(0,x?x.short:T.uni,false);
+    if(T.college)c(1,T.college,false);
+    if(T.major)c(2,T.major,false);
+    if(T.year)c(3,T.year,false);
+    if(kind==="lib"){if(T.subject)c(4,T.subject,true);else if(S.libFiles)c(4,'All subjects',true)}
+    else if(U.locked){c(4,U.other?'Another subject':U.subject,true)}
+    return h+'</nav>'}
+  function stStep(kind){
+    var T=tgt(kind),lv=stLevel(kind),x=uni(T.uni),items="",title="";
+    if(lv==="u"){title="Choose your university";items=ulist().map(function(u){return stBtn(kind,"u",u.id,u.name,stCount(kind,"u",u.id))}).join("")}
+    else if(lv==="c"){title="Choose your "+unitWord(T.uni).toLowerCase();items=x.groups.map(function(g){return stBtn(kind,"c",g.g,g.g,stCount(kind,"c",g.g))}).join("")}
+    else if(lv==="m"){title=SCH()?"Choose your grade or major":"Choose your major";var ms=[];x.groups.forEach(function(g){if(g.g===T.college)ms=g.m});
+      items=(ms.length>12?'<input type="search" class="stq" placeholder="Type to filter the list" aria-label="Filter the list">':'')+'<div class="stps" data-list="1">'+ms.map(function(m){return stBtn(kind,"m",m,m,stCount(kind,"m",m))}).join("")+'</div>';
+      return '<section><h2 class="sttitle">'+title+'</h2>'+items+'</section>'}
+    else if(lv==="y"){title=SCH()?"Choose your semester":"Choose your year";items=x.years.map(function(y){return stBtn(kind,"y",y,y,stCount(kind,"y",y))}).join("")}
+    else if(lv==="s"){title="Choose your subject";var subs=subjectsFor(T);
+      items=(kind==="lib"?stBtn(kind,"s","__all","All subjects",(function(n){return '<em>'+n+(n===1?' file':' files')+'</em>'})(count({uni:T.uni,college:T.college,major:T.major,year:T.year})),"alt"):"")+subs.map(function(s){return stBtn(kind,"s",s[0],s[0],kind==="lib"?'<em>'+s[1]+(s[1]===1?' file':' files')+'</em>':"")}).join("")+(kind==="up"?stBtn(kind,"s","__other","Another subject (type it)","","alt"):"")}
+    return '<section><h2 class="sttitle">'+title+'</h2><div class="stps">'+items+'</div></section>'}
+  function libraryBtn(){
+    var F=S.filter,files=F.subject||S.libFiles||F.q.trim(),sc=SCH();
+    var head='<div class="pagehead"><h1>Library</h1><p>'+(sc?'Tap your stage, grade and subject. One choice on each screen.':'Tap your university, college, major and subject. One choice on each screen.')+'</p></div>';
+    var alt='<p class="stalt"><button class="btn small" data-adv="lib:1">Advanced search (dropdown menus)</button></p><div class="adslot" data-slot="bottom"></div>';
+    if(!files)return head+stCrumbs("lib")+'<form class="filters2" id="stsearch" style="margin:0 0 16px"><input type="search" id="fq" placeholder="Search by title or description" aria-label="Search files" value=""><button class="btn small" type="submit">Search</button></form>'+stStep("lib")+alt;
+    return head+stCrumbs("lib")+
+    '<div class="filters2"><input type="search" id="fq" placeholder="Search by title or description" aria-label="Search files" value="'+esc(F.q)+'">'+
+    '<select id="fk" aria-label="Type"><option value="">All types</option>'+KINDS.map(function(k){return '<option value="'+esc(k)+'"'+(F.kind===k?' selected':'')+'>'+k+'</option>'}).join("")+'</select>'+
+    '<select id="fo" aria-label="Sort"><option value="new"'+(F.sort==="new"?' selected':'')+'>Newest first</option><option value="top"'+(F.sort==="top"?' selected':'')+'>Top rated</option><option value="az"'+(F.sort==="az"?' selected':'')+'>A to Z</option></select></div>'+
+    (F.uni&&F.college&&F.major&&F.year?'<div class="here"><span>Adding to <b>'+esc(uni(F.uni).short)+' · '+esc(F.major)+' · '+esc(F.year)+(F.subject?' · '+esc(F.subject):'')+'</b></span><button class="btn small primary" data-here="1">Upload a file here</button></div>':'')+
+    '<div class="list" id="lib">'+(S.loaded?libraryList():'<div class="empty">Loading files…</div>')+'</div>'+alt}
+  function library(){return S.adv?libraryAdv():libraryBtn()}
+  function bindBtn(){
+    var F=S.filter,q=$("#fq");
+    var f=$("#stsearch");if(f)f.addEventListener("submit",function(e){e.preventDefault();var v=q.value.trim();if(!v)return;F.q=v;stGo("lib")});
+    else if(q){q.addEventListener("input",function(e){F.q=e.target.value;var l=$("#lib");if(l)l.innerHTML=libraryList()});
+      $("#fk").addEventListener("change",function(e){F.kind=e.target.value;$("#lib").innerHTML=libraryList()});
+      $("#fo").addEventListener("change",function(e){F.sort=e.target.value;$("#lib").innerHTML=libraryList()})}
+  }
   function bindLibrary(){
+    if(!S.adv){bindBtn();return}
     var F=S.filter;
     $("#fu").addEventListener("change",function(e){F.uni=e.target.value;F.college=F.major=F.year=F.subject="";render()});
     $("#fc").addEventListener("change",function(e){F.college=e.target.value;F.major=F.year=F.subject="";render()});
@@ -668,9 +754,16 @@ var BUCKET="files";
   function lockedBar(){
     return '<div class="full here"><span>Adding to <b>'+esc(uni(U.uni).short)+' · '+esc(U.major)+' · '+esc(U.year)+(U.subject&&!U.other?' · '+esc(U.subject):'')+'</b></span><button type="button" class="btn small" data-unlock="1">Change</button></div>'
   }
+  function uploadSteps(){
+    var can=S.assets&&S.dbOk&&S.me;
+    return '<div class="pagehead"><h1>Upload a file</h1><p>Choose where your file belongs, one step at a time. PDFs, images and text files up to 20 MB.</p></div>'+
+    (!can&&S.loaded?(S.dbOk&&!S.me?'<div class="note">Sign in to upload files. <button class="btn small primary" data-auth="1">Sign in or sign up</button></div>':'<div class="note">Uploading is not available right now. Check that the hub is connected to Supabase.</div>'):'')+
+    stCrumbs("up")+stStep("up")+'<p class="stalt"><button class="btn small" data-adv="up:1">Use dropdown menus instead</button></p><div class="adslot" data-slot="bottom"></div>'
+  }
   function uploadPage(){
+    if(!U.adv&&!(U.locked&&U.uni&&U.college&&U.major&&U.year))return uploadSteps();
     var m=S.msg,can=S.assets&&S.dbOk&&S.me,u=uni(U.uni);
-    return '<div class="pagehead"><h1>Upload a file</h1><p>Tell us where it belongs so classmates in your course can find it. PDFs, images and text files up to 20 MB.</p></div>'+
+    return '<div class="pagehead"><h1>Upload a file</h1><p>Tell us where it belongs so classmates in your course can find it. PDFs, images and text files up to 20 MB.</p></div>'+(U.adv?'<p class="stalt" style="margin:0 0 14px"><button class="btn small" data-adv="up:0">Use buttons instead</button></p>':'')+
     (!can&&S.loaded?(S.dbOk&&!S.me?'<div class="note">Sign in to upload files. <button class="btn small primary" data-auth="1">Sign in or sign up</button></div>':'<div class="note">Uploading is not available right now. Check that the hub is connected to Supabase.</div>'):'')+
     (m?'<div class="note '+(m.ok?'ok':'bad')+'" role="status">'+esc(m.text)+'</div>':'')+
     '<form class="form" id="upf" novalidate>'+
@@ -708,6 +801,16 @@ var BUCKET="files";
     render()
   }
 
+  function stPick(b){
+    var kind=b.getAttribute("data-k"),lv=b.getAttribute("data-st"),v=b.getAttribute("data-v"),T=tgt(kind),i=ORDL.indexOf(lv);
+    for(var j=i+1;j<5;j++)T[ORDK[j]]="";
+    if(lv==="s"){
+      if(kind==="lib"){if(v==="__all"){S.libFiles=true;T.subject=""}else T.subject=v}
+      else{U.locked=true;if(v==="__other"){U.other=true;U.subject=""}else{U.other=false;U.subject=v}}
+    }else{T[ORDK[i]]=v;if(kind==="lib"){S.libFiles=false;T.q=""}else{U.locked=false;U.other=false}}
+    stGo(kind)
+  }
+  document.addEventListener("input",function(e){var q=e.target;if(q.classList&&q.classList.contains("stq")){var v=q.value.trim().toLowerCase(),l=q.parentNode.querySelector("[data-list]");if(l)Array.prototype.forEach.call(l.children,function(c){c.style.display=!v||c.textContent.toLowerCase().indexOf(v)>-1?"":"none"})}});
   function pick(f){
     if(!f)return;var e=ext(f.name),hint=$("#dhint");
     if(/^(doc|docx|ppt|pptx|xls|xlsx|pages|key)$/.test(e)){picked=null;$("#dname").textContent="Save it as a PDF first";hint.textContent="Word and PowerPoint files are not supported. See Guidelines for the steps.";return}
@@ -717,7 +820,7 @@ var BUCKET="files";
     var t=$("#pt");if(!t.value){t.value=U.title=f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ")}
   }
   function bindUpload(){
-    var drop=$("#drop"),inp=$("#file");
+    var drop=$("#drop"),inp=$("#file");if(!inp)return;
     if(picked){$("#dname").textContent=picked.name;$("#dhint").textContent=size(picked.size)}
     inp.addEventListener("change",function(){pick(inp.files[0])});
     ["dragenter","dragover"].forEach(function(n){drop.addEventListener(n,function(e){e.preventDefault();drop.classList.add("over")})});
@@ -794,14 +897,17 @@ var BUCKET="files";
   function typing(){var a=document.activeElement;return !!(a&&a.classList&&a.classList.contains("rv-text"))}
   document.addEventListener("click",function(e){
     var t=e.target;
+    var st=t.closest("[data-st]");if(st){stPick(st);return}
+    var sb=t.closest("[data-sb]");if(sb){var kk=sb.getAttribute("data-k");stClear(kk,+sb.getAttribute("data-sb"));stGo(kk);return}
+    var ad=t.closest("[data-adv]");if(ad){var ap=ad.getAttribute("data-adv").split(":");if(ap[0]==="lib")S.adv=ap[1]==="1";else U.adv=ap[1]==="1";render();window.scrollTo(0,0);return}
     var g=t.closest("[data-go]");if(g){if(g.getAttribute("data-go")==="upload")U.locked=false;go(g.getAttribute("data-go"));return}
-    var sg=t.closest("[data-stage]");if(sg){S.filter={uni:"school",college:sg.getAttribute("data-stage"),major:"",year:"",subject:"",kind:"",q:"",sort:"new"};go("library");return}
-    var un=t.closest("[data-uni]");if(un){S.filter={uni:un.getAttribute("data-uni"),college:"",major:"",year:"",subject:"",kind:"",q:"",sort:"new"};go("library");return}
+    var sg=t.closest("[data-stage]");if(sg){S.filter={uni:"school",college:sg.getAttribute("data-stage"),major:"",year:"",subject:"",kind:"",q:"",sort:"new"};S.libFiles=false;stGo("lib");return}
+    var un=t.closest("[data-uni]");if(un){S.filter={uni:un.getAttribute("data-uni"),college:"",major:"",year:"",subject:"",kind:"",q:"",sort:"new"};S.libFiles=false;stGo("lib");return}
     var mu=t.closest("[data-mu]");if(mu){S.majorsUni=mu.getAttribute("data-mu");render();return}
-    var mj=t.closest("[data-major]");if(mj){S.filter={uni:mj.getAttribute("data-u"),college:collegeOf(mj.getAttribute("data-u"),mj.getAttribute("data-major")),major:mj.getAttribute("data-major"),year:"",subject:"",kind:"",q:"",sort:"new"};go("library");return}
+    var mj=t.closest("[data-major]");if(mj){S.filter={uni:mj.getAttribute("data-u"),college:collegeOf(mj.getAttribute("data-u"),mj.getAttribute("data-major")),major:mj.getAttribute("data-major"),year:"",subject:"",kind:"",q:"",sort:"new"};S.libFiles=false;stGo("lib");return}
     var pu=t.closest("[data-pu]");if(pu){var id=pu.getAttribute("data-pu");if(U.uni!==id){U.uni=id;U.college=U.major=U.year=U.subject="";U.other=false}render();return}
-    if(t.closest("[data-unlock]")){U.locked=false;render();return}
-    if(t.closest("[data-here]")){var F=S.filter;U.locked=true;U.uni=F.uni;U.college=F.college;U.major=F.major;U.year=F.year;U.subject=F.subject||"";U.other=false;go("upload");return}
+    if(t.closest("[data-unlock]")){U.locked=false;U.subject="";U.other=false;stGo("up");return}
+    if(t.closest("[data-here]")){var F=S.filter;U.locked=true;U.uni=F.uni;U.college=F.college;U.major=F.major;U.year=F.year;U.subject=F.subject||"";U.other=false;stGo("up");return}
     var rv=t.closest("[data-rv]");if(rv){var i0=rv.getAttribute("data-rv");S.open[i0]=!S.open[i0];relib();return}
     var rs=t.closest("[data-rs]");if(rs){var p=rs.getAttribute("data-rs").split(":");(S.draft[p[0]]=S.draft[p[0]]||{stars:0,text:""}).stars=+p[1];relib();return}
     var sv=t.closest("[data-rsave]");if(sv){saveReview(sv.getAttribute("data-rsave"));return}
@@ -816,10 +922,11 @@ var BUCKET="files";
     try{var ps=await S.user.profiles(ids);ids.forEach(function(i){var n=ps[i]&&ps[i].name;if(n)S.names[i]=n});if(typing())S.stale=true;else refreshData()}catch(e){}
   }
   async function init(){
-    window.__sh={render:render,go:go,UNIS:UNIS,COURSES:COURSES,S:S};
+    window.__sh={U:U,render:render,go:go,stGo:stGo,UNIS:UNIS,COURSES:COURSES,S:S};
     var h="";try{h=(location.hash||"").slice(1)}catch(e){}
-    if(PAGES.some(function(p){return p[0]===h}))S.page=h;
+    var hp=hashParts();if(PAGES.some(function(p){return p[0]===hp[0]}))S.page=hp[0];
     applyLevel();mountSwitch();if(!LEVEL)showGate();
+    if(LEVEL&&(hp[0]==="library"||hp[0]==="upload"))stParse(hp[0]==="upload"?"up":"lib",hp.slice(1));
     render();
     try{
       var c=window.claude;if(!c||!c.use){S.loaded=true;S.dbOk=false;render();return}
@@ -846,6 +953,17 @@ var BUCKET="files";
 <script>
 (function(){
   var AR={
+    "Universities":"الجامعات",
+    "Search":"بحث",
+    "Another subject":"مادة أخرى",
+    "Where you are":"أين أنت الآن",
+    "Type to filter the list":"اكتب لتصفية القائمة",
+    "Tap your stage, grade and subject. One choice on each screen.":"اختر مرحلتك ثم صفك ثم مادتك. خيار واحد في كل شاشة.",
+    "Tap your university, college, major and subject. One choice on each screen.":"اختر جامعتك ثم كليتك ثم تخصصك ثم مادتك. خيار واحد في كل شاشة.",
+    "Choose where your file belongs, one step at a time. PDFs, images and text files up to 20 MB.":"اختر المكان الذي يخصه ملفك خطوة بخطوة. ملفات PDF وصور وملفات نصية حتى 20 ميغابايت.",
+    "Advanced search (dropdown menus)":"بحث متقدم (قوائم منسدلة)",
+    "Use buttons instead":"استخدم الأزرار بدلًا من ذلك",
+    "Use dropdown menus instead":"استخدم القوائم المنسدلة بدلًا من ذلك",
     "Secondary – Unified Pathways":"الثانوي – توحيد المسارات الأكاديمية",
     "Secondary – Technical & Vocational":"الثانوي – الفني والمهني",
     "Secondary – Religious Education":"الثانوي – التعليم الديني",
@@ -1035,6 +1153,7 @@ var BUCKET="files";
   function core(t){
     var b=base(t),m;if(b!==null)return b;
     if(m=/^(\d+) (colleges|schools|faculties|departments) · (\d+) programmes · (\d+) files?$/.exec(t))return cnt(+m[1],UNITS[m[2]])+" · "+cnt(+m[3],["برامج","برنامج","برنامجان","برنامجًا"])+" · "+cnt(+m[4],["ملفات","ملف","ملفان","ملفًا"]);
+    if(m=/^(\d+) files?$/.exec(t))return cnt(+m[1],["ملفات","ملف","ملفان","ملفًا"]);
     if(m=/^(\d+) (grades|options) · (\d+) files?$/.exec(t))return cnt(+m[1],m[2]==="grades"?["صفوف","صف","صفان","صفًا"]:["خيارات","خيار","خياران","خيارًا"])+" · "+cnt(+m[3],["ملفات","ملف","ملفان","ملفًا"]);
     if(m=/^Year (\d+)$/.exec(t))return "السنة "+m[1];
     if(m=/^(First|Second|Third) (Intermediate|Secondary)(?: – (.+))?$/.exec(t))return {First:"الأول",Second:"الثاني",Third:"الثالث"}[m[1]]+(m[2]==="Intermediate"?" الإعدادي":" الثانوي")+(m[3]?" – "+(base(m[3])||m[3]):"");

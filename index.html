@@ -283,7 +283,7 @@ nav button{white-space:nowrap;padding:6px 10px}
 .st-week{display:flex;gap:8px;align-items:flex-end;margin-top:14px;height:78px}.sw-d{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;font-size:11px;color:var(--muted)}.sw-d i{display:block;width:100%;max-width:34px;border-radius:5px 5px 2px 2px;background:var(--line)}.sw-d i.ok{background:var(--accent)}
 .pomo,#pmpop{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
 .pm-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.pm-h span{font-size:12px;font-family:var(--mono);color:var(--accent)}
-.pm-t{font-family:var(--mono);font-size:40px;font-weight:500;line-height:1.2;margin:4px 0}.pm-b{display:flex;gap:8px;flex-wrap:wrap}.pm-c{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:13px;color:var(--muted)}.pm-c select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 6px}
+.pm-t{font-family:var(--mono);font-size:40px;font-weight:500;line-height:1.2;margin:4px 0}.pm-b{display:flex;gap:8px;flex-wrap:wrap}.pm-c{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:13px;color:var(--muted)}.pm-cu{display:flex;gap:8px 12px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:13px;color:var(--muted)}.pm-cu label{display:flex;gap:6px;align-items:center}.pm-cu input{width:64px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}.pm-c select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 6px}
 #pmpop{position:absolute;right:12px;top:108px;z-index:6;width:min(300px,calc(100% - 24px));margin:0;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.28)}
 #pmpill{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:90;display:flex;gap:8px;align-items:center;padding:8px 14px;border-radius:99px;border:0;cursor:pointer;background:var(--accent);color:var(--accent-fg);font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.3)}#pmpill.break{background:var(--ok);color:#fff}#pmpill b{font-family:var(--mono)}#pmpill em{font-style:normal;opacity:.8}
 #pmtoast{position:fixed;left:50%;transform:translateX(-50%);top:16px;z-index:200;padding:10px 16px;border-radius:99px;background:var(--fg);color:var(--bg);font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
@@ -1744,7 +1744,15 @@ var BUCKET="files";
     }
     psave();paintPanels()
   }
+  var cuOpen=false;
   function pact(a){
+    if(a==="setcustom"){
+      var pn=doc.querySelector("[data-pomo-panel]"),f=pn&&pn.querySelector("[data-pm-cf]"),b=pn&&pn.querySelector("[data-pm-cb]");
+      if(f&&b){var w=Math.round(+f.value),k=Math.round(+b.value);
+        if(!(w>=1&&w<=180))w=P.cfg[0];if(!(k>=0&&k<=60))k=P.cfg[1];
+        P.cfg=[w,k];P.mode="work";P.run=false;P.left=w*60;psave();cuOpen=false}
+      var ae=doc.activeElement;if(ae&&ae.blur)ae.blur();paintPanels();return
+    }
     if(a==="toggle"){
       try{actx=actx||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}
       if(P.run){P.left=pleft();P.run=false}else{if(P.left<=0)P.left=(P.mode==="work"?P.cfg[0]:P.cfg[1])*60;P.end=Date.now()+P.left*1000;P.run=true}
@@ -1755,14 +1763,16 @@ var BUCKET="files";
   }
   function fmt(s){return pad(Math.floor(s/60))+":"+pad(s%60)}
   function panelHtml(){
-    var sel=["25,5","50,10","15,3"].map(function(v){return'<option value="'+v+'"'+(v===P.cfg.join(",")?" selected":"")+'>'+v.split(",")[0]+' / '+v.split(",")[1]+' min</option>'}).join("");
+    var presets=["25,5","50,10","15,3"],cur=P.cfg.join(","),isCu=presets.indexOf(cur)<0,list=isCu?presets.concat([cur]):presets;
+    var sel=list.map(function(v){return'<option value="'+v+'"'+(v===cur&&!cuOpen?" selected":"")+'>'+v.split(",")[0]+' / '+v.split(",")[1]+' min'+(v===cur&&isCu?' (custom)':'')+'</option>'}).join("")+'<option value="custom"'+(cuOpen?" selected":"")+'>Custom…</option>';
+    var cu=cuOpen?'<div class="pm-cu"><label><span>Focus</span> <input type="number" inputmode="numeric" min="1" max="180" step="1" value="'+P.cfg[0]+'" data-pm-cf aria-label="Focus minutes"> <span>min</span></label><label><span>Break</span> <input type="number" inputmode="numeric" min="0" max="60" step="1" value="'+P.cfg[1]+'" data-pm-cb aria-label="Break minutes"> <span>min</span></label><button type="button" class="btn small primary" data-pm="setcustom">Set</button></div>':"";
     return'<div class="pm-h"><b>Focus timer</b><span data-pm-ph>'+(P.mode==="work"?"Focus":"Break")+'</span></div><div class="pm-t" data-pm-time aria-live="off">'+fmt(pleft())+'</div>'+
       '<div class="pm-b"><button type="button" class="btn small primary" data-pm="toggle">'+(P.run?"Pause":"Start")+'</button><button type="button" class="btn small" data-pm="reset">Reset</button><button type="button" class="btn small" data-pm="skip">Skip</button></div>'+
-      '<div class="pm-c"><label><span>Length</span> <select data-pm-cfg aria-label="Focus and break length">'+sel+'</select></label><span><span>Sessions today</span> <b data-pm-done>'+pdone()+'</b></span></div>'
+      '<div class="pm-c"><label><span>Length</span> <select data-pm-cfg aria-label="Focus and break length">'+sel+'</select></label><span><span>Sessions today</span> <b data-pm-done>'+pdone()+'</b></span></div>'+cu
   }
   function paintPanels(){
     [].forEach.call(doc.querySelectorAll("[data-pomo-panel]"),function(el){
-      var a=doc.activeElement;if(a&&el.contains(a)&&a.tagName==="SELECT")return;
+      var a=doc.activeElement;if(a&&el.contains(a)&&(a.tagName==="SELECT"||a.tagName==="INPUT"))return;
       el.innerHTML=panelHtml()
     });
     pill()
@@ -1780,7 +1790,8 @@ var BUCKET="files";
   },500);
   doc.addEventListener("change",function(e){
     var s=e.target.closest&&e.target.closest("[data-pm-cfg]");if(!s)return;
-    var c=s.value.split(",").map(Number);if(c.length!==2)return;P.cfg=c;P.mode="work";P.run=false;P.left=c[0]*60;psave();paintPanels()
+    if(s.value==="custom"){cuOpen=true;s.blur();paintPanels();var fi=doc.querySelector("[data-pomo-panel] [data-pm-cf]");if(fi){fi.focus();fi.select()}return}
+    cuOpen=false;var c=s.value.split(",").map(Number);if(c.length!==2)return;P.cfg=c;P.mode="work";P.run=false;P.left=c[0]*60;psave();paintPanels()
   });
 
   /* ---------- My library: study card ---------- */
@@ -1907,6 +1918,9 @@ var BUCKET="files";
     openShared(id,page,ann)
   }
   window.addEventListener("hashchange",checkHash);
+  doc.addEventListener("keydown",function(e){
+    if(e.key==="Enter"&&e.target.closest&&e.target.closest("[data-pm-cf],[data-pm-cb]")){e.preventDefault();e.stopPropagation();pact("setcustom")}
+  },true);
 
   /* ---------- clicks ---------- */
   doc.addEventListener("click",function(e){
@@ -2070,6 +2084,7 @@ var BUCKET="files";
 <script>
 (function(){
   var AR={
+    "Custom…":"مخصص…","Set":"تعيين","(custom)":"(مخصص)",
     "Study":"ادرس","Flashcards":"بطاقات تعليمية","Quiz":"اختبار","Card":"بطاقة","Question":"سؤال","Answer":"الإجابة","known":"معروفة","Score":"النتيجة","Only cards I am still learning":"البطاقات التي ما زلت أتعلمها فقط","Tap the card to flip it":"اضغط على البطاقة لقلبها","Previous":"السابق","Next":"التالي","Shuffle":"خلط","Still learning":"ما زلت أتعلم","I know it":"أعرفها","All cards learned":"تم تعلّم كل البطاقات","You marked every card as known. Nice work.":"حددت كل البطاقات على أنها معروفة. عمل رائع.","Start over":"ابدأ من جديد","Your score":"نتيجتك","Best":"الأفضل","Try the ones I missed":"جرّب الأسئلة التي أخطأت فيها","Retake the quiz":"أعد الاختبار","Next question":"السؤال التالي","See score":"عرض النتيجة","Correct!":"صحيح!","Not quite.":"ليس تماماً.","No study set for this file yet.":"لا توجد مجموعة دراسة لهذا الملف بعد.","Could not load the study set. Check your connection and try again.":"تعذّر تحميل مجموعة الدراسة. تحقق من اتصالك وحاول مرة أخرى.",
     "day streak":"أيام متتالية","min today":"دقيقة اليوم","best streak":"أفضل سلسلة","Goal reached. Your streak is safe for today.":"تم تحقيق الهدف. سلسلتك محفوظة لهذا اليوم.","Study 5 minutes a day to keep your streak. Time counts while a PDF is open or the focus timer runs.":"ادرس ٥ دقائق يومياً للحفاظ على سلسلتك. يُحتسب الوقت أثناء فتح ملف PDF أو تشغيل مؤقت التركيز.","Focus timer":"مؤقت التركيز","Focus":"تركيز","Break":"استراحة","Start":"ابدأ","Pause":"إيقاف مؤقت","Reset":"إعادة ضبط","Skip":"تخطّي","Length":"المدة","Sessions today":"جلسات اليوم","Share":"مشاركة","Share this page":"مشاركة هذه الصفحة","Copy link":"نسخ الرابط","Share…":"مشاركة…","Link copied.":"تم نسخ الرابط.","Press and hold the link to copy it.":"اضغط مطولاً على الرابط لنسخه.","Include my highlights and notes on this page":"تضمين تحديداتي وملاحظاتي في هذه الصفحة","Undo":"تراجع","paused":"متوقف مؤقتاً","Focus session done. Take a short break.":"انتهت جلسة التركيز. خذ استراحة قصيرة.","Break over. Ready for the next focus session.":"انتهت الاستراحة. جاهز لجلسة التركيز التالية.","Anyone with the link opens this PDF at page":"يفتح أي شخص لديه الرابط هذا الملف عند الصفحة",
     "My library":"مكتبتي","Favourite":"المفضلة","Favourites":"المفضلة","Continue reading":"متابعة القراءة","Continue":"متابعة","Saved pages":"الصفحات المحفوظة","Available offline":"متاح بدون إنترنت","Show more":"عرض المزيد","Install app":"تثبيت التطبيق","Auto":"تلقائي","Light":"فاتح","Dark":"داكن","Remove from device":"إزالة من الجهاز","Resume at page":"استئناف من الصفحة","Pages":"الصفحات","Nothing yet":"لا شيء بعد","Open a PDF and it will appear here so you can pick up where you stopped.":"افتح ملف PDF وسيظهر هنا لتكمل من حيث توقفت.","No favourites yet":"لا توجد ملفات مفضلة بعد","Tap Favourite on any file to keep it here.":"اضغط على المفضلة في أي ملف لحفظه هنا.","No offline PDFs yet":"لا توجد ملفات بدون إنترنت بعد","Open a PDF once and it will be saved here automatically.":"افتح ملف PDF مرة واحدة وسيُحفظ هنا تلقائياً.","PDFs you open are kept on this device so they open instantly and work without internet.":"تُحفظ ملفات PDF التي تفتحها على جهازك لتُفتح فوراً وتعمل بدون إنترنت.","You are offline. PDFs you opened before still work.":"أنت غير متصل بالإنترنت. ملفات PDF التي فتحتها سابقاً ما زالت تعمل.","Your favourites, where you stopped reading, saved pages and PDFs kept on this device.":"ملفاتك المفضلة، ومكان توقفك عن القراءة، والصفحات المحفوظة، وملفات PDF المحفوظة على هذا الجهاز.","Install Study Hub on your phone or computer to open it like an app, with your opened PDFs available offline.":"ثبّت Study Hub على هاتفك أو حاسوبك لفتحه كتطبيق مع إتاحة ملفات PDF التي فتحتها بدون إنترنت.","To install: tap the Share button in Safari, then choose Add to Home Screen.":"للتثبيت: اضغط زر المشاركة في Safari ثم اختر «إضافة إلى الشاشة الرئيسية».",

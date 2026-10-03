@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Study Hub</title>
+<script>try{var __t=JSON.parse(localStorage.getItem("sh_theme"));if(__t==="light"||__t==="dark")document.documentElement.setAttribute("data-theme",__t)}catch(e){}</script>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f6f7f9">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Study Hub">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAADFUlEQVR42u3dsXETURSG0X1vHBJTAQSoAXISaIQeKIEeaAQl5DQAAaqAmBwip8Duytp7f52Ta/zs+XR9V+PxG8uBXrz99nshzuV8Gkd97SFekiIfIiYp7iFkksIeQiYp7CFkksKeYqaKa7Q0xUxS1EPIJK0gU8wkTespZpKinmImKeopZpKinmImKerpx0SSaTqTNKWnmEmKeoqZpKjt0GTv0KYznae0CU3uhDad6T6lTWgyJ7TpTMKUNqHJ3aEhImjrBilrhwmNlQMEDYKGdYYHQkxoEDQIGgSNoEHQIGgQNAgaQYOgoYyHzof/8flVqfO8fPd982s/vH9e6nv5+OlnyyZa/nFStZD3hF0t5O5hTzEfd8bqMXc5ox0aD4Wm83XP2mnydTqrCY0JDYIGQYOgETQIGgQNggZBI2gQNAgaBA2CRtAgaBA0CBoEjaBB0CBoEDQIGkGDoEHQIGgQNIIGQYOgQdAgaAR9pD33AFY7a6fr0jqd1YS+8zdeUswtg64ey5rzVY+l422yLW+SfeRqZDFHBQ12aAQNggZBg6BB0GR66Hz4N6+flTrPl6+/Nr826TP1I7X8HLpayHvCrhZy97CnmI87Y/WYu5zRDo2HQtP5umftNPk6ndWExoQGQYOgQdAIGgQNggZBg6ARNAgaBA2CBkEjaBA0CBoEDYJG0CBoEDQIGgSNoEHQIGgQNAgaQYOgQdAgaBA0gj7SnnsAq52103Vpnc5qQt/5Gy8p5pZBV49lzfmqx9LxNtmWN8k+cjWymKOCBjs0ggZBg6BB0CBoBA2CBkGDoGFZ5uV8Gn4MJLicT8OExsoBggZBw4agPRiS8EBoQmPlgBZBWzvovm6Y0GSvHKY0naezCU3+Q6EpTdfpbEKTP6FNabpO579OaFHTLeZ/rhyiplPMdmjuY4c2pek4nf97QouaDjGvWjlETfWYV+/QoqZyzJseCkVN1ZiXZVl2xem//1Ml5M0T2rSmasy7gxY1lWLevXJYQagS8pMELWyO/u3+pOuCsLn1mnqz/VfcIr7F1zn0gU7k4r22P7hqE7iQsygdAAAAAElFTkSuQmCC">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -264,6 +270,13 @@ nav button{white-space:nowrap;padding:6px 10px}
 .toast button{flex:none;background:none;border:0;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:0 2px}
 @keyframes toastin{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.toast{animation:none}}
+.ext[data-th]{height:40px}
+.ext.has{height:68px;color:transparent;background-color:#fff;background-size:cover;background-position:top center;border:1px solid var(--line)}
+.row{content-visibility:auto;contain-intrinsic-size:auto 150px}
+.more{padding:14px 16px;text-align:center;border-top:1px solid var(--line)}
+.btn.fav[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+#themebtn,#instbtn{margin-inline-start:8px}
+#offnote{position:sticky;top:0;z-index:20;margin:0 -16px;padding:7px 16px;background:var(--warn);color:#fff;font-size:14px;text-align:center}
 </style>
 
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}</style>
@@ -364,6 +377,31 @@ var BUCKET="files";
         window.pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([c],{type:"text/javascript"}));return window.pdfjsLib})})}
     PDFJS=BS.reduce(function(p,B){return p.catch(function(){return one(B)})},Promise.reject()) ;
     PDFJS.catch(function(){PDFJS=null});return PDFJS
+  }
+  /* PDFs you open are kept on this device (Cache Storage), newest 40 / 250 MB, so they open at once and work offline. */
+  var PCN="sh-pdf",PCMAX=40,PCBYTES=250*1048576;
+  function pcKey(id){return"/offline-pdf/"+encodeURIComponent(id)}
+  function pcOpen(){return window.caches?caches.open(PCN):Promise.reject()}
+  function pcGet(id){return pcOpen().then(function(c){return c.match(pcKey(id))}).then(function(r){return r?r.blob():null}).catch(function(){return null})}
+  function pcMeta(){return LS.g("sh_off")||{}}
+  function pcRemove(id){return pcOpen().then(function(c){return c.delete(pcKey(id))}).catch(function(){}).then(function(){var m=pcMeta();delete m[id];LS.s("sh_off",m)})}
+  function pcPut(id,blob){
+    if(!window.caches||blob.size>40*1048576)return;
+    pcOpen().then(function(c){return c.put(pcKey(id),new Response(blob,{headers:{"Content-Type":"application/pdf"}}))}).then(function(){
+      var m=pcMeta();m[id]={t:Date.now(),size:blob.size};
+      var k=Object.keys(m).sort(function(a,b){return m[b].t-m[a].t}),tot=0,drop=[];
+      k.forEach(function(x,i){tot+=m[x].size||0;if(i>=PCMAX||tot>PCBYTES)drop.push(x)});
+      drop.forEach(function(x){delete m[x];pcRemove(x)});
+      LS.s("sh_off",m);
+      try{var S=window.__sh&&window.__sh.S,f=S&&S.files.filter(function(x){return x.assetId===id})[0];if(f){var mm=LS.g("sh_meta")||{};mm[f.id]=f;LS.s("sh_meta",mm)}}catch(e){}
+      try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+    }).catch(function(){})
+  }
+  function pdfSrc(id){
+    return pcGet(id).then(function(b){
+      if(b){var m=pcMeta();if(m[id]){m[id].t=Date.now();LS.s("sh_off",m)}return{url:null,blob:Promise.resolve(b)}}
+      return fileUrl(id).then(function(url){return{url:url,blob:fetch(url).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.blob()}).then(function(bl){pcPut(id,bl);return bl})}})
+    })
   }
   function pdfTeardown(){
     if(!PV)return;var v=PV;PV=null;
@@ -750,9 +788,9 @@ var BUCKET="files";
       [].forEach.call(el.querySelectorAll("[data-pdoc]"),function(b){b.hidden=true});
       v.sc.innerHTML='<div class="pvm"><p>This PDF could not be shown in the viewer'+(why?' ('+String(why).replace(/[<>&]/g,"")+')':'')+'.</p><p><button type="button" class="btn primary" data-pretry="1">Try again</button> '+(url?'<a class="btn" target="_blank" rel="noopener" href="'+url.replace(/"/g,"&quot;")+'">Open in new tab</a>':'')+'</p></div>';
       var r=v.sc.querySelector("[data-pretry]");if(r)r.onclick=function(){pdfTeardown();openPdf(id,title,opener)}};
-    fileUrl(id).then(function(url){
-      el.querySelector("[data-pnew]").href=url;
-      return Promise.all([loadPdfjs(),fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob()})]).then(function(a){
+    pdfSrc(id).then(function(o){
+      var url=o.url;if(url)el.querySelector("[data-pnew]").href=url;else el.querySelector("[data-pnew]").hidden=true;
+      return Promise.all([loadPdfjs(),o.blob]).then(function(a){
         if(PV!==v)return;var lib=a[0],blob=a[1];v.blobUrl=URL.createObjectURL(blob);
         var dl=el.querySelector("[data-pdl]");dl.href=v.blobUrl;dl.setAttribute("download",(title||"file").replace(/[\\/:*?"<>|]+/g,"_")+".pdf");dl.removeAttribute("target");
         return blob.arrayBuffer().then(function(buf){return lib.getDocument({data:buf}).promise}).then(function(doc){
@@ -765,6 +803,7 @@ var BUCKET="files";
       }).catch(function(e){fail(url,e&&e.message)})
     }).catch(function(e){fail(null,e&&e.message)})
   }
+  window.__pdfx={fileUrl:fileUrl,loadPdfjs:loadPdfjs,pcGet:pcGet,pcRemove:pcRemove,LS:LS};
   document.addEventListener("click",function(e){
     if(PV&&e.target.closest&&e.target.closest("#pdfv")&&pdfUi(e))return;
     var a=e.target.closest&&e.target.closest('a[href^="/_blob/"]');if(!a)return;e.preventDefault();
@@ -987,7 +1026,7 @@ var BUCKET="files";
   })();
   var KINDS=["Slides","Notes","Past paper","Summary","Worksheet","Other"];
   var OK_EXT={pdf:"application/pdf",png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",gif:"image/gif",webp:"image/webp",svg:"image/svg+xml",txt:"text/plain",md:"text/markdown",csv:"text/csv"};
-  var PAGES=[["home","Home"],["library","Library"],["upload","Upload"],["majors","Majors"],["guidelines","Guidelines"]];
+  var PAGES=[["home","Home"],["library","Library"],["mine","My library"],["upload","Upload"],["majors","Majors"],["guidelines","Guidelines"]];
   var S={page:"home",files:[],ratings:{},open:{},draft:{},loaded:false,dbOk:null,assets:null,user:null,me:null,names:{},canEdit:false,filter:{uni:"",college:"",major:"",year:"",subject:"",kind:"",q:"",sort:"new"},msg:null,db:null,majorsUni:"uob",adv:false,libFiles:false};
   var U={adv:false,uni:"",college:"",major:"",year:"",subject:"",other:false,title:"",kind:"Notes",desc:""};
   var picked=null;
@@ -1065,15 +1104,16 @@ var BUCKET="files";
     }else h+='<p class="rv-none">Sign in to write a review. <button class="btn small" data-auth="1">Sign in</button></p>';
     return h+'</div>'
   }
+  function isFav(id){try{return !!(JSON.parse(localStorage.getItem("sh_fav")||"{}")[id])}catch(e){return false}}
   function fileRow(f,showDel){
     var e=(ext(f.fileName)||"file").toUpperCase(),u=uni(f.uni);
     var del=showDel&&S.assets&&(f.uploaderId===S.me||S.canEdit)?'<button class="btn small danger" data-del="'+esc(f.id)+'">Remove</button>':'';
-    return '<div class="row"><div class="ext">'+esc(e.slice(0,4))+'</div><div style="min-width:0"><h3>'+esc(f.title)+(f.featured?' <span class="upl feat">FEATURED</span>':'')+(f.hidden?' <span class="upl hid">HIDDEN</span>':'')+'</h3>'+
+    return '<div class="row"><div class="ext"'+(/\.pdf$/i.test(f.assetId||"")?' data-th="'+esc(f.assetId)+'"':'')+'>'+esc(e.slice(0,4))+'</div><div style="min-width:0"><h3>'+esc(f.title)+(f.featured?' <span class="upl feat">FEATURED</span>':'')+(f.hidden?' <span class="upl hid">HIDDEN</span>':'')+'</h3>'+
       '<div class="meta"><span class="tag">'+esc(f.subject||"General")+'</span><span>'+esc(u?u.short:"")+' · '+esc(f.year||"")+'</span><span>'+esc(f.kind||"Other")+'</span></div>'+
       '<div class="meta"><span>'+esc(f.major||"")+'</span></div>'+
       '<div class="meta"><span>'+esc(size(f.sizeBytes))+'</span><span>'+esc(who(f.uploaderId))+' · '+esc(ago(f.createdAt))+'</span></div>'+
       (f.description?'<p class="desc">'+esc(f.description)+'</p>':'')+rateBox(f)+'</div>'+
-      '<div class="acts"><a class="btn small primary" href="/_blob/'+esc(f.assetId)+'" target="_blank" rel="noopener">Open</a>'+(S.me?'<button class="btn small" data-rp="'+esc(f.id)+'">Report</button>':'')+del+'</div></div>'
+      '<div class="acts"><a class="btn small primary" href="/_blob/'+esc(f.assetId)+'" target="_blank" rel="noopener">Open</a><button type="button" class="btn small fav" data-fav="'+esc(f.id)+'" aria-pressed="'+(isFav(f.id)?'true':'false')+'"><span aria-hidden="true">'+(isFav(f.id)?'\u2605':'\u2606')+'</span> <span>Favourite</span></button>'+(S.me?'<button class="btn small" data-rp="'+esc(f.id)+'">Report</button>':'')+del+'</div></div>'
   }
   function emptyList(t){return '<div class="empty"><b>'+(t||"No files here yet")+'</b>Be the first to share notes, slides or a past paper.<div style="margin-top:14px"><button class="btn primary" data-go="upload">Upload a file</button></div></div>'}
 
@@ -1096,7 +1136,9 @@ var BUCKET="files";
       return inLevel(f)&&within(f,F)&&(!F.subject||f.subject===F.subject)&&(!F.kind||f.kind===F.kind)&&(!q||((f.title||"")+" "+(f.description||"")+" "+(f.subject||"")+" "+(f.major||"")).toLowerCase().indexOf(q)>-1)
     });
     r.sort(function(a,b){if(F.sort==="az")return String(a.title).localeCompare(String(b.title));if(F.sort==="top"){var x=stats(a.id),y=stats(b.id);return (y.avg-x.avg)||(y.n-x.n)||(b.createdAt-a.createdAt)}return b.createdAt-a.createdAt});
-    return r.length?r.map(function(f){return fileRow(f,true)}).join(""):(S.files.length?'<div class="empty"><b>Nothing matches</b>Try another subject or clear a filter.</div>':emptyList())
+    var sig=JSON.stringify(F);if(S._sig!==sig){S._sig=sig;S.lim=20}var lim=S.lim||20;
+    if(r.length)return r.slice(0,lim).map(function(f){return fileRow(f,true)}).join("")+(r.length>lim?'<div class="more"><button type="button" class="btn" data-more="1"><span>Show more</span> <span>('+(r.length-lim)+')</span></button></div>':"");
+    return (S.files.length?'<div class="empty"><b>Nothing matches</b>Try another subject or clear a filter.</div>':emptyList())
   }
   function libraryAdv(){
     var F=S.filter;
@@ -1270,9 +1312,10 @@ var BUCKET="files";
   function render(){
     nav();
     var v=$("#view"),h;
-    if(S.page==="library")h=library();else if(S.page==="upload")h=uploadPage();else if(S.page==="majors")h=majorsPage();else if(S.page==="guidelines")h=guidelines();else if(S.page==="admin"&&window.__adm&&window.__adm.ok)h=window.__adm.html();else h=home();
+    if(S.page==="library")h=library();else if(S.page==="upload")h=uploadPage();else if(S.page==="majors")h=majorsPage();else if(S.page==="guidelines")h=guidelines();else if(S.page==="mine"&&window.__mine)h=window.__mine.html();else if(S.page==="admin"&&window.__adm&&window.__adm.ok)h=window.__adm.html();else h=home();
     v.innerHTML=h;
     if(S.page==="upload")bindUpload();
+    if(S.page==="mine"&&window.__mine)window.__mine.bind();
     if(S.page==="library")bindLibrary();
     if(S.page==="admin"&&window.__adm)window.__adm.bind();
   }
@@ -1406,7 +1449,7 @@ var BUCKET="files";
     try{var ps=await S.user.profiles(ids);ids.forEach(function(i){var n=ps[i]&&ps[i].name;if(n)S.names[i]=n});if(typing())S.stale=true;else refreshData()}catch(e){}
   }
   async function init(){
-    window.__sh={setLast:function(o){LAST=o},U:U,render:render,go:go,stGo:stGo,UNIS:UNIS,COURSES:COURSES,S:S};
+    window.__sh={relib:relib,fileRow:fileRow,setLast:function(o){LAST=o},U:U,render:render,go:go,stGo:stGo,UNIS:UNIS,COURSES:COURSES,S:S};
     var h="";try{h=(location.hash||"").slice(1)}catch(e){}
     var hp=hashParts();if(PAGES.some(function(p){return p[0]===hp[0]}))S.page=hp[0];
     applyLevel();mountSwitch();if(!LEVEL)showGate();
@@ -1435,8 +1478,178 @@ var BUCKET="files";
 </script>
 
 <script>
+/* Phase 1: theme toggle, favourites, My library, lazy first-page thumbnails, install prompt, offline notice, service worker */
+(function(){
+  var X=window.__pdfx||{},SH=function(){return window.__sh},doc=document;
+  function lg(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+  function ls(k,v){try{if(v===null||v===undefined)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+  function ago(t){var d=(Date.now()-t)/1000;if(d<60)return"just now";if(d<3600)return Math.floor(d/60)+" min ago";if(d<86400)return Math.floor(d/3600)+" h ago";if(d<2592000)return Math.floor(d/86400)+" d ago";return new Date(t).toLocaleDateString()}
+
+  /* ---------- theme ---------- */
+  var MODES=["auto","light","dark"],LABEL={auto:"Auto",light:"Light",dark:"Dark"},ICON={auto:"◐",light:"☀",dark:"☾"};
+  function themeGet(){var m=lg("sh_theme");return MODES.indexOf(m)>-1?m:"auto"}
+  function themeApply(m){
+    var r=doc.documentElement;if(m==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",m);
+    var dark=m==="dark"||(m==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);
+    var tc=doc.querySelector('meta[name="theme-color"]');if(tc)tc.setAttribute("content",dark?"#0f1218":"#f6f7f9");
+    var b=doc.getElementById("themebtn");if(b){b.innerHTML='<span aria-hidden="true">'+ICON[m]+'</span> <span>'+LABEL[m]+'</span>';b.setAttribute("aria-label","Colour theme: "+LABEL[m]+". Tap to change.")}
+  }
+  function mountTheme(){
+    var bar=doc.querySelector(".bar");if(!bar||doc.getElementById("themebtn"))return;
+    var b=doc.createElement("button");b.id="themebtn";b.type="button";b.className="btn small";
+    b.onclick=function(){var m=MODES[(MODES.indexOf(themeGet())+1)%3];ls("sh_theme",m);themeApply(m)};
+    bar.appendChild(b);themeApply(themeGet())
+  }
+  if(window.matchMedia)try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){themeApply(themeGet())})}catch(e){}
+
+  /* ---------- favourites ---------- */
+  function favs(){return lg("sh_fav")||{}}
+  function isFav(id){return !!favs()[id]}
+  function metaPut(f){if(!f||!f.id)return;var m=lg("sh_meta")||{};m[f.id]=f;var k=Object.keys(m);if(k.length>150){k.sort(function(a,b){return (m[a].createdAt||0)-(m[b].createdAt||0)});k.slice(0,k.length-150).forEach(function(x){delete m[x]})}ls("sh_meta",m)}
+  function fileById(id){var S=SH()&&SH().S,f=S&&S.files.filter(function(x){return x.id===id})[0];return f||(lg("sh_meta")||{})[id]||null}
+  function toggleFav(id){
+    var m=favs(),on=!m[id];if(on){m[id]=Date.now();metaPut(fileById(id))}else delete m[id];ls("sh_fav",m);
+    [].forEach.call(doc.querySelectorAll('[data-fav]'),function(b){if(b.getAttribute("data-fav")===id)favPaint(b,on)});
+    if(SH()&&SH().S.page==="mine")refreshMine()
+  }
+  function favPaint(b,on){b.setAttribute("aria-pressed",on?"true":"false");b.innerHTML='<span aria-hidden="true">'+(on?"★":"☆")+'</span> <span>Favourite</span>'}
+
+  /* ---------- offline PDFs ---------- */
+  function offList(){var m=lg("sh_off")||{};return Object.keys(m).map(function(k){return{id:k,t:m[k].t,size:m[k].size}}).sort(function(a,b){return b.t-a.t})}
+  function fileByAsset(a){var S=SH()&&SH().S,f=S&&S.files.filter(function(x){return x.assetId===a})[0];if(f)return f;var m=lg("sh_meta")||{},r=null;Object.keys(m).forEach(function(k){if(m[k].assetId===a)r=m[k]});return r}
+
+  /* ---------- My library page ---------- */
+  var deferred=null;
+  function standalone(){return (window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true}
+  function installBlock(){
+    if(standalone())return"";
+    if(deferred)return'<div class="here"><span>Install Study Hub on your phone or computer to open it like an app, with your opened PDFs available offline.</span><button type="button" class="btn small primary" data-install="1">Install app</button></div>';
+    if(/iphone|ipad|ipod/i.test(navigator.userAgent))return'<div class="here"><span>To install: tap the Share button in Safari, then choose Add to Home Screen.</span></div>';
+    return"";
+  }
+  function pdfRow(f,extra,btn){
+    var u=SH()&&SH().UNIS.filter(function(x){return x.id===f.uni})[0];
+    return'<div class="row"><div class="ext">PDF</div><div style="min-width:0"><h3>'+esc(f.title||"PDF")+'</h3><div class="meta"><span class="tag">'+esc(f.subject||"General")+'</span><span>'+esc((u?u.short:"")+(f.year?" · "+f.year:""))+'</span>'+(extra||"")+'</div></div><div class="acts">'+btn+'</div></div>'
+  }
+  function openBtn(f,label){return'<a class="btn small primary" href="/_blob/'+esc(f.assetId)+'" target="_blank" rel="noopener">'+label+'</a>'}
+  function mineHtml(){
+    var S=SH().S,h='<div class="pagehead"><h1>My library</h1><p>Your favourites, where you stopped reading, saved pages and PDFs kept on this device.</p></div>'+installBlock();
+    if(!navigator.onLine)h+='<p class="stalt" style="margin:0 0 14px">You are offline. PDFs you opened before still work.</p>';
+    /* continue reading */
+    var pos=lg("sh_pdfpos")||{},cr=Object.keys(pos).map(function(a){return{a:a,p:pos[a].p,t:pos[a].t,f:fileByAsset(a)}}).filter(function(x){return x.f}).sort(function(a,b){return b.t-a.t}).slice(0,6);
+    h+='<section><div class="sec-head"><h2>Continue reading</h2></div><div class="list">'+(cr.length?cr.map(function(x){return pdfRow(x.f,'<span>Resume at page <b>'+x.p+'</b></span><span>'+esc(ago(x.t))+'</span>',openBtn(x.f,"Continue"))}).join(""):'<div class="empty"><b>Nothing yet</b>Open a PDF and it will appear here so you can pick up where you stopped.</div>')+'</div></section>';
+    /* favourites */
+    var fm=favs(),fl=Object.keys(fm).sort(function(a,b){return fm[b]-fm[a]}).map(fileById).filter(Boolean);
+    h+='<section style="margin-top:28px"><div class="sec-head"><h2>Favourites</h2></div><div class="list">'+(fl.length?fl.map(function(f){return S.loaded&&S.files.length?SH().fileRow(f,false):pdfRow(f,"",openBtn(f,"Open"))}).join(""):'<div class="empty"><b>No favourites yet</b>Tap Favourite on any file to keep it here.</div>')+'</div></section>';
+    /* saved pages */
+    var bm=lg("sh_pdfbm")||{},sp=Object.keys(bm).filter(function(a){return Array.isArray(bm[a])&&bm[a].length&&fileByAsset(a)});
+    if(sp.length)h+='<section style="margin-top:28px"><div class="sec-head"><h2>Saved pages</h2></div><div class="list">'+sp.map(function(a){var f=fileByAsset(a);return pdfRow(f,'<span>Pages <b>'+bm[a].slice().sort(function(x,y){return x-y}).join(", ")+'</b></span>',openBtn(f,"Open"))}).join("")+'</div></section>';
+    /* offline */
+    var ol=offList().map(function(o){return{o:o,f:fileByAsset(o.id)}}).filter(function(x){return x.f});
+    h+='<section style="margin-top:28px"><div class="sec-head"><h2>Available offline</h2></div><p class="stalt" style="margin:0 0 10px">PDFs you open are kept on this device so they open instantly and work without internet. <span id="offuse"></span></p><div class="list">'+(ol.length?ol.map(function(x){return pdfRow(x.f,'<span>'+esc(sizeTxt(x.o.size))+'</span>',openBtn(x.f,"Open")+'<button type="button" class="btn small" data-offrm="'+esc(x.o.id)+'">Remove from device</button>')}).join(""):'<div class="empty"><b>No offline PDFs yet</b>Open a PDF once and it will be saved here automatically.</div>')+'</div></section>';
+    return h
+  }
+  function sizeTxt(b){if(!b)return"";return b<1048576?Math.max(1,Math.round(b/1024))+" KB":(b/1048576).toFixed(1)+" MB"}
+  function refreshMine(){var S=SH().S;if(S.page!=="mine")return;var v=doc.getElementById("view"),y=window.scrollY;v.innerHTML=mineHtml();mineBind();window.scrollTo(0,y)}
+  function mineBind(){
+    var el=doc.getElementById("offuse");
+    if(el&&navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(function(e){if(el&&e&&e.usage!=null)el.textContent="Using "+sizeTxt(e.usage)+" on this device."}).catch(function(){});
+    thumbScan()
+  }
+  window.__mine={html:mineHtml,bind:mineBind};
+
+  /* ---------- clicks ---------- */
+  doc.addEventListener("click",function(e){
+    var t=e.target,b;if(!t.closest)return;
+    if(b=t.closest("[data-fav]")){e.preventDefault();toggleFav(b.getAttribute("data-fav"));return}
+    if(b=t.closest("[data-more]")){var S=SH().S;S.lim=(S.lim||20)+20;SH().relib();thumbScan();return}
+    if(b=t.closest("[data-offrm]")){e.preventDefault();var id=b.getAttribute("data-offrm");(X.pcRemove?X.pcRemove(id):Promise.resolve()).then(refreshMine);return}
+    if(b=t.closest("[data-install]")){e.preventDefault();if(deferred){deferred.prompt();deferred.userChoice.then(function(){deferred=null;ibtn();refreshMine()},function(){})}return}
+  });
+  /* keep favourite hearts correct after any re-render */
+  function paintAll(){[].forEach.call(doc.querySelectorAll("[data-fav]"),function(b){if(b.__p!==1){b.__p=1;favPaint(b,isFav(b.getAttribute("data-fav")))}})}
+
+  /* ---------- install prompt ---------- */
+  function ibtn(){
+    var bar=doc.querySelector(".bar"),b=doc.getElementById("instbtn");
+    if(!deferred||standalone()){if(b)b.remove();return}
+    if(!b&&bar){b=doc.createElement("button");b.id="instbtn";b.type="button";b.className="btn small";b.setAttribute("data-install","1");b.textContent="Install app";bar.appendChild(b)}
+  }
+  window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferred=e;ibtn()});
+  window.addEventListener("appinstalled",function(){deferred=null;ibtn()});
+
+  /* ---------- offline notice ---------- */
+  function net(){
+    var n=doc.getElementById("offnote");
+    if(navigator.onLine){if(n)n.remove();return}
+    if(n)return;n=doc.createElement("div");n.id="offnote";n.setAttribute("role","status");n.textContent="You are offline. PDFs you opened before still work.";
+    doc.body.insertBefore(n,doc.body.firstChild)
+  }
+  window.addEventListener("online",net);window.addEventListener("offline",net);
+
+  /* ---------- first-page thumbnails (lazy, cached in IndexedDB) ---------- */
+  var idb=null,failed={},queue=[],running=0,seen=new WeakSet(),io=null;
+  function idbOpen(){
+    if(idb)return idb;
+    idb=new Promise(function(ok,no){try{var r=indexedDB.open("sh-thumbs",1);r.onupgradeneeded=function(){r.result.createObjectStore("t")};r.onsuccess=function(){ok(r.result)};r.onerror=function(){no(r.error)}}catch(e){no(e)}});
+    idb.catch(function(){idb=Promise.reject()});return idb
+  }
+  function idbGet(k){return idbOpen().then(function(d){return new Promise(function(ok){var q=d.transaction("t").objectStore("t").get(k);q.onsuccess=function(){ok(q.result||null)};q.onerror=function(){ok(null)}})}).catch(function(){return null})}
+  function idbSet(k,v){return idbOpen().then(function(d){var tx=d.transaction("t","readwrite");tx.objectStore("t").put(v,k)}).catch(function(){})}
+  function lite(){var c=navigator.connection;return !!(c&&(c.saveData||/(^|-)2g$|3g/.test(c.effectiveType||"")))}
+  function paintThumb(el,url){el.style.backgroundImage="url("+url+")";el.classList.add("has")}
+  function makeThumb(id){
+    var f=fileByAsset(id);if(!f||!X.loadPdfjs||(f.sizeBytes||0)>8*1048576)return Promise.reject();
+    return X.loadPdfjs().then(function(lib){
+      var src=X.pcGet?X.pcGet(id):Promise.resolve(null);
+      return src.then(function(blob){
+        if(blob)return blob.arrayBuffer().then(function(b){return lib.getDocument({data:b}).promise});
+        if(lite())throw 0;
+        return X.fileUrl(id).then(function(u){return lib.getDocument({url:u,rangeChunkSize:131072,disableAutoFetch:true}).promise})
+      }).then(function(pdf){
+        return pdf.getPage(1).then(function(pg){
+          var vp0=pg.getViewport({scale:1}),sc=(window.devicePixelRatio>1?208:104)/vp0.width,vp=pg.getViewport({scale:sc}),c=doc.createElement("canvas");
+          c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
+          return pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise.then(function(){var u=c.toDataURL("image/jpeg",.62);pdf.destroy();return u})
+        })
+      })
+    })
+  }
+  function pump(){
+    while(running<2&&queue.length){
+      (function(el){
+        var id=el.getAttribute("data-th");running++;
+        idbGet(id).then(function(hit){
+          if(hit){paintThumb(el,hit);return}
+          if(failed[id])return;
+          return makeThumb(id).then(function(u){paintThumb(el,u);idbSet(id,u)},function(){failed[id]=1})
+        }).then(function(){running--;setTimeout(pump,120)},function(){running--;setTimeout(pump,120)})
+      })(queue.shift())
+    }
+  }
+  function thumbScan(){
+    paintAll();
+    if(!("IntersectionObserver" in window))return;
+    if(!io)io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){io.unobserve(en.target);if(!en.target.classList.contains("has"))queue.push(en.target)}});pump()},{rootMargin:"300px"});
+    [].forEach.call(doc.querySelectorAll("[data-th]"),function(el){if(!seen.has(el)){seen.add(el);io.observe(el)}})
+  }
+  var st=0;
+  function later(){clearTimeout(st);st=setTimeout(thumbScan,80)}
+  var view=doc.getElementById("view");
+  if(view&&window.MutationObserver)new MutationObserver(later).observe(view,{childList:true,subtree:true});
+
+  /* ---------- go ---------- */
+  mountTheme();net();later();
+  if("serviceWorker" in navigator&&/^https:|^http:\/\/localhost/.test(location.protocol+"//"+location.host)){
+    window.addEventListener("load",function(){try{navigator.serviceWorker.register("sw.js").catch(function(){})}catch(e){}})
+  }
+})();
+</script>
+<script>
 (function(){
   var AR={
+    "My library":"مكتبتي","Favourite":"المفضلة","Favourites":"المفضلة","Continue reading":"متابعة القراءة","Continue":"متابعة","Saved pages":"الصفحات المحفوظة","Available offline":"متاح بدون إنترنت","Show more":"عرض المزيد","Install app":"تثبيت التطبيق","Auto":"تلقائي","Light":"فاتح","Dark":"داكن","Remove from device":"إزالة من الجهاز","Resume at page":"استئناف من الصفحة","Pages":"الصفحات","Nothing yet":"لا شيء بعد","Open a PDF and it will appear here so you can pick up where you stopped.":"افتح ملف PDF وسيظهر هنا لتكمل من حيث توقفت.","No favourites yet":"لا توجد ملفات مفضلة بعد","Tap Favourite on any file to keep it here.":"اضغط على المفضلة في أي ملف لحفظه هنا.","No offline PDFs yet":"لا توجد ملفات بدون إنترنت بعد","Open a PDF once and it will be saved here automatically.":"افتح ملف PDF مرة واحدة وسيُحفظ هنا تلقائياً.","PDFs you open are kept on this device so they open instantly and work without internet.":"تُحفظ ملفات PDF التي تفتحها على جهازك لتُفتح فوراً وتعمل بدون إنترنت.","You are offline. PDFs you opened before still work.":"أنت غير متصل بالإنترنت. ملفات PDF التي فتحتها سابقاً ما زالت تعمل.","Your favourites, where you stopped reading, saved pages and PDFs kept on this device.":"ملفاتك المفضلة، ومكان توقفك عن القراءة، والصفحات المحفوظة، وملفات PDF المحفوظة على هذا الجهاز.","Install Study Hub on your phone or computer to open it like an app, with your opened PDFs available offline.":"ثبّت Study Hub على هاتفك أو حاسوبك لفتحه كتطبيق مع إتاحة ملفات PDF التي فتحتها بدون إنترنت.","To install: tap the Share button in Safari, then choose Add to Home Screen.":"للتثبيت: اضغط زر المشاركة في Safari ثم اختر «إضافة إلى الشاشة الرئيسية».",
     "Universities":"الجامعات",
     "Download":"تنزيل","Open in new tab":"فتح في تبويب جديد","Close":"إغلاق","Loading PDF…":"جارٍ تحميل الملف…","PDF viewer":"عارض PDF","Zoom in":"تكبير","Zoom out":"تصغير",
     "Save your progress to your Google Drive?":"هل تريد حفظ تقدمك في Google Drive؟","Study Hub can remember where you stopped in each PDF, your saved pages and your reading settings, and bring them with you to any phone or computer you sign in on.":"يستطيع Study Hub تذكّر المكان الذي توقفت عنده في كل ملف PDF وصفحاتك المحفوظة وإعدادات القراءة، ونقلها معك إلى أي هاتف أو حاسوب تسجّل الدخول منه.","To do this, Google will ask you to let Study Hub keep one tiny hidden file in your own Google Drive. Study Hub cannot see or change any of your other files, and no one else can read this file. You can remove it any time in your Google account under Third-party apps.":"لتحقيق ذلك ستطلب منك Google السماح لـ Study Hub بحفظ ملف صغير مخفي في Google Drive الخاص بك. لا يستطيع Study Hub رؤية أو تعديل أي ملفات أخرى لديك، ولا يستطيع أحد غيرك قراءة هذا الملف. يمكنك إزالته في أي وقت من حساب Google ضمن «التطبيقات التابعة لجهات خارجية».","Allow access":"السماح بالوصول","Not now":"ليس الآن","Study Hub could not get access":"تعذّر على Study Hub الحصول على الإذن","Without access, your place in PDFs, your saved pages and your reading settings stay on this device only. They will not follow you to another phone or computer.":"بدون الإذن ستبقى مواضع توقفك في ملفات PDF وصفحاتك المحفوظة وإعدادات القراءة على هذا الجهاز فقط، ولن تنتقل معك إلى هاتف أو حاسوب آخر.","We ask because Google Drive is where we keep this small file, so it stays in your own account. When Google asks, keep the Google Drive box ticked and press Allow. If a school or organisation account is being used, its admin may have blocked this.":"نطلب ذلك لأن Google Drive هو المكان الذي نحفظ فيه هذا الملف الصغير، ليبقى في حسابك أنت. عندما تسألك Google، أبقِ خانة Google Drive محددة واضغط «السماح». وإذا كان الحساب تابعًا لمدرسة أو جهة، فقد يكون المسؤول قد حظر ذلك.","Try again":"حاول مرة أخرى","Keep on this device":"الاحتفاظ بها على هذا الجهاز","School accounts cannot sync":"حسابات المدارس لا تدعم المزامنة","You are signed in with a school or organisation email. Schools usually block apps from saving to Google Drive, so your progress stays on this device only for now.":"أنت مسجّل الدخول ببريد تابع لمدرسة أو جهة. تمنع المدارس عادةً التطبيقات من الحفظ في Google Drive، لذلك سيبقى تقدمك على هذا الجهاز فقط حاليًا.","To keep your progress on every device: sign out, then sign in with a personal Gmail account. Or ask your school's IT admin to allow Study Hub to use Google Drive app data, then press Try anyway.":"للاحتفاظ بتقدمك على كل أجهزتك: سجّل الخروج ثم سجّل الدخول بحساب Gmail شخصي. أو اطلب من مسؤول تقنية المعلومات في مدرستك السماح لـ Study Hub باستخدام بيانات التطبيق في Google Drive، ثم اضغط «حاول على أي حال».","Try anyway":"حاول على أي حال","OK":"حسنًا","Could not reach Google Drive":"تعذّر الوصول إلى Google Drive","Something went wrong while connecting. Your progress stays on this device and Study Hub will try again next time.":"حدث خطأ أثناء الاتصال. سيبقى تقدمك على هذا الجهاز وسيحاول Study Hub مرة أخرى في المرة القادمة.","Connected to your Google Drive":"تم الاتصال بـ Google Drive","Your PDF progress, saved pages and reading settings will now follow you to any device where you sign in with this Google account.":"سينتقل تقدمك في ملفات PDF وصفحاتك المحفوظة وإعدادات القراءة الآن إلى أي جهاز تسجّل الدخول منه بحساب Google هذا.","Done":"تم",

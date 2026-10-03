@@ -101,7 +101,7 @@ async function loadTime(){var r=await sb.rpc("admin_time");if(r.error)throw r.er
 async function loadStats(){var r=await sb.rpc("admin_stats");if(r.error)throw r.error;try{var q=await sb.rpc("admin_storage");A.stor=q.error?null:q.data}catch(e){A.stor=null}A.stats=r.data}
 async function loadNames(){var r=await sb.from("profiles").select("id,name").limit(1000);if(r.data)r.data.forEach(function(p){A.names[p.id]=p.name})}
 async function loadFiles(){var r=await sb.from("files").select("id,title,uni,college,major,year,subject,kind,description,uploader_id,created_at,asset_path,size_bytes,file_name,featured,hidden,content_type").order("created_at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.files=r.data}
-async function loadRev(){var r=await sb.from("file_reviews").select("*");if(r.error)throw r.error;A.rev={};r.data.forEach(function(x){A.rev[x.file_id]=x})}
+async function loadRev(){var r=await sb.from("file_reviews").select("*");if(r.error)throw r.error;A.rev={};r.data.forEach(function(x){A.rev[x.file_id]=x});A.study={};try{var q=await sb.from("file_study").select("file_id");(q.data||[]).forEach(function(x){A.study[x.file_id]=1})}catch(e){}}
 async function loadRatings(){var r=await sb.from("ratings").select("file_id,user_id,stars,text,at").order("at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.ratings=r.data}
 async function loadUsers(){var r=await sb.rpc("admin_users");if(r.error)throw r.error;A.users=r.data}
 async function loadReports(){var r=await sb.from("reports").select("*").order("at",{ascending:false}).limit(300);if(r.error)throw r.error;A.reports=r.data}
@@ -194,10 +194,10 @@ var F=A.revF,list=pd.filter(function(f){var v=A.rev[f.id];return F==="all"||(F==
 var rank=function(f){var v=A.rev[f.id];return !v?3:v.status==="queued"?0:v.status==="bad"?1:v.status==="warn"?2:4};
 list.sort(function(a,b){return rank(a)-rank(b)||new Date(b.created_at)-new Date(a.created_at)});
 var tabs=[["all","Everything ("+pd.length+")"],["todo","Not reviewed ("+n.todo+")"],["queued","Waiting ("+n.queued+")"],["done","Reviewed ("+n.done+")"],["flag","Flagged ("+n.flag+")"]];
-var head='<p class="adm-note">Press <b>Add to queue</b> on the PDFs you want checked (or add every new one at once). Then tell Claude in the chat: <b>“review the queue”</b>. Claude opens each waiting PDF, checks it for private information, copied or paid material and whether it matches its subject and grade, then writes what it is and what it thinks. Results appear here and only you can see them.</p>'+
+var head='<p class="adm-note">Press <b>Add to queue</b> on the PDFs you want checked (or add every new one at once). Then tell Claude in the chat: <b>“review the queue”</b>. Claude also writes a flashcard set and a short quiz for every PDF it approves, so students can study from it. Claude opens each waiting PDF, checks it for private information, copied or paid material and whether it matches its subject and grade, then writes what it is and what it thinks. Results appear here and only you can see them.</p>'+
 '<div class="adm-tools"><div class="seg" role="group" aria-label="Filter">'+tabs.map(function(x){return'<button data-adm-rvf="'+x[0]+'" aria-pressed="'+(F===x[0])+'"><b>'+x[1]+'</b></button>'}).join("")+'</div>'+(n.todo?'<button class="btn small primary" data-adm-rq="all">Add all '+n.todo+' new PDF'+(n.todo>1?'s':'')+' to the queue</button>':'')+'</div>';
 var row=function(f){var v=A.rev[f.id],s=v&&RV[v.status];
-return'<div class="adm-row"><div><b>'+esc(f.title)+(s?' <span class="'+(s[1]||"adm-tag")+'">'+s[0]+'</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+(f.hidden?' · hidden':'')+'</span>'+
+return'<div class="adm-row"><div><b>'+esc(f.title)+(s?' <span class="'+(s[1]||"adm-tag")+'">'+s[0]+'</span>':'')+(A.study&&A.study[f.id]?' <span class="adm-tag">Study cards</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+(f.hidden?' · hidden':'')+'</span>'+
 (v&&v.status!=="queued"?(v.flags?'<span><b>Flags:</b> '+esc(v.flags)+'</span>':'<span><b>Flags:</b> none</span>')+(v.matches?'<span><b>Matches its subject and grade:</b> '+esc(v.matches)+'</span>':'')+(v.summary?'<p>'+esc(v.summary)+'</p>':'')+'<span>Reviewed '+dtt(v.reviewed_at)+'</span>':'')+'</div>'+
 '<div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a>'+(v&&v.status==="queued"?'<button class="btn small" data-adm-rq="-'+esc(f.id)+'">Remove from queue</button>':'<button class="btn small" data-adm-rq="'+esc(f.id)+'">'+(v?'Review again':'Add to queue')+'</button>')+(v&&(v.status==="warn"||v.status==="bad")?'<button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button>':'')+'</div></div>'};
 var sum='<div class="stats" style="grid-template-columns:repeat(4,minmax(0,1fr));margin:14px 0">'+[["Not reviewed",n.todo],["Waiting for Claude",n.queued],["Reviewed",n.done],["Flagged",n.flag]].map(function(x){return'<div style="padding:12px"><b>'+x[1]+'</b><span>'+x[0]+'</span></div>'}).join("")+'</div>';
@@ -353,6 +353,34 @@ card("Popular but thin",bars(thin.map(function(s){return{subject:s.subject,uni:s
 card("Coverage by university",bars(cov,function(r){return r.uni+" · "+r.have+" of "+r.total+" subjects have files"},"pct"),'<p class="adm-note">Share of listed subjects that have at least one visible file.</p>')+
 card("Listed subjects with no files",gl.length?gl.map(function(g){var u=uniOf(g.uni);return'<details class="adm-det"><summary><b>'+esc(g.major)+'</b> <span>'+esc(u?u.short:g.uni)+' · '+g.n+' missing</span></summary>'+Object.keys(g.years).map(function(y){return'<p><b>'+esc(y)+':</b> '+g.years[y].map(esc).join(", ")+'</p>'}).join("")+'</details>'}).join(""):'<p class="adm-none">Every listed subject has at least one file.</p>',(miss.length?'<p class="adm-note">Showing the 40 programmes with the most gaps.</p>':''))
 }
+function clip(s,n){return String(s==null?"":s).replace(/\s+/g," ").trim().slice(0,n)}
+A.kit={
+queue:async function(){
+var r=await sb.from("file_reviews").select("file_id").eq("status","queued");if(r.error)throw r.error;
+var ids=r.data.map(function(x){return x.file_id});if(!ids.length)return[];
+var f=await sb.from("files").select("id,title,uni,college,major,year,subject,kind,description,asset_path,file_name,size_bytes,created_at").in("id",ids);if(f.error)throw f.error;return f.data
+},
+text:async function(path,maxChars){
+var lib=await window.__pdfx.loadPdfjs(),url=await fileUrl(path),res=await fetch(url);if(!res.ok)throw new Error("Could not download the PDF ("+res.status+")");
+var doc=await lib.getDocument({data:await res.arrayBuffer()}).promise,n=doc.numPages,max=maxChars||18000,pick=[],i;
+if(n<=10){for(i=1;i<=n;i++)pick.push(i)}else{pick=[1,2];for(i=1;i<=8;i++)pick.push(Math.max(3,Math.round(3+(n-3)*i/8)));pick=pick.filter(function(p,k){return p<=n&&pick.indexOf(p)===k})}
+var per=Math.floor(max/pick.length),out="";
+for(i=0;i<pick.length;i++){var pg=await doc.getPage(pick[i]),tc=await pg.getTextContent();out+="\n[page "+pick[i]+" of "+n+"]\n"+clip(tc.items.map(function(x){return x.str}).join(" "),per)}
+doc.destroy();return{pages:n,sampled:pick,text:out}
+},
+save:async function(id,o){
+o=o||{};var out={};
+if(o.status){
+if(["ok","warn","bad"].indexOf(o.status)<0)throw new Error("status must be ok, warn or bad");
+var row={file_id:id,status:o.status,reviewed_at:new Date().toISOString(),summary:clip(o.summary,1500),flags:clip(o.flags,300)||null,matches:["yes","partly","no"].indexOf(o.matches)>-1?o.matches:null};
+var r=await sb.from("file_reviews").upsert(row,{onConflict:"file_id"});if(r.error)throw r.error;out.review=true
+}
+var cards=(o.cards||[]).map(function(c){return{q:clip(c.q,300),a:clip(c.a,600)}}).filter(function(c){return c.q&&c.a}).slice(0,60);
+var quiz=(o.quiz||[]).map(function(q){var op=(q.o||[]).map(function(x){return clip(x,200)}).filter(Boolean).slice(0,6);return{q:clip(q.q,400),o:op,a:+q.a,e:clip(q.e,400)}}).filter(function(q){return q.q&&q.o.length>=2&&q.a>=0&&q.a<q.o.length}).slice(0,40);
+if(cards.length||quiz.length){var s=await sb.from("file_study").upsert({file_id:id,cards:cards,quiz:quiz,made_at:new Date().toISOString()},{onConflict:"file_id"});if(s.error)throw s.error;out.cards=cards.length;out.quiz=quiz.length}
+return out
+}
+};
 var TABS=[["overview","Overview"],["time","Time"],["insights","Insights"],["activity","Activity"],["files","Files"],["pdfrev","Review PDFs"],["reviews","Reviews"],["reports","Reports"],["users","Users"],["subjects","Subjects"],["cleanup","Cleanup"],["site","Site"],["admins","Admins","owner"],["backup","Backup","owner"]];
 A.html=function(){
 var body={overview:overview,time:timeTab,insights:insTab,activity:activity,files:filesTab,pdfrev:pdfRevTab,reviews:reviewsTab,reports:reportsTab,users:usersTab,subjects:subjectsTab,cleanup:cleanupTab,site:siteTab,admins:adminsTab,backup:backupTab}[A.tab]();

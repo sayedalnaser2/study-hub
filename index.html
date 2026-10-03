@@ -277,6 +277,21 @@ nav button{white-space:nowrap;padding:6px 10px}
 .btn.fav[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
 #themebtn,#instbtn{margin-inline-start:8px}
 #offnote{position:sticky;top:0;z-index:20;margin:0 -16px;padding:7px 16px;background:var(--warn);color:#fff;font-size:14px;text-align:center}
+.stcard{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:16px;margin:0 0 28px}
+.st-top{display:flex;gap:12px;flex-wrap:wrap}.st-big{flex:1 1 90px;display:flex;flex-direction:column}.st-big b{font-family:var(--display);font-size:32px;line-height:1.05}.st-big span{color:var(--muted);font-size:13px}
+.st-goal{margin-top:12px}.st-bar{height:8px;border-radius:99px;background:var(--accent-soft);overflow:hidden}.st-bar i{display:block;height:100%;background:var(--accent);border-radius:99px}.st-goal p{color:var(--muted);font-size:13px;margin-top:6px}
+.st-week{display:flex;gap:8px;align-items:flex-end;margin-top:14px;height:78px}.sw-d{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;font-size:11px;color:var(--muted)}.sw-d i{display:block;width:100%;max-width:34px;border-radius:5px 5px 2px 2px;background:var(--line)}.sw-d i.ok{background:var(--accent)}
+.pomo,#pmpop{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+.pm-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.pm-h span{font-size:12px;font-family:var(--mono);color:var(--accent)}
+.pm-t{font-family:var(--mono);font-size:40px;font-weight:500;line-height:1.2;margin:4px 0}.pm-b{display:flex;gap:8px;flex-wrap:wrap}.pm-c{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:13px;color:var(--muted)}.pm-c select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 6px}
+#pmpop{position:absolute;right:12px;top:108px;z-index:6;width:min(300px,calc(100% - 24px));margin:0;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+#pmpill{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:90;display:flex;gap:8px;align-items:center;padding:8px 14px;border-radius:99px;border:0;cursor:pointer;background:var(--accent);color:var(--accent-fg);font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.3)}#pmpill.break{background:var(--ok);color:#fff}#pmpill b{font-family:var(--mono)}#pmpill em{font-style:normal;opacity:.8}
+#pmtoast{position:fixed;left:50%;transform:translateX(-50%);top:16px;z-index:200;padding:10px 16px;border-radius:99px;background:var(--fg);color:var(--bg);font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+#streakchip{margin-inline-start:8px}#streakchip b{font-family:var(--mono)}
+#shdlg{border:1px solid var(--line);border-radius:14px;padding:22px;max-width:420px;width:calc(100% - 32px);background:var(--surface);color:var(--fg);font-family:inherit}#shdlg::backdrop{background:rgba(0,0,0,.45)}#shdlg h2{margin:0 0 8px;font-size:20px}#shdlg p{margin:0 0 10px;font-size:14px;color:var(--muted)}
+#shdlg .sh-chk{display:flex;gap:8px;align-items:center;font-size:14px;margin:0 0 10px}#shdlg .sh-chk em{font-style:normal;color:var(--muted)}#shdlg .sh-url{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:12px}
+#shdlg .sh-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}#shdlg .sh-msg{min-height:1.2em;margin-top:8px}
+.adm-det{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:8px;background:var(--surface)}.adm-det summary{cursor:pointer;display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}.adm-det summary span{color:var(--muted);font-size:13px}.adm-det p{font-size:13px;margin-top:6px}
 </style>
 
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}</style>
@@ -803,7 +818,7 @@ var BUCKET="files";
       }).catch(function(e){fail(url,e&&e.message)})
     }).catch(function(e){fail(null,e&&e.message)})
   }
-  window.__pdfx={fileUrl:fileUrl,loadPdfjs:loadPdfjs,pcGet:pcGet,pcRemove:pcRemove,LS:LS};
+  window.__pdfx={fileUrl:fileUrl,loadPdfjs:loadPdfjs,pcGet:pcGet,pcRemove:pcRemove,LS:LS,state:function(){return PV},goPage:goPage,annNew:annNew,annRefresh:annRefresh,annDel:annDel};
   document.addEventListener("click",function(e){
     if(PV&&e.target.closest&&e.target.closest("#pdfv")&&pdfUi(e))return;
     var a=e.target.closest&&e.target.closest('a[href^="/_blob/"]');if(!a)return;e.preventDefault();
@@ -819,7 +834,7 @@ var BUCKET="files";
   },true);
   window.__pdf={pop:function(){if(SKIPPOP){SKIPPOP=false;return true}if(PV){pdfTeardown();return true}return false}};
   document.addEventListener("keydown",function(e){
-    if(!PV||e.key!=="Escape")return;e.stopPropagation();var v=PV;
+    if(!PV||e.key!=="Escape"||document.getElementById("shdlg"))return;e.stopPropagation();var v=PV;
     if(v.noteEl){v.noteEl.remove();v.noteEl=null;return}
     if(!v.el.querySelector(".pvgo").hidden){pdfGoEnd(v);return}
     if(!v.el.querySelector(".pvfind").hidden){pdfFind(v,false);return}
@@ -1647,8 +1662,260 @@ var BUCKET="files";
 })();
 </script>
 <script>
+/* Phase 2: study time + streaks, Pomodoro focus timer, share-a-page links */
+(function(){
+  var doc=document,X=window.__pdfx||{},SH=function(){return window.__sh};
+  function lg(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+  function ls(k,v){try{if(v===null||v===undefined)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+  function pad(n){return n<10?"0"+n:""+n}
+  function dkey(t){var d=new Date(t||Date.now());return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+
+  /* ---------- study time and streaks ---------- */
+  var GOAL=300,pend=0,lastAct=Date.now(),lastFlush=0;
+  function sget(){var m=lg("sh_study");return m&&typeof m==="object"?m:{}}
+  function flush(){
+    if(!pend)return;var m=sget(),k=dkey();m[k]=(m[k]||0)+pend;pend=0;
+    var ks=Object.keys(m).sort();if(ks.length>150)ks.slice(0,ks.length-150).forEach(function(x){delete m[x]});
+    ls("sh_study",m);lastFlush=Date.now()
+  }
+  function total(k){return (sget()[k]||0)+(k===dkey()?pend:0)}
+  function streak(){
+    var m=sget();m[dkey()]=total(dkey());var d=new Date(),n=0;
+    if((m[dkey(d)]||0)<GOAL)d.setDate(d.getDate()-1);
+    while((m[dkey(d)]||0)>=GOAL){n++;d.setDate(d.getDate()-1)}
+    return n
+  }
+  function best(){
+    var m=sget(),ks=Object.keys(m).filter(function(k){return m[k]>=GOAL}).sort(),b=0,c=0,prev=null;
+    ks.forEach(function(k){var d=new Date(k+"T00:00:00");if(prev&&Math.round((d-prev)/864e5)===1)c++;else c=1;prev=d;if(c>b)b=c});
+    return Math.max(b,streak())
+  }
+  ["pointerdown","pointermove","keydown","scroll","wheel","touchstart","touchmove"].forEach(function(n){window.addEventListener(n,function(){lastAct=Date.now()},{passive:true,capture:true})});
+  setInterval(function(){
+    var now=Date.now(),viewer=!!doc.getElementById("pdfv"),vis=doc.visibilityState==="visible";
+    var focus=P.run&&P.mode==="work";
+    if((viewer&&vis&&now-lastAct<90000)||focus)pend++;
+    if(pend>=15||(pend&&now-lastFlush>30000))flush();
+    chip()
+  },1000);
+  doc.addEventListener("visibilitychange",function(){if(doc.visibilityState==="hidden")flush()});
+  window.addEventListener("pagehide",flush);
+  function chip(){
+    var bar=doc.querySelector(".bar"),b=doc.getElementById("streakchip"),n=streak();
+    if(!n){if(b)b.remove();return}
+    if(!b&&bar){b=doc.createElement("button");b.id="streakchip";b.type="button";b.className="btn small";b.setAttribute("data-go","mine");bar.appendChild(b)}
+    if(b&&b.__n!==n){b.__n=n;b.innerHTML='<b>'+n+'</b> <span>day streak</span>'}
+  }
+  function mins(s){return Math.floor(s/60)}
+
+  /* ---------- Pomodoro ---------- */
+  var DEF={mode:"work",cfg:[25,5],left:25*60,run:false,end:0};
+  var P=(function(){var s=lg("sh_pomo");if(!s||!s.cfg||s.cfg.length!==2)return JSON.parse(JSON.stringify(DEF));return s})();
+  function psave(){ls("sh_pomo",P)}
+  function pleft(){return P.run?Math.max(0,Math.round((P.end-Date.now())/1000)):P.left}
+  function pdone(){var m=lg("sh_pomodone")||{};return m[dkey()]||0}
+  function pcount(){var m=lg("sh_pomodone")||{},k=dkey();m[k]=(m[k]||0)+1;var ks=Object.keys(m).sort();if(ks.length>60)ks.slice(0,ks.length-60).forEach(function(x){delete m[x]});ls("sh_pomodone",m)}
+  var actx=null;
+  function beep(){
+    try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}
+    try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();var o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.frequency.value=880;g.gain.setValueAtTime(.0001,actx.currentTime);g.gain.exponentialRampToValueAtTime(.25,actx.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+.7);o.start();o.stop(actx.currentTime+.75)}catch(e){}
+  }
+  function toast(t){
+    var n=doc.getElementById("pmtoast");if(n)n.remove();
+    n=doc.createElement("div");n.id="pmtoast";n.setAttribute("role","status");n.textContent=t;doc.body.appendChild(n);setTimeout(function(){n.remove()},6000)
+  }
+  function phaseEnd(manual){
+    if(P.mode==="work"){
+      if(!manual)pcount();
+      P.mode="break";P.left=P.cfg[1]*60;P.run=true;P.end=Date.now()+P.left*1000;
+      if(!manual){beep();toast("Focus session done. Take a short break.")}
+    }else{
+      P.mode="work";P.left=P.cfg[0]*60;P.run=false;
+      if(!manual){beep();toast("Break over. Ready for the next focus session.")}
+    }
+    psave();paintPanels()
+  }
+  function pact(a){
+    if(a==="toggle"){
+      try{actx=actx||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}
+      if(P.run){P.left=pleft();P.run=false}else{if(P.left<=0)P.left=(P.mode==="work"?P.cfg[0]:P.cfg[1])*60;P.end=Date.now()+P.left*1000;P.run=true}
+      psave()
+    }else if(a==="reset"){P.mode="work";P.run=false;P.left=P.cfg[0]*60;psave()}
+    else if(a==="skip"){phaseEnd(true);return}
+    paintPanels()
+  }
+  function fmt(s){return pad(Math.floor(s/60))+":"+pad(s%60)}
+  function panelHtml(){
+    var sel=["25,5","50,10","15,3"].map(function(v){return'<option value="'+v+'"'+(v===P.cfg.join(",")?" selected":"")+'>'+v.split(",")[0]+' / '+v.split(",")[1]+' min</option>'}).join("");
+    return'<div class="pm-h"><b>Focus timer</b><span data-pm-ph>'+(P.mode==="work"?"Focus":"Break")+'</span></div><div class="pm-t" data-pm-time aria-live="off">'+fmt(pleft())+'</div>'+
+      '<div class="pm-b"><button type="button" class="btn small primary" data-pm="toggle">'+(P.run?"Pause":"Start")+'</button><button type="button" class="btn small" data-pm="reset">Reset</button><button type="button" class="btn small" data-pm="skip">Skip</button></div>'+
+      '<div class="pm-c"><label><span>Length</span> <select data-pm-cfg aria-label="Focus and break length">'+sel+'</select></label><span><span>Sessions today</span> <b data-pm-done>'+pdone()+'</b></span></div>'
+  }
+  function paintPanels(){
+    [].forEach.call(doc.querySelectorAll("[data-pomo-panel]"),function(el){
+      var a=doc.activeElement;if(a&&el.contains(a)&&a.tagName==="SELECT")return;
+      el.innerHTML=panelHtml()
+    });
+    pill()
+  }
+  function pill(){
+    var n=doc.getElementById("pmpill"),full=P.cfg[0]*60,show=P.run||(P.mode==="work"&&P.left<full)||P.mode==="break";
+    if(!show){if(n)n.remove();return}
+    if(!n){n=doc.createElement("button");n.id="pmpill";n.type="button";n.setAttribute("data-pm","toggle");doc.body.appendChild(n)}
+    n.className=P.mode;n.innerHTML='<span>'+(P.mode==="work"?"Focus":"Break")+'</span> <b data-pm-time>'+fmt(pleft())+'</b>'+(P.run?"":' <em>paused</em>');
+    n.setAttribute("aria-label",(P.run?"Pause":"Resume")+" "+(P.mode==="work"?"focus":"break")+" timer")
+  }
+  setInterval(function(){
+    if(P.run&&pleft()<=0)phaseEnd(false);
+    var t=fmt(pleft());[].forEach.call(doc.querySelectorAll("[data-pm-time]"),function(e){if(e.textContent!==t)e.textContent=t})
+  },500);
+  doc.addEventListener("change",function(e){
+    var s=e.target.closest&&e.target.closest("[data-pm-cfg]");if(!s)return;
+    var c=s.value.split(",").map(Number);if(c.length!==2)return;P.cfg=c;P.mode="work";P.run=false;P.left=c[0]*60;psave();paintPanels()
+  });
+
+  /* ---------- My library: study card ---------- */
+  function weekBars(){
+    var out="",mx=GOAL;
+    var days=[];for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);days.push(d)}
+    days.forEach(function(d){var t=total(dkey(d));if(t>mx)mx=t});
+    days.forEach(function(d){
+      var t=total(dkey(d)),h=Math.max(3,Math.round(56*t/mx)),ok=t>=GOAL;
+      out+='<div class="sw-d" title="'+esc(d.toLocaleDateString("en-GB",{weekday:"long"}))+': '+mins(t)+' min"><i class="'+(ok?"ok":"")+'" style="height:'+h+'px"></i><span>'+esc(d.toLocaleDateString("en-GB",{weekday:"narrow"}))+'</span></div>'
+    });
+    return out
+  }
+  function cardHtml(){
+    var n=streak(),t=total(dkey()),pc=Math.min(100,Math.round(100*t/GOAL));
+    return'<section class="stcard"><div class="st-top"><div class="st-big"><b>'+n+'</b><span>day streak</span></div><div class="st-big"><b>'+mins(t)+'</b><span>min today</span></div><div class="st-big"><b>'+best()+'</b><span>best streak</span></div></div>'+
+      '<div class="st-goal"><div class="st-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pc+'"><i style="width:'+pc+'%"></i></div><p>'+(t>=GOAL?"Goal reached. Your streak is safe for today.":"Study 5 minutes a day to keep your streak. Time counts while a PDF is open or the focus timer runs.")+'</p></div>'+
+      '<div class="st-week" aria-hidden="true">'+weekBars()+'</div><div class="pomo" data-pomo-panel>'+panelHtml()+'</div></section>'
+  }
+  function wrapMine(){
+    var M=window.__mine;if(!M||M.__w)return;M.__w=1;var h0=M.html,b0=M.bind;
+    M.html=function(){var h=h0(),i=h.indexOf("</div>");return i<0?h:h.slice(0,i+6)+cardHtml()+h.slice(i+6)};
+    M.bind=function(){b0();paintPanels()}
+  }
+
+  /* ---------- viewer buttons and focus popover ---------- */
+  function decorate(el){
+    if(el.__p2)return;var tools=el.querySelector(".pvtools");if(!tools)return;el.__p2=1;
+    var dl=tools.querySelector("[data-pdl]");
+    [["data-pfocus","Focus"],["data-pshare","Share"]].forEach(function(x){
+      var b=doc.createElement("button");b.type="button";b.className="btn";b.setAttribute("data-pdoc","1");b.setAttribute(x[0],"1");b.textContent=x[1];
+      if(x[0]==="data-pfocus")b.setAttribute("aria-expanded","false");
+      tools.insertBefore(b,dl)
+    })
+  }
+  new MutationObserver(function(){var el=doc.getElementById("pdfv");if(el)decorate(el)}).observe(doc.body,{childList:true});
+  function popToggle(){
+    var el=doc.getElementById("pdfv");if(!el)return;var p=el.querySelector("#pmpop"),b=el.querySelector("[data-pfocus]");
+    if(p){p.remove();if(b)b.setAttribute("aria-expanded","false");return}
+    p=doc.createElement("div");p.id="pmpop";p.setAttribute("data-pomo-panel","1");p.innerHTML=panelHtml();el.appendChild(p);if(b)b.setAttribute("aria-expanded","true")
+  }
+
+  /* ---------- share a page ---------- */
+  var AC=["#ffd400","#4cd98a","#ff7eb6","#4da3ff"];
+  function r4(x){x=+x;return isFinite(x)?Math.round(x*10000)/10000:0}
+  function b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+  function b64d(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return decodeURIComponent(escape(atob(s)))}
+  function pageAnn(v){
+    return (v.ann||[]).filter(function(a){return !a.del&&a.p===v.cur&&(a.k==="h"||a.k==="n")})
+  }
+  function shareUrl(v,withAnn){
+    var u=location.origin+location.pathname+"#pdf="+encodeURIComponent(v.id)+"&p="+v.cur;
+    if(withAnn){
+      var items=[],len=0;
+      pageAnn(v).forEach(function(a){
+        var c=Math.max(0,AC.indexOf(a.c)),it=a.k==="h"?[0,r4(a.x),r4(a.y),r4(a.w),r4(a.h),c]:[1,r4(a.x),r4(a.y),c,String(a.tx||"").slice(0,300)];
+        var l=JSON.stringify(it).length;if(len+l<1200&&items.length<25){items.push(it);len+=l}
+      });
+      if(items.length)u+="&a="+b64e(JSON.stringify(items))
+    }
+    return u
+  }
+  function shareDlg(){
+    var v=X.state&&X.state();if(!v||!v.doc)return;
+    var d=doc.getElementById("shdlg");if(d)d.remove();
+    d=doc.createElement("dialog");d.id="shdlg";
+    var n=pageAnn(v).length;
+    d.innerHTML='<h2>Share this page</h2><p>Anyone with the link opens this PDF at page <b></b>.</p>'+
+      (n?'<label class="sh-chk"><input type="checkbox" checked> <span>Include my highlights and notes on this page</span> <em>('+n+')</em></label>':'')+
+      '<input type="text" class="sh-url" readonly aria-label="Share link"><div class="sh-act"><button type="button" class="btn primary" data-sh="copy">Copy link</button>'+(navigator.share?'<button type="button" class="btn" data-sh="native">Share…</button>':'')+'<button type="button" class="btn" data-sh="close">Close</button></div><p class="sh-msg" role="status"></p>';
+    d.querySelector("b").textContent=v.cur;
+    var inp=d.querySelector(".sh-url"),chk=d.querySelector("input[type=checkbox]"),msg=d.querySelector(".sh-msg");
+    function upd(){inp.value=shareUrl(v,!!(chk&&chk.checked))}
+    upd();if(chk)chk.onchange=upd;
+    d.addEventListener("click",function(e){
+      var b=e.target.closest&&e.target.closest("[data-sh]");if(!b)return;var a=b.getAttribute("data-sh");
+      if(a==="close"){d.close();return}
+      if(a==="copy"){inp.select();var ok=false;try{ok=doc.execCommand("copy")}catch(x){}
+        if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(inp.value).then(function(){msg.textContent="Link copied."},function(){msg.textContent=ok?"Link copied.":"Press and hold the link to copy it."});
+        else msg.textContent=ok?"Link copied.":"Press and hold the link to copy it."}
+      if(a==="native"){navigator.share({title:"Study Hub",text:"Page "+v.cur+" on Study Hub",url:inp.value}).catch(function(){})}
+    });
+    d.addEventListener("close",function(){d.remove()});
+    (doc.getElementById("pdfv")||doc.body).appendChild(d);d.showModal()
+  }
+  function applyShared(ann,page){
+    var v=X.state&&X.state();if(!v||!v.doc||!ann||!ann.length)return;
+    var made=[];
+    ann.forEach(function(it){
+      if(!Array.isArray(it))return;var o=null;
+      if(it[0]===0&&it.length>=6)o={k:"h",p:page,x:r4(it[1]),y:r4(it[2]),w:r4(it[3]),h:r4(it[4]),c:AC[it[5]|0]||AC[0]};
+      else if(it[0]===1&&it.length>=5&&it[4])o={k:"n",p:page,x:r4(it[1]),y:r4(it[2]),c:AC[it[3]|0]||AC[0],tx:String(it[4]).slice(0,500)};
+      if(o){var a=X.annNew(v,o);if(a)made.push(a)}
+    });
+    if(!made.length)return;
+    X.annRefresh(v,page);
+    var t=doc.createElement("div");t.className="pvtoast";t.innerHTML='<span></span> <button type="button" class="btn" data-sundo="1">Undo</button>';
+    t.querySelector("span").textContent="A classmate shared "+made.length+(made.length===1?" highlight or note":" highlights and notes")+" on this page.";
+    t.querySelector("button").onclick=function(){made.forEach(function(a){X.annDel(v,a)});X.annRefresh(v,page);t.remove()};
+    v.el.appendChild(t);setTimeout(function(){t.remove()},9000)
+  }
+  function openShared(id,page,ann){
+    var tries=0;
+    (function go(){
+      var S=SH()&&SH().S;
+      if(!S||(!S.loaded&&tries++<80)){setTimeout(go,150);return}
+      var a=doc.createElement("a");a.href="/_blob/"+id;a.style.display="none";doc.body.appendChild(a);a.click();a.remove();
+      var n=0;(function wait(){
+        var v=X.state&&X.state();
+        if(v&&v.doc&&v.els&&v.els.length&&v.id===id){
+          var tt=v.el.querySelector(".pvtoast");if(tt)tt.hidden=true;
+          setTimeout(function(){if(X.state()!==v)return;X.goPage(v,Math.min(Math.max(1,page),v.doc.numPages));applyShared(ann,Math.min(Math.max(1,page),v.doc.numPages))},350);return}
+        if(n++<100)setTimeout(wait,150)
+      })()
+    })()
+  }
+  function checkHash(){
+    var h=location.hash||"";if(h.indexOf("#pdf=")!==0)return;
+    var p;try{p=new URLSearchParams(h.slice(1))}catch(e){return}
+    var id=p.get("pdf"),page=parseInt(p.get("p"),10)||1,ann=null;
+    if(!id||!/\.pdf$/i.test(id))return;
+    try{if(p.get("a"))ann=JSON.parse(b64d(p.get("a")))}catch(e){ann=null}
+    try{history.replaceState(null,"","#home")}catch(e){}
+    openShared(id,page,ann)
+  }
+  window.addEventListener("hashchange",checkHash);
+
+  /* ---------- clicks ---------- */
+  doc.addEventListener("click",function(e){
+    var t=e.target,b;if(!t.closest)return;
+    if(b=t.closest("[data-pm]")){e.preventDefault();pact(b.getAttribute("data-pm"));return}
+    if(t.closest("[data-pfocus]")){popToggle();return}
+    if(t.closest("[data-pshare]")){shareDlg();return}
+  });
+
+  /* ---------- go ---------- */
+  wrapMine();pill();chip();checkHash()
+})();
+</script>
+<script>
 (function(){
   var AR={
+    "day streak":"أيام متتالية","min today":"دقيقة اليوم","best streak":"أفضل سلسلة","Goal reached. Your streak is safe for today.":"تم تحقيق الهدف. سلسلتك محفوظة لهذا اليوم.","Study 5 minutes a day to keep your streak. Time counts while a PDF is open or the focus timer runs.":"ادرس ٥ دقائق يومياً للحفاظ على سلسلتك. يُحتسب الوقت أثناء فتح ملف PDF أو تشغيل مؤقت التركيز.","Focus timer":"مؤقت التركيز","Focus":"تركيز","Break":"استراحة","Start":"ابدأ","Pause":"إيقاف مؤقت","Reset":"إعادة ضبط","Skip":"تخطّي","Length":"المدة","Sessions today":"جلسات اليوم","Share":"مشاركة","Share this page":"مشاركة هذه الصفحة","Copy link":"نسخ الرابط","Share…":"مشاركة…","Link copied.":"تم نسخ الرابط.","Press and hold the link to copy it.":"اضغط مطولاً على الرابط لنسخه.","Include my highlights and notes on this page":"تضمين تحديداتي وملاحظاتي في هذه الصفحة","Undo":"تراجع","paused":"متوقف مؤقتاً","Focus session done. Take a short break.":"انتهت جلسة التركيز. خذ استراحة قصيرة.","Break over. Ready for the next focus session.":"انتهت الاستراحة. جاهز لجلسة التركيز التالية.","Anyone with the link opens this PDF at page":"يفتح أي شخص لديه الرابط هذا الملف عند الصفحة",
     "My library":"مكتبتي","Favourite":"المفضلة","Favourites":"المفضلة","Continue reading":"متابعة القراءة","Continue":"متابعة","Saved pages":"الصفحات المحفوظة","Available offline":"متاح بدون إنترنت","Show more":"عرض المزيد","Install app":"تثبيت التطبيق","Auto":"تلقائي","Light":"فاتح","Dark":"داكن","Remove from device":"إزالة من الجهاز","Resume at page":"استئناف من الصفحة","Pages":"الصفحات","Nothing yet":"لا شيء بعد","Open a PDF and it will appear here so you can pick up where you stopped.":"افتح ملف PDF وسيظهر هنا لتكمل من حيث توقفت.","No favourites yet":"لا توجد ملفات مفضلة بعد","Tap Favourite on any file to keep it here.":"اضغط على المفضلة في أي ملف لحفظه هنا.","No offline PDFs yet":"لا توجد ملفات بدون إنترنت بعد","Open a PDF once and it will be saved here automatically.":"افتح ملف PDF مرة واحدة وسيُحفظ هنا تلقائياً.","PDFs you open are kept on this device so they open instantly and work without internet.":"تُحفظ ملفات PDF التي تفتحها على جهازك لتُفتح فوراً وتعمل بدون إنترنت.","You are offline. PDFs you opened before still work.":"أنت غير متصل بالإنترنت. ملفات PDF التي فتحتها سابقاً ما زالت تعمل.","Your favourites, where you stopped reading, saved pages and PDFs kept on this device.":"ملفاتك المفضلة، ومكان توقفك عن القراءة، والصفحات المحفوظة، وملفات PDF المحفوظة على هذا الجهاز.","Install Study Hub on your phone or computer to open it like an app, with your opened PDFs available offline.":"ثبّت Study Hub على هاتفك أو حاسوبك لفتحه كتطبيق مع إتاحة ملفات PDF التي فتحتها بدون إنترنت.","To install: tap the Share button in Safari, then choose Add to Home Screen.":"للتثبيت: اضغط زر المشاركة في Safari ثم اختر «إضافة إلى الشاشة الرئيسية».",
     "Universities":"الجامعات",
     "Download":"تنزيل","Open in new tab":"فتح في تبويب جديد","Close":"إغلاق","Loading PDF…":"جارٍ تحميل الملف…","PDF viewer":"عارض PDF","Zoom in":"تكبير","Zoom out":"تصغير",
@@ -2084,6 +2351,6 @@ var BUCKET="files";
 })();
 </script>
 
-<script src="admin.js?v=7"></script>
+<script src="admin.js?v=8"></script>
 </body>
 </html>

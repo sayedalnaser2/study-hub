@@ -292,6 +292,14 @@ nav button{white-space:nowrap;padding:6px 10px}
 #shdlg .sh-chk{display:flex;gap:8px;align-items:center;font-size:14px;margin:0 0 10px}#shdlg .sh-chk em{font-style:normal;color:var(--muted)}#shdlg .sh-url{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:12px}
 #shdlg .sh-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}#shdlg .sh-msg{min-height:1.2em;margin-top:8px}
 .adm-det{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:8px;background:var(--surface)}.adm-det summary{cursor:pointer;display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}.adm-det summary span{color:var(--muted);font-size:13px}.adm-det p{font-size:13px;margin-top:6px}
+#scdlg{border:1px solid var(--line);border-radius:14px;padding:0;max-width:560px;width:calc(100% - 24px);max-height:calc(100dvh - 24px);overflow:auto;background:var(--surface);color:var(--fg);font-family:inherit}#scdlg::backdrop{background:rgba(0,0,0,.5)}
+.sc-h{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:1}.sc-h h2{font-size:18px;overflow-wrap:anywhere}
+.sc-body{padding:16px 18px 20px}.sc-load{color:var(--muted);text-align:center;padding:24px 0}
+.sc-tabs{display:flex;gap:8px;margin-bottom:14px}.sc-tabs button{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:500}.sc-tabs button[aria-selected="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}.sc-tabs em{font-style:normal;color:var(--muted);font-size:12px}
+.sc-meta{display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:13px;margin-bottom:10px}.sc-mode{display:flex;gap:6px;align-items:center;margin-inline-start:auto}
+.sc-card{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;width:100%;min-height:200px;padding:22px;text-align:center;border:1px solid var(--line);border-radius:14px;background:var(--bg);cursor:pointer}.sc-card.back{border-color:var(--accent);background:var(--accent-soft)}.sc-side{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}.sc-txt{font-size:19px;line-height:1.4;overflow-wrap:anywhere}.sc-hint{font-size:12px;color:var(--muted)}
+.sc-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;justify-content:center}.sc-done{text-align:center;padding:20px 0}.sc-done b{font-family:var(--display);font-size:26px}.sc-done p{color:var(--muted);margin-top:6px}
+.sc-q{font-size:18px;font-weight:600;line-height:1.4;margin:6px 0 14px;overflow-wrap:anywhere}.sc-opts{display:flex;flex-direction:column;gap:8px}.sc-opt{display:flex;gap:10px;align-items:flex-start;text-align:start;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer;font-size:15px}.sc-opt b{font-family:var(--mono);color:var(--accent)}.sc-opt span{overflow-wrap:anywhere}.sc-opt:disabled{cursor:default;opacity:1}.sc-opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--bg))}.sc-opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--bg))}.sc-fb{margin-top:12px;font-size:14px}
 </style>
 
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}</style>
@@ -834,7 +842,7 @@ var BUCKET="files";
   },true);
   window.__pdf={pop:function(){if(SKIPPOP){SKIPPOP=false;return true}if(PV){pdfTeardown();return true}return false}};
   document.addEventListener("keydown",function(e){
-    if(!PV||e.key!=="Escape"||document.getElementById("shdlg"))return;e.stopPropagation();var v=PV;
+    if(!PV||e.key!=="Escape"||document.querySelector("#shdlg,#scdlg"))return;e.stopPropagation();var v=PV;
     if(v.noteEl){v.noteEl.remove();v.noteEl=null;return}
     if(!v.el.querySelector(".pvgo").hidden){pdfGoEnd(v);return}
     if(!v.el.querySelector(".pvfind").hidden){pdfFind(v,false);return}
@@ -1128,7 +1136,7 @@ var BUCKET="files";
       '<div class="meta"><span>'+esc(f.major||"")+'</span></div>'+
       '<div class="meta"><span>'+esc(size(f.sizeBytes))+'</span><span>'+esc(who(f.uploaderId))+' · '+esc(ago(f.createdAt))+'</span></div>'+
       (f.description?'<p class="desc">'+esc(f.description)+'</p>':'')+rateBox(f)+'</div>'+
-      '<div class="acts"><a class="btn small primary" href="/_blob/'+esc(f.assetId)+'" target="_blank" rel="noopener">Open</a><button type="button" class="btn small fav" data-fav="'+esc(f.id)+'" aria-pressed="'+(isFav(f.id)?'true':'false')+'"><span aria-hidden="true">'+(isFav(f.id)?'\u2605':'\u2606')+'</span> <span>Favourite</span></button>'+(S.me?'<button class="btn small" data-rp="'+esc(f.id)+'">Report</button>':'')+del+'</div></div>'
+      '<div class="acts"><a class="btn small primary" href="/_blob/'+esc(f.assetId)+'" target="_blank" rel="noopener">Open</a><button type="button" class="btn small fav" data-fav="'+esc(f.id)+'" aria-pressed="'+(isFav(f.id)?'true':'false')+'"><span aria-hidden="true">'+(isFav(f.id)?'\u2605':'\u2606')+'</span> <span>Favourite</span></button>'+(S.study&&S.study[f.id]?'<button type="button" class="btn small" data-study="'+esc(f.id)+'">Study</button>':'')+(S.me?'<button class="btn small" data-rp="'+esc(f.id)+'">Report</button>':'')+del+'</div></div>'
   }
   function emptyList(t){return '<div class="empty"><b>'+(t||"No files here yet")+'</b>Be the first to share notes, slides or a past paper.<div style="margin-top:14px"><button class="btn primary" data-go="upload">Upload a file</button></div></div>'}
 
@@ -1693,7 +1701,7 @@ var BUCKET="files";
   }
   ["pointerdown","pointermove","keydown","scroll","wheel","touchstart","touchmove"].forEach(function(n){window.addEventListener(n,function(){lastAct=Date.now()},{passive:true,capture:true})});
   setInterval(function(){
-    var now=Date.now(),viewer=!!doc.getElementById("pdfv"),vis=doc.visibilityState==="visible";
+    var now=Date.now(),viewer=!!doc.querySelector("#pdfv,#scdlg"),vis=doc.visibilityState==="visible";
     var focus=P.run&&P.mode==="work";
     if((viewer&&vis&&now-lastAct<90000)||focus)pend++;
     if(pend>=15||(pend&&now-lastFlush>30000))flush();
@@ -1913,8 +1921,156 @@ var BUCKET="files";
 })();
 </script>
 <script>
+/* Phase 3: study sets (flashcards + quiz) written by Claude during PDF review */
+(function(){
+  var doc=document,X=window.__pdfx||{},SH=function(){return window.__sh},sb=window.__sb;
+  function lg(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+  function ls(k,v){try{if(v===null||v===undefined)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+  var have={};
+  var api={
+    have:have,
+    fetch:function(id){
+      if(!sb)return Promise.reject();
+      return sb.from("file_study").select("cards,quiz").eq("file_id",id).maybeSingle().then(function(r){if(r.error)throw r.error;return r.data})
+    }
+  };
+  window.__studyx=api;
+
+  /* which files have a study set */
+  function repaint(){
+    var h=SH();if(!h)return;var S=h.S;
+    if(S.page==="library")h.relib();else if(S.page==="home"||S.page==="mine")h.render()
+  }
+  function loadIds(){
+    var h=SH();if(!h||!sb){setTimeout(loadIds,400);return}
+    h.S.study=have;
+    sb.from("file_study").select("file_id").then(function(r){
+      if(r.error||!r.data)return;
+      r.data.forEach(function(x){have[x.file_id]=1});
+      repaint();decorateNow()
+    },function(){})
+  }
+  function fileById(id){var S=SH()&&SH().S;return S&&S.files.filter(function(f){return f.id===id})[0]||null}
+  function fileByAsset(a){var S=SH()&&SH().S;return S&&S.files.filter(function(f){return f.assetId===a})[0]||null}
+
+  /* viewer button */
+  function decorateNow(){var el=doc.getElementById("pdfv");if(el)decorate(el)}
+  function decorate(el){
+    var v=X.state&&X.state();if(!v)return;
+    var f=fileByAsset(v.id);if(!f||!have[f.id])return;
+    var tools=el.querySelector(".pvtools");if(!tools||tools.querySelector("[data-pstudy]"))return;
+    var b=doc.createElement("button");b.type="button";b.className="btn";b.setAttribute("data-pdoc","1");b.setAttribute("data-pstudy",f.id);b.textContent="Study";
+    var dl=tools.querySelector("[data-pdl]");tools.insertBefore(b,dl)
+  }
+  if(window.MutationObserver)new MutationObserver(function(){var el=doc.getElementById("pdfv");if(el)setTimeout(function(){decorate(el)},0)}).observe(doc.body,{childList:true});
+
+  /* ---------- dialog ---------- */
+  var D=null,set=null,fid=null,tab="cards";
+  var cs={i:0,flip:false,order:[],mode:"all"},qs={order:[],i:0,score:0,done:false,picked:-1,wrong:[],round:0};
+  function prog(){var m=lg("sh_cards")||{};return m[fid]||{known:{}}}
+  function progSave(p){var m=lg("sh_cards")||{};p.t=Date.now();m[fid]=p;var k=Object.keys(m);if(k.length>80){k.sort(function(a,b){return m[a].t-m[b].t});k.slice(0,k.length-80).forEach(function(x){delete m[x]})}ls("sh_cards",m)}
+  function qbest(){var m=lg("sh_quiz")||{};return m[fid]||null}
+  function qsave(sc,tot){var m=lg("sh_quiz")||{},o=m[fid]||{best:0};o.last=sc;o.total=tot;if(sc>=(o.best||0))o.best=sc;o.t=Date.now();m[fid]=o;ls("sh_quiz",m)}
+  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+  function cards(){return Array.isArray(set&&set.cards)?set.cards.filter(function(c){return c&&c.q&&c.a}):[]}
+  function quiz(){return Array.isArray(set&&set.quiz)?set.quiz.filter(function(q){return q&&q.q&&Array.isArray(q.o)&&q.o.length>=2&&q.a>=0&&q.a<q.o.length}):[]}
+  function buildOrder(){
+    var p=prog(),all=cards().map(function(_,i){return i});
+    cs.order=cs.mode==="left"?all.filter(function(i){return !p.known[i]}):all;cs.i=0;cs.flip=false
+  }
+  function open(id){
+    fid=id;var f=fileById(id);
+    if(D)D.remove();
+    D=doc.createElement("dialog");D.id="scdlg";D.setAttribute("aria-labelledby","sc-t");
+    D.innerHTML='<div class="sc-h"><h2 id="sc-t"></h2><button type="button" class="btn small" data-sc="close">Close</button></div><div class="sc-body"><p class="sc-load">Loading…</p></div>';
+    D.querySelector("#sc-t").textContent=(f&&f.title)||"Study";
+    D.addEventListener("click",onClick);D.addEventListener("keydown",onKey);
+    D.addEventListener("close",function(){D.remove();D=null});
+    doc.body.appendChild(D);D.showModal();
+    api.fetch(id).then(function(r){
+      set=r;cs.mode="all";cs.i=0;cs.flip=false;buildOrder();qs={order:[],i:0,score:0,done:false,picked:-1,wrong:[],round:0};
+      tab=cards().length?"cards":"quiz";if(!cards().length&&!quiz().length){body('<p class="sc-load">No study set for this file yet.</p>');return}
+      render()
+    },function(){body('<p class="sc-load">Could not load the study set. Check your connection and try again.</p>')})
+  }
+  function body(h){if(D)D.querySelector(".sc-body").innerHTML=h}
+  function render(){
+    if(!D)return;var C=cards(),Q=quiz();
+    var tabs='<div class="sc-tabs" role="tablist">'+(C.length?'<button type="button" role="tab" aria-selected="'+(tab==="cards")+'" data-sc="tab:cards"><span>Flashcards</span> <em>'+C.length+'</em></button>':'')+(Q.length?'<button type="button" role="tab" aria-selected="'+(tab==="quiz")+'" data-sc="tab:quiz"><span>Quiz</span> <em>'+Q.length+'</em></button>':'')+'</div>';
+    body(tabs+(tab==="cards"?cardsHtml():quizHtml()));
+    var f=D.querySelector("[data-sc-focus]");if(f)f.focus()
+  }
+  function cardsHtml(){
+    var C=cards(),p=prog(),known=Object.keys(p.known).filter(function(k){return +k<C.length}).length;
+    if(!cs.order.length){
+      return'<div class="sc-done"><b>All cards learned</b><p>You marked every card as known. Nice work.</p><div class="sc-act"><button type="button" class="btn primary" data-sc="reset" data-sc-focus="1">Start over</button></div></div>'
+    }
+    var c=C[cs.order[cs.i]];
+    return'<div class="sc-meta"><span><span>Card</span> <b>'+(cs.i+1)+'</b> / '+cs.order.length+'</span><span><b>'+known+'</b> <span>known</span></span><label class="sc-mode"><input type="checkbox" data-sc="mode"'+(cs.mode==="left"?" checked":"")+'> <span>Only cards I am still learning</span></label></div>'+
+      '<button type="button" class="sc-card'+(cs.flip?" back":"")+'" data-sc="flip" data-sc-focus="1" aria-label="Flip card"><span class="sc-side">'+(cs.flip?"Answer":"Question")+'</span><span class="sc-txt" dir="auto">'+esc(cs.flip?c.a:c.q)+'</span><span class="sc-hint">Tap the card to flip it</span></button>'+
+      '<div class="sc-act"><button type="button" class="btn" data-sc="prev">Previous</button>'+(cs.flip?'<button type="button" class="btn" data-sc="again">Still learning</button><button type="button" class="btn primary" data-sc="know">I know it</button>':'')+'<button type="button" class="btn" data-sc="next">Next</button><button type="button" class="btn small" data-sc="shuffle">Shuffle</button></div>'
+  }
+  function quizHtml(){
+    var Q=quiz();
+    if(!qs.order.length&&!qs.done){qs.order=shuffle(Q.map(function(_,i){return i}));qs.i=0;qs.score=0;qs.picked=-1;qs.wrong=[];qs.round=qs.round||0}
+    if(qs.done){
+      var b=qbest();
+      return'<div class="sc-done"><b><span>Your score</span> '+qs.score+' / '+qs.order.length+'</b><p>'+(b?'<span>Best</span> '+b.best+' / '+b.total:'')+'</p><div class="sc-act">'+(qs.wrong.length?'<button type="button" class="btn" data-sc="qwrong" data-sc-focus="1">Try the ones I missed</button>':'')+'<button type="button" class="btn primary" data-sc="qagain"'+(qs.wrong.length?'':' data-sc-focus="1"')+'>Retake the quiz</button></div></div>'
+    }
+    var q=Q[qs.order[qs.i]],ans=qs.picked>=0;
+    var opts=q.o.map(function(o,i){
+      var cls="sc-opt";if(ans){if(i===q.a)cls+=" ok";else if(i===qs.picked)cls+=" bad"}
+      return'<button type="button" class="'+cls+'" data-sc="pick:'+i+'"'+(ans?" disabled":"")+' dir="auto"><b>'+"ABCDEFGH".charAt(i)+'</b><span>'+esc(o)+'</span></button>'
+    }).join("");
+    return'<div class="sc-meta"><span><span>Question</span> <b>'+(qs.i+1)+'</b> / '+qs.order.length+'</span><span><span>Score</span> <b>'+qs.score+'</b></span></div><p class="sc-q" dir="auto">'+esc(q.q)+'</p><div class="sc-opts" role="group" aria-label="Answers">'+opts+'</div>'+
+      (ans?'<p class="sc-fb" role="status"><b>'+(qs.picked===q.a?"Correct!":"Not quite.")+'</b> '+(q.e?'<span dir="auto">'+esc(q.e)+'</span>':'')+'</p><div class="sc-act"><button type="button" class="btn primary" data-sc="qnext" data-sc-focus="1">'+(qs.i+1>=qs.order.length?"See score":"Next question")+'</button></div>':'')
+  }
+  function mark(known){
+    var C=cards(),p=prog(),idx=cs.order[cs.i];
+    if(known)p.known[idx]=1;else delete p.known[idx];progSave(p);
+    if(cs.mode==="left"&&known){cs.order.splice(cs.i,1);if(cs.i>=cs.order.length)cs.i=0}else cs.i=(cs.i+1)%cs.order.length;
+    cs.flip=false;render()
+  }
+  function onClick(e){
+    var b=e.target.closest&&e.target.closest("[data-sc]");if(!b)return;var a=b.getAttribute("data-sc");
+    if(a==="close"){D.close();return}
+    if(a.indexOf("tab:")===0){tab=a.slice(4);render();return}
+    if(a==="flip"){cs.flip=!cs.flip;render();return}
+    if(a==="next"){cs.i=(cs.i+1)%cs.order.length;cs.flip=false;render();return}
+    if(a==="prev"){cs.i=(cs.i-1+cs.order.length)%cs.order.length;cs.flip=false;render();return}
+    if(a==="know"){mark(true);return}
+    if(a==="again"){mark(false);return}
+    if(a==="shuffle"){shuffle(cs.order);cs.i=0;cs.flip=false;render();return}
+    if(a==="mode"){cs.mode=b.checked?"left":"all";buildOrder();render();return}
+    if(a==="reset"){progSave({known:{}});cs.mode="all";buildOrder();render();return}
+    if(a.indexOf("pick:")===0){
+      var q=quiz()[qs.order[qs.i]],i=+a.slice(5);qs.picked=i;
+      if(i===q.a)qs.score++;else qs.wrong.push(qs.order[qs.i]);
+      render();return}
+    if(a==="qnext"){
+      if(qs.i+1>=qs.order.length){qs.done=true;if(!qs.round)qsave(qs.score,qs.order.length)}else{qs.i++;qs.picked=-1}
+      render();return}
+    if(a==="qagain"){qs={order:[],i:0,score:0,done:false,picked:-1,wrong:[],round:0};render();return}
+    if(a==="qwrong"){var w=qs.wrong.slice();qs={order:shuffle(w),i:0,score:0,done:false,picked:-1,wrong:[],round:1};render();return}
+  }
+  function onKey(e){
+    if(tab!=="cards"||!cs.order.length||e.target.tagName==="INPUT")return;
+    if(e.key===" "||e.key==="Enter"){if(e.target.closest&&e.target.closest("[data-sc=flip]")){return}}
+    if(e.key==="ArrowRight"){e.preventDefault();cs.i=(cs.i+1)%cs.order.length;cs.flip=false;render()}
+    else if(e.key==="ArrowLeft"){e.preventDefault();cs.i=(cs.i-1+cs.order.length)%cs.order.length;cs.flip=false;render()}
+  }
+  doc.addEventListener("click",function(e){
+    var b=e.target.closest&&e.target.closest("[data-study],[data-pstudy]");if(!b)return;
+    e.preventDefault();open(b.getAttribute("data-study")||b.getAttribute("data-pstudy"))
+  });
+  loadIds()
+})();
+</script>
+<script>
 (function(){
   var AR={
+    "Study":"ادرس","Flashcards":"بطاقات تعليمية","Quiz":"اختبار","Card":"بطاقة","Question":"سؤال","Answer":"الإجابة","known":"معروفة","Score":"النتيجة","Only cards I am still learning":"البطاقات التي ما زلت أتعلمها فقط","Tap the card to flip it":"اضغط على البطاقة لقلبها","Previous":"السابق","Next":"التالي","Shuffle":"خلط","Still learning":"ما زلت أتعلم","I know it":"أعرفها","All cards learned":"تم تعلّم كل البطاقات","You marked every card as known. Nice work.":"حددت كل البطاقات على أنها معروفة. عمل رائع.","Start over":"ابدأ من جديد","Your score":"نتيجتك","Best":"الأفضل","Try the ones I missed":"جرّب الأسئلة التي أخطأت فيها","Retake the quiz":"أعد الاختبار","Next question":"السؤال التالي","See score":"عرض النتيجة","Correct!":"صحيح!","Not quite.":"ليس تماماً.","No study set for this file yet.":"لا توجد مجموعة دراسة لهذا الملف بعد.","Could not load the study set. Check your connection and try again.":"تعذّر تحميل مجموعة الدراسة. تحقق من اتصالك وحاول مرة أخرى.",
     "day streak":"أيام متتالية","min today":"دقيقة اليوم","best streak":"أفضل سلسلة","Goal reached. Your streak is safe for today.":"تم تحقيق الهدف. سلسلتك محفوظة لهذا اليوم.","Study 5 minutes a day to keep your streak. Time counts while a PDF is open or the focus timer runs.":"ادرس ٥ دقائق يومياً للحفاظ على سلسلتك. يُحتسب الوقت أثناء فتح ملف PDF أو تشغيل مؤقت التركيز.","Focus timer":"مؤقت التركيز","Focus":"تركيز","Break":"استراحة","Start":"ابدأ","Pause":"إيقاف مؤقت","Reset":"إعادة ضبط","Skip":"تخطّي","Length":"المدة","Sessions today":"جلسات اليوم","Share":"مشاركة","Share this page":"مشاركة هذه الصفحة","Copy link":"نسخ الرابط","Share…":"مشاركة…","Link copied.":"تم نسخ الرابط.","Press and hold the link to copy it.":"اضغط مطولاً على الرابط لنسخه.","Include my highlights and notes on this page":"تضمين تحديداتي وملاحظاتي في هذه الصفحة","Undo":"تراجع","paused":"متوقف مؤقتاً","Focus session done. Take a short break.":"انتهت جلسة التركيز. خذ استراحة قصيرة.","Break over. Ready for the next focus session.":"انتهت الاستراحة. جاهز لجلسة التركيز التالية.","Anyone with the link opens this PDF at page":"يفتح أي شخص لديه الرابط هذا الملف عند الصفحة",
     "My library":"مكتبتي","Favourite":"المفضلة","Favourites":"المفضلة","Continue reading":"متابعة القراءة","Continue":"متابعة","Saved pages":"الصفحات المحفوظة","Available offline":"متاح بدون إنترنت","Show more":"عرض المزيد","Install app":"تثبيت التطبيق","Auto":"تلقائي","Light":"فاتح","Dark":"داكن","Remove from device":"إزالة من الجهاز","Resume at page":"استئناف من الصفحة","Pages":"الصفحات","Nothing yet":"لا شيء بعد","Open a PDF and it will appear here so you can pick up where you stopped.":"افتح ملف PDF وسيظهر هنا لتكمل من حيث توقفت.","No favourites yet":"لا توجد ملفات مفضلة بعد","Tap Favourite on any file to keep it here.":"اضغط على المفضلة في أي ملف لحفظه هنا.","No offline PDFs yet":"لا توجد ملفات بدون إنترنت بعد","Open a PDF once and it will be saved here automatically.":"افتح ملف PDF مرة واحدة وسيُحفظ هنا تلقائياً.","PDFs you open are kept on this device so they open instantly and work without internet.":"تُحفظ ملفات PDF التي تفتحها على جهازك لتُفتح فوراً وتعمل بدون إنترنت.","You are offline. PDFs you opened before still work.":"أنت غير متصل بالإنترنت. ملفات PDF التي فتحتها سابقاً ما زالت تعمل.","Your favourites, where you stopped reading, saved pages and PDFs kept on this device.":"ملفاتك المفضلة، ومكان توقفك عن القراءة، والصفحات المحفوظة، وملفات PDF المحفوظة على هذا الجهاز.","Install Study Hub on your phone or computer to open it like an app, with your opened PDFs available offline.":"ثبّت Study Hub على هاتفك أو حاسوبك لفتحه كتطبيق مع إتاحة ملفات PDF التي فتحتها بدون إنترنت.","To install: tap the Share button in Safari, then choose Add to Home Screen.":"للتثبيت: اضغط زر المشاركة في Safari ثم اختر «إضافة إلى الشاشة الرئيسية».",
     "Universities":"الجامعات",
@@ -2351,6 +2507,6 @@ var BUCKET="files";
 })();
 </script>
 
-<script src="admin.js?v=8"></script>
+<script src="admin.js?v=9"></script>
 </body>
 </html>

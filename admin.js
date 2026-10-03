@@ -1,7 +1,7 @@
 (function(){
 var sb=window.__sb;if(!sb)return;
 var A={rev:null,revF:"all",ok:false,role:null,tab:"overview",stats:null,stor:null,time:null,files:null,ratings:null,users:null,reports:null,admins:null,site:null,names:{},err:"",q:"",busy:false,me:null,ccRows:[],sub:{uni:"",college:"",major:"",year:""},msg:""};
-window.__adm=A;
+window.__adm=A;A.ins={days:30,uni:"",rows:null};
 var ZIPURL="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",FREE=1073741824,KINDS=["Notes","Slides","Past paper","Summary","Worksheet","Other"];
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function nf(n){return Number(n||0).toLocaleString("en-US")}
@@ -108,13 +108,14 @@ async function loadReports(){var r=await sb.from("reports").select("*").order("a
 async function loadAdmins(){var r=await sb.rpc("admin_list");if(r.error)throw r.error;A.admins=r.data}
 async function loadSite(){var r=await sb.from("site_settings").select("value").eq("key","announcement").maybeSingle();A.site=r.data&&r.data.value||{text:"",text_ar:"",on:false,until:""}}
 function ready(t){
-return t==="overview"?!!A.stats:t==="activity"?!!(A.files&&A.ratings&&A.users&&A.reports):t==="files"?!!A.files:t==="pdfrev"?!!(A.files&&A.rev):t==="reviews"?!!(A.ratings&&A.files):t==="reports"?!!(A.reports&&A.files&&A.ratings):t==="users"?!!A.users:t==="cleanup"?!!(A.files&&A.stats):t==="site"?!!A.site:t==="time"?!!A.time:t==="admins"?!!A.admins:true
+return t==="insights"?!!(A.ins.rows&&A.files):t==="overview"?!!A.stats:t==="activity"?!!(A.files&&A.ratings&&A.users&&A.reports):t==="files"?!!A.files:t==="pdfrev"?!!(A.files&&A.rev):t==="reviews"?!!(A.ratings&&A.files):t==="reports"?!!(A.reports&&A.files&&A.ratings):t==="users"?!!A.users:t==="cleanup"?!!(A.files&&A.stats):t==="site"?!!A.site:t==="time"?!!A.time:t==="admins"?!!A.admins:true
 }
 async function load(t){
 A.err="";
 try{var P=[loadNames()];
 if(t==="overview")P.push(loadStats());
 if(t==="time")P.push(loadTime());
+if(t==="insights")P.push(loadIns());
 if(t==="activity")P.push(loadFiles(),loadRatings(),loadUsers(),loadReports());
 if(t==="files"||t==="cleanup"||t==="pdfrev")P.push(loadFiles());
 if(t==="pdfrev")P.push(loadRev());
@@ -317,9 +318,44 @@ var d=r.data,pg={home:"Home",library:"Library",upload:"Upload",majors:"Majors",g
 var html='<p class="adm-note">Total: <b>'+fmt(d.total)+'</b></p>'+dayChart(d.daily)+'<h3 class="adm-h3">Subjects</h3>'+(d.subjects.length?tbars(d.subjects,function(x){return x.subject+" ("+x.major+")"},"secs"):'<p class="adm-none">No subject time yet.</p>')+'<h3 class="adm-h3">Recent activity</h3>'+(d.recent.length?d.recent.map(function(x){return'<div class="adm-b"><span class="adm-bl">'+esc(dtt(x.at))+'</span><span>'+esc((pg[x.page]||x.page)+(x.subject?" · "+x.subject:"")+(x.dev==="phone"?" · phone":""))+'</span><b>'+fmt(x.secs)+'</b></div>'}).join(""):'<p class="adm-none">Nothing yet.</p>');
 dlg({title:nm(id),intro:"Time on the hub (day chart follows Bahrain time)",html:html,ok:"Close",run:async function(){}})
 }
-var TABS=[["overview","Overview"],["time","Time"],["activity","Activity"],["files","Files"],["pdfrev","Review PDFs"],["reviews","Reviews"],["reports","Reports"],["users","Users"],["subjects","Subjects"],["cleanup","Cleanup"],["site","Site"],["admins","Admins","owner"],["backup","Backup","owner"]];
+function listedSubs(){
+var out=[],C=(window.__sh&&window.__sh.COURSES)||{},X=window.__cc||{};
+[C,X].forEach(function(src){Object.keys(src).forEach(function(k){var i=k.indexOf("|"),u=k.slice(0,i),m=k.slice(i+1),y=src[k];Object.keys(y||{}).forEach(function(yr){(y[yr]||[]).forEach(function(s){out.push({uni:u,major:m,year:yr,subject:s})})})})});
+var seen={};return out.filter(function(r){var k=[r.uni,r.major,r.year,r.subject].join("|");if(seen[k])return false;seen[k]=1;return true})
+}
+async function loadIns(){var r=await sb.rpc("admin_open_counts",{p_days:A.ins.days});if(r.error)throw r.error;A.ins.rows=r.data||[];if(!A.files)await loadFiles()}
+function insTab(){
+if(!A.ins.rows||!A.files)return loading();
+var I=A.ins,by={};I.rows.forEach(function(r){by[r.ref]=r});
+var subj={},top=[],opened=0,tot=0,uniq={};
+A.files.forEach(function(f){
+if(I.uni&&f.uni!==I.uni)return;
+var r=by[f.asset_path],k=(f.uni||"")+"|"+(f.subject||"General"),s=subj[k]||(subj[k]={uni:f.uni,subject:f.subject||"General",files:0,opens:0});
+s.files++;if(r){var n=+r.opens;s.opens+=n;tot+=n;opened++;top.push({title:f.title,uni:f.uni,subject:f.subject,opens:n})}
+});
+var sl=Object.keys(subj).map(function(k){return subj[k]});
+var hot=sl.filter(function(s){return s.opens>0}).sort(function(a,b){return b.opens-a.opens}).slice(0,12);
+var thin=sl.filter(function(s){return s.opens>=2&&s.files<=2}).sort(function(a,b){return (b.opens/b.files)-(a.opens/a.files)}).slice(0,10);
+top.sort(function(a,b){return b.opens-a.opens});
+var nfiles=A.files.filter(function(f){return !I.uni||f.uni===I.uni}).length;
+var cnt={};A.files.forEach(function(f){if(f.hidden)return;var k=[f.uni,f.major,f.year,f.subject].join("|");cnt[k]=(cnt[k]||0)+1});
+var L=listedSubs().filter(function(r){return !I.uni||r.uni===I.uni}),miss=L.filter(function(r){return !cnt[[r.uni,r.major,r.year,r.subject].join("|")]});
+var perUni={};L.forEach(function(r){var u=perUni[r.uni]||(perUni[r.uni]={uni:r.uni,total:0,have:0});u.total++;if(cnt[[r.uni,r.major,r.year,r.subject].join("|")])u.have++});
+var cov=Object.keys(perUni).map(function(k){var u=perUni[k];return{uni:u.uni,pct:Math.round(100*u.have/u.total),have:u.have,total:u.total}}).sort(function(a,b){return a.pct-b.pct});
+var gm={};miss.forEach(function(r){var k=r.uni+"|"+r.major,g=gm[k]||(gm[k]={uni:r.uni,major:r.major,n:0,years:{}});g.n++;(g.years[r.year]=g.years[r.year]||[]).push(r.subject)});
+var gl=Object.keys(gm).map(function(k){return gm[k]}).sort(function(a,b){return b.n-a.n}).slice(0,40);
+var ctl='<div class="seg" role="group" aria-label="Period">'+[7,30,90].map(function(d){return'<button data-adm-insd="'+d+'" aria-pressed="'+(I.days===d)+'"><b>Last '+d+' days</b></button>'}).join("")+'</div>'+
+'<p style="margin:12px 0 0"><label>University <select id="adm-ins-uni"><option value="">All</option>'+U().map(function(u){return'<option value="'+esc(u.id)+'"'+(I.uni===u.id?" selected":"")+'>'+esc(u.short)+'</option>'}).join("")+'</select></label></p>';
+return card("Insights",ctl)+
+'<div class="adm-kpis">'+kpi("File opens",nf(tot),"last "+I.days+" days")+kpi("Files opened",nf(opened),"of "+nf(nfiles)+" files")+kpi("Never opened",nf(Math.max(0,nfiles-opened)),"in this period")+kpi("Subjects with no files",nf(miss.length),"of "+nf(L.length)+" listed")+'</div>'+
+'<div class="adm-2">'+card("Most opened subjects",bars(hot,function(r){return r.subject+" ("+r.uni+")"},"opens"))+card("Most opened files",bars(top.slice(0,10),function(r){return r.title+" ("+r.uni+")"},"opens"))+'</div>'+
+card("Popular but thin",bars(thin.map(function(s){return{subject:s.subject,uni:s.uni,opens:s.opens,files:s.files}}),function(r){return r.subject+" ("+r.uni+", "+r.files+(r.files===1?" file":" files")+")"},"opens"),'<p class="adm-note">Subjects people open a lot but that have only one or two files. Uploads here help the most.</p>')+
+card("Coverage by university",bars(cov,function(r){return r.uni+" · "+r.have+" of "+r.total+" subjects have files"},"pct"),'<p class="adm-note">Share of listed subjects that have at least one visible file.</p>')+
+card("Listed subjects with no files",gl.length?gl.map(function(g){var u=uniOf(g.uni);return'<details class="adm-det"><summary><b>'+esc(g.major)+'</b> <span>'+esc(u?u.short:g.uni)+' · '+g.n+' missing</span></summary>'+Object.keys(g.years).map(function(y){return'<p><b>'+esc(y)+':</b> '+g.years[y].map(esc).join(", ")+'</p>'}).join("")+'</details>'}).join(""):'<p class="adm-none">Every listed subject has at least one file.</p>',(miss.length?'<p class="adm-note">Showing the 40 programmes with the most gaps.</p>':''))
+}
+var TABS=[["overview","Overview"],["time","Time"],["insights","Insights"],["activity","Activity"],["files","Files"],["pdfrev","Review PDFs"],["reviews","Reviews"],["reports","Reports"],["users","Users"],["subjects","Subjects"],["cleanup","Cleanup"],["site","Site"],["admins","Admins","owner"],["backup","Backup","owner"]];
 A.html=function(){
-var body={overview:overview,time:timeTab,activity:activity,files:filesTab,pdfrev:pdfRevTab,reviews:reviewsTab,reports:reportsTab,users:usersTab,subjects:subjectsTab,cleanup:cleanupTab,site:siteTab,admins:adminsTab,backup:backupTab}[A.tab]();
+var body={overview:overview,time:timeTab,insights:insTab,activity:activity,files:filesTab,pdfrev:pdfRevTab,reviews:reviewsTab,reports:reportsTab,users:usersTab,subjects:subjectsTab,cleanup:cleanupTab,site:siteTab,admins:adminsTab,backup:backupTab}[A.tab]();
 var openN=(A.reports||[]).filter(function(r){return r.status==="open"}).length;
 return'<div id="adm"><div class="pagehead"><h1>Admin</h1><p>'+(A.role==="owner"?"You are the owner.":"You are a moderator.")+' Deleting a file also removes its stored upload.</p></div>'+
 '<div class="seg adm-tabs" role="group" aria-label="Admin sections">'+TABS.filter(function(t){return !t[2]||A.role===t[2]}).map(function(t){return'<button data-adm-tab="'+t[0]+'" aria-pressed="'+(A.tab===t[0])+'"><b>'+t[1]+(t[0]==="reports"&&openN?' ('+openN+')':'')+'</b></button>'}).join("")+'<button data-adm-reload="1" aria-label="Reload"><b>Reload</b></button></div>'+
@@ -476,10 +512,12 @@ addl("Finished. "+made+" restored, "+skip+" already there"+(bad?", "+bad+" faile
 }catch(e){say("Restore failed: "+((e&&e.message)||e))}
 A.busy=false
 }
+document.addEventListener("change",function(e){if(!A.ok)return;var u=e.target.closest&&e.target.closest("#adm-ins-uni");if(u){A.ins.uni=u.value;refresh()}});
 document.addEventListener("click",function(e){
 if(!A.ok)return;var t=e.target,x;
 if(x=t.closest("[data-adm-tab]")){A.tab=x.getAttribute("data-adm-tab");if(A.tab==="pdfrev")A.rev=null;A.err="";refresh();return}
-if(t.closest("[data-adm-reload]")){A.rev=null;A.stats=A.files=A.ratings=A.users=A.reports=A.admins=A.site=A.time=null;refresh();return}
+if(t.closest("[data-adm-reload]")){A.rev=null;A.stats=A.files=A.ratings=A.users=A.reports=A.admins=A.site=A.time=null;A.ins.rows=null;refresh();return}
+if(x=t.closest("[data-adm-insd]")){A.ins.days=+x.getAttribute("data-adm-insd");A.ins.rows=null;refresh();return}
 if(x=t.closest("[data-adm-df]")){two(x,"Delete",function(){return delFile(x.getAttribute("data-adm-df"))});return}
 if(x=t.closest("[data-adm-dr]")){two(x,"Delete",function(){return delRev(x.getAttribute("data-adm-dr"))});return}
 if(x=t.closest("[data-adm-pu]")){two(x,"Delete content",function(){return purge(x.getAttribute("data-adm-pu"))});return}

@@ -2216,9 +2216,9 @@ var BUCKET="files";
   }
 
   window.__cmp={
-    run:async function(file){
+    run:async function(file,opt){
       try{
-        if(!file||file.size<MIN)return file;
+        if(!file||file.size<((opt&&opt.min)||MIN))return file;
         var e=ext(file.name);
         if(e==="pdf")return await shrinkPdf(file);
         if(e==="png"||e==="jpg"||e==="jpeg"||e==="webp")return await shrinkImage(file)
@@ -2678,6 +2678,6 @@ var BUCKET="files";
 })();
 </script>
 
-<script src="admin.js?v=9"></script>
+<script src="admin.js?v=10"></script>
 </body>
 </html>

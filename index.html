@@ -337,7 +337,7 @@ var BUCKET="files";
   var CFG={
     files:{cols:{createdAt:"created_at"},
       to:function(r){return{title:r.title,uni:r.uni,college:r.college,major:r.major,year:r.year,subject:r.subject,kind:r.kind,description:r.description||"",assetId:r.asset_path,contentType:r.content_type,sizeBytes:r.size_bytes,fileName:r.file_name,uploaderId:r.uploader_id,featured:!!r.featured,hidden:!!r.hidden,createdAt:+new Date(r.created_at)}},
-      from:function(o){return{title:o.title,uni:o.uni,college:o.college,major:o.major,year:o.year,subject:o.subject,kind:o.kind,description:o.description,asset_path:o.assetId,content_type:o.contentType,size_bytes:o.sizeBytes,file_name:o.fileName}}},
+      from:function(o){return{title:o.title,uni:o.uni,college:o.college,major:o.major,year:o.year,subject:o.subject,kind:o.kind,description:o.description,asset_path:o.assetId,content_type:o.contentType,size_bytes:o.sizeBytes,file_name:o.fileName,compressed:o.compressed,orig_bytes:o.origBytes}}},
     ratings:{cols:{at:"at"},
       to:function(r){return{fileId:r.file_id,userId:r.user_id,stars:r.stars,text:r.text||"",at:+new Date(r.at)}}}
   };
@@ -1420,7 +1420,7 @@ var BUCKET="files";
       var e=ext(picked.name),up=picked;
       if(U.cmp!==false&&window.__cmp){btn.textContent="Compressing…";try{up=await window.__cmp.run(picked)||picked}catch(x){up=picked}btn.textContent="Uploading…"}
       var a=await S.assets.upload(up,{type:OK_EXT[e]});
-      await S.db.collection("files").add({title:title,uni:U.uni,college:U.college,major:U.major,year:U.year,subject:subj,kind:U.kind,description:U.desc.trim(),assetId:a.id,contentType:a.contentType,sizeBytes:a.sizeBytes,fileName:picked.name,uploaderId:S.me||"",createdAt:Date.now()});
+      await S.db.collection("files").add({title:title,uni:U.uni,college:U.college,major:U.major,year:U.year,subject:subj,kind:U.kind,description:U.desc.trim(),assetId:a.id,contentType:a.contentType,sizeBytes:a.sizeBytes,fileName:picked.name,uploaderId:S.me||"",createdAt:Date.now(),compressed:(up!==picked&&up.size<picked.size)?true:undefined,origBytes:(up!==picked&&up.size<picked.size)?picked.size:undefined});
       var okText="Shared. Classmates in "+U.major+", "+U.year+" can now find \""+title+"\" in the Library."+(up!==picked&&up.size<picked.size?" File size reduced from "+size(picked.size)+" to "+size(up.size)+".":"");
       picked=null;S.filter={uni:U.uni,college:U.college,major:U.major,year:U.year,subject:subj,kind:"",q:"",sort:"new"};U.title=U.subject=U.desc="";U.locked=false;
       saveLast("lib");S.msg=null;S.page="library";try{history.replaceState(null,"","#library")}catch(e){}render();window.scrollTo(0,0);
@@ -2678,6 +2678,6 @@ var BUCKET="files";
 })();
 </script>
 
-<script src="admin.js?v=10"></script>
+<script src="admin.js?v=11"></script>
 </body>
 </html>

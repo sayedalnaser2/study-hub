@@ -1379,8 +1379,6 @@ var BUCKET="files";
   function bindUpload(){
     var drop=$("#drop"),inp=$("#file");if(!inp)return;
     if(picked){$("#dname").textContent=picked.name;$("#dhint").textContent=size(picked.size)}
-    if(!$("#cmpbox")){var cb=document.createElement("div");cb.id="cmpbox";cb.className="full cmpbox";cb.innerHTML='<label for="cmpchk"><input type="checkbox" id="cmpchk"><span><b>Reduce file size</b> <span>(recommended)</span></span></label><small>Shrinks big scanned pages and photos before upload. Text stays searchable.</small>';drop.parentNode.insertBefore(cb,drop.nextSibling);
-      var ck=cb.querySelector("input");ck.checked=U.cmp!==false;ck.addEventListener("change",function(){U.cmp=ck.checked})}
     inp.addEventListener("change",function(){pick(inp.files[0])});
     ["dragenter","dragover"].forEach(function(n){drop.addEventListener(n,function(e){e.preventDefault();drop.classList.add("over")})});
     ["dragleave","drop"].forEach(function(n){drop.addEventListener(n,function(e){e.preventDefault();drop.classList.remove("over")})});
@@ -1418,7 +1416,7 @@ var BUCKET="files";
     var btn=$("#go");btn.disabled=true;btn.textContent="Uploading…";$("#prog").hidden=false;$("#prog i").style.width="60%";
     try{
       var e=ext(picked.name),up=picked;
-      if(U.cmp!==false&&window.__cmp){btn.textContent="Compressing…";try{up=await window.__cmp.run(picked)||picked}catch(x){up=picked}btn.textContent="Uploading…"}
+      /* compression is admin-only (Admin panel) */
       var a=await S.assets.upload(up,{type:OK_EXT[e]});
       await S.db.collection("files").add({title:title,uni:U.uni,college:U.college,major:U.major,year:U.year,subject:subj,kind:U.kind,description:U.desc.trim(),assetId:a.id,contentType:a.contentType,sizeBytes:a.sizeBytes,fileName:picked.name,uploaderId:S.me||"",createdAt:Date.now(),compressed:(up!==picked&&up.size<picked.size)?true:undefined,origBytes:(up!==picked&&up.size<picked.size)?picked.size:undefined});
       var okText="Shared. Classmates in "+U.major+", "+U.year+" can now find \""+title+"\" in the Library."+(up!==picked&&up.size<picked.size?" File size reduced from "+size(picked.size)+" to "+size(up.size)+".":"");

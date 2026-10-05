@@ -2697,6 +2697,103 @@ var BUCKET="files";
 })();
 </script>
 
-<script src="admin.js?v=13"></script>
+<script>
+/* Legal: footer links, "Report" dialog (copyright/privacy/other), report button on every file, upload rights tick box. */
+(function(){
+  var doc=document,sb=window.__sb,D=null,rights=false,last=0;
+  function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+  function css(){if(doc.getElementById("lg-css"))return;var s=doc.createElement("style");s.id="lg-css";s.textContent=
+  '.sitefoot{max-width:1040px;margin:34px auto 26px;padding:16px 20px 0;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}.sitefoot a,.sitefoot button{color:var(--muted);background:none;border:0;padding:6px 0;font:inherit;text-decoration:underline;cursor:pointer;min-height:32px}.sitefoot a:hover,.sitefoot button:hover{color:var(--fg)}.sitefoot span{margin-inline-start:auto}'+
+  '#crdlg{border:1px solid var(--line);border-radius:14px;padding:0;max-width:520px;width:calc(100% - 24px);max-height:calc(100dvh - 24px);overflow:auto;background:var(--surface);color:var(--fg);font-family:inherit}#crdlg::backdrop{background:rgba(0,0,0,.5)}'+
+  '#crdlg form{padding:18px 18px 16px;display:grid;gap:12px}#crdlg h2{margin:0;font-size:18px}#crdlg p{margin:0;color:var(--muted);font-size:14px}#crdlg label{display:grid;gap:5px;font-size:14px;font-weight:500}#crdlg label small{font-weight:400;color:var(--muted)}'+
+  '#crdlg input[type=text],#crdlg input[type=email],#crdlg select,#crdlg textarea{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);width:100%;box-sizing:border-box}#crdlg textarea{min-height:110px;resize:vertical}'+
+  '#crdlg .cr-ck{display:flex!important;flex-direction:row;gap:10px;align-items:flex-start;font-weight:400}#crdlg .cr-ck input{width:20px;height:20px;flex:none;margin-top:2px}#crdlg .cr-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}'+
+  '#crdlg .cr-act{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}#crdlg .cr-msg{font-size:14px}#crdlg .cr-msg.bad{color:var(--bad,#c0392b)}#crdlg .cr-msg.ok{color:var(--ok,#1e8e4f)}'+
+  '.cr-btn{margin-inline-start:0}.rightsbox{font-size:14px}.rightsbox label{display:flex!important;flex-direction:row!important;gap:10px;align-items:flex-start;cursor:pointer;margin:0}.rightsbox input{width:20px;height:20px;flex:none;margin:2px 0 0}.rightsbox small{display:block;color:var(--muted);font-size:12.5px;margin-top:4px;padding-inline-start:30px}.rightsbox.bad{outline:2px solid var(--bad,#c0392b);outline-offset:6px;border-radius:8px}';
+  doc.head.appendChild(s)}
+  /* footer */
+  function foot(){if(doc.getElementById("sitefoot"))return;var w=doc.querySelector(".wrap");if(!w||!w.parentNode)return;
+    var f=doc.createElement("footer");f.id="sitefoot";f.className="sitefoot";
+    f.innerHTML='<a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><a href="copyright.html">Copyright policy</a><button type="button" data-cr="">Report copyright</button><span>Study Hub · student file sharing in Bahrain</span>';
+    w.parentNode.insertBefore(f,w.nextSibling)}
+  /* dialog */
+  function open(o){
+    o=o||{};css();
+    if(!D){D=doc.createElement("dialog");D.id="crdlg";D.setAttribute("aria-labelledby","cr-t");doc.body.appendChild(D);
+      D.addEventListener("click",function(e){if(e.target===D)D.close()})}
+    var k=o.kind||"copyright";
+    D.innerHTML='<form id="crf" novalidate><h2 id="cr-t">Report a problem</h2><p>Use this to report a file that breaks copyright, a privacy request, or anything else. An admin reads every report.</p>'+
+    '<label>What is this about?<select id="cr-k"><option value="copyright"'+(k==="copyright"?' selected':'')+'>A file I own or represent (copyright)</option><option value="privacy"'+(k==="privacy"?' selected':'')+'>Privacy or removing my data</option><option value="other"'+(k==="other"?' selected':'')+'>Something else</option></select></label>'+
+    '<label>File title or link <small>The title shown on the file, or the page address.</small><input type="text" id="cr-f" maxlength="200" value="'+esc(o.title||"")+'" autocomplete="off"></label>'+
+    '<label>Your name<input type="text" id="cr-n" maxlength="120" autocomplete="name"></label>'+
+    '<label>Your email <small>So we can reply. We do not publish it.</small><input type="email" id="cr-e" maxlength="200" autocomplete="email"></label>'+
+    '<label>Details <small id="cr-ds">Say what the file is, why it infringes, and what you want removed.</small><textarea id="cr-d" maxlength="2000"></textarea></label>'+
+    '<label class="cr-ck" id="cr-cw"><input type="checkbox" id="cr-c"><span>I believe in good faith that this file is shared without permission of the owner, and the information I gave is accurate. I am the owner or authorised to act for the owner.</span></label>'+
+    '<div class="cr-hp" aria-hidden="true"><label>Leave empty<input type="text" id="cr-h" tabindex="-1" autocomplete="off"></label></div>'+
+    '<div class="cr-msg" id="cr-m" role="status"></div><div class="cr-act"><button type="button" class="btn" id="cr-x">Cancel</button><button type="submit" class="btn primary" id="cr-s">Send report</button></div></form>';
+    var f=D.querySelector("#crf"),kk=D.querySelector("#cr-k");
+    function sync(){var c=kk.value==="copyright";D.querySelector("#cr-cw").style.display=c?"flex":"none"}
+    kk.addEventListener("change",sync);sync();
+    D.querySelector("#cr-x").addEventListener("click",function(){D.close()});
+    f.addEventListener("submit",function(e){e.preventDefault();send(o)});
+    if(!D.open)D.showModal();
+    setTimeout(function(){var x=D.querySelector(o.title?"#cr-n":"#cr-f");if(x)x.focus()},30)
+  }
+  function msg(t,c){var m=D&&D.querySelector("#cr-m");if(m){m.textContent=t;m.className="cr-msg "+(c||"")}}
+  async function send(o){
+    var g=function(id){return D.querySelector(id)},kind=g("#cr-k").value,title=g("#cr-f").value.trim(),name=g("#cr-n").value.trim(),email=g("#cr-e").value.trim(),det=g("#cr-d").value.trim();
+    if(g("#cr-h").value){D.close();return}
+    if(!sb){msg("Reports are not available right now.","bad");return}
+    if(Date.now()-last<30000){msg("Please wait a moment before sending another report.","bad");return}
+    if(!title){msg("Add the file title or link.","bad");return}
+    if(det.length<10){msg("Add a few words of detail (at least 10 characters).","bad");return}
+    if(kind!=="other"||email){if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg("Add a valid email so we can reply.","bad");return}}
+    if(kind==="copyright"&&!g("#cr-c").checked){msg("Please confirm the statement at the bottom.","bad");return}
+    var b=g("#cr-s");b.disabled=true;b.textContent="Sending…";msg("");
+    try{
+      var row={kind:kind,file_title:title.slice(0,200),name:name.slice(0,120)||null,email:email.slice(0,200)||null,details:det.slice(0,2000)};
+      if(o.id&&/^[0-9a-f-]{36}$/i.test(o.id))row.file_id=o.id;
+      var r=await sb.from("copyright_reports").insert(row);if(r.error)throw r.error;
+      last=Date.now();msg("Thank you. Your report was sent and an admin will look at it.","ok");b.textContent="Sent";
+      setTimeout(function(){try{D.close()}catch(e){}},2200)
+    }catch(er){b.disabled=false;b.textContent="Send report";msg("Could not send the report. Try again later.","bad")}
+  }
+  /* report button on every file card */
+  function decorate(){
+    var rows=doc.querySelectorAll("#view .acts");
+    for(var i=0;i<rows.length;i++){var a=rows[i];if(a.querySelector(".cr-btn"))continue;var fav=a.querySelector("[data-fav]");if(!fav)continue;
+      var b=doc.createElement("button");b.type="button";b.className="btn small cr-btn";b.setAttribute("data-cr",fav.getAttribute("data-fav"));b.textContent="Report";b.title="Report a copyright problem with this file";a.appendChild(b)}
+  }
+  /* upload tick box */
+  function tick(){
+    var f=doc.getElementById("upf");if(!f)return;
+    var bx=doc.getElementById("rightsbox");
+    if(!bx){var row=f.querySelector(".row-act");if(!row)return;
+      bx=doc.createElement("div");bx.id="rightsbox";bx.className="full rightsbox";
+      bx.innerHTML='<label for="rightschk"><input type="checkbox" id="rightschk"><span>I made this file, or I have permission to share it. I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and the <a href="copyright.html" target="_blank" rel="noopener">Copyright policy</a>.</span></label><small>Do not upload textbooks, paid course material or other people\'s graded work without permission. Admins remove anything reported.</small>';
+      row.parentNode.insertBefore(bx,row);
+      var c=bx.querySelector("input");c.checked=rights;c.addEventListener("change",function(){rights=c.checked;bx.classList.remove("bad")})}
+  }
+  doc.addEventListener("submit",function(e){
+    if(!e.target||e.target.id!=="upf")return;
+    var c=doc.getElementById("rightschk");
+    if(c&&!c.checked){e.preventDefault();e.stopImmediatePropagation();var bx=doc.getElementById("rightsbox");if(bx){bx.classList.add("bad");bx.scrollIntoView({block:"center",behavior:"smooth"})}c.focus()}
+  },true);
+  doc.addEventListener("click",function(e){
+    var b=e.target.closest&&e.target.closest("[data-cr]");if(!b)return;e.preventDefault();
+    var id=b.getAttribute("data-cr"),t="";
+    if(id){var r=b.closest(".row"),h=r&&r.querySelector("h3");t=h?h.firstChild&&h.firstChild.nodeType===3?h.firstChild.textContent.trim():h.textContent.trim():""}
+    open({id:id,title:t,kind:"copyright"})
+  });
+  var tmr=0;
+  function pass(){tmr=0;foot();decorate();tick();if(doc.getElementById("toast"))rights=false}
+  new MutationObserver(function(){if(!tmr)tmr=setTimeout(pass,60)}).observe(doc.body,{childList:true,subtree:true});
+  function hashOpen(){if(/^#report/.test(location.hash||"")){var q=(location.hash.split("?")[1]||""),k="copyright";if(/kind=privacy/.test(q))k="privacy";else if(/kind=other/.test(q))k="other";open({kind:k});try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}}}
+  window.addEventListener("hashchange",hashOpen);
+  window.__legal={open:open};
+  pass();setTimeout(hashOpen,400)
+})();
+</script>
+<script src="admin.js?v=14"></script>
 </body>
 </html>

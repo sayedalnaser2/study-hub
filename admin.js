@@ -452,7 +452,7 @@ var f=A.files.filter(function(x){return x.id===id})[0];if(!f)return;
 var set=function(t,dis,cls){btn.textContent=t;btn.disabled=!!dis;btn.classList.toggle("primary",!!cls)};
 if(btn.getAttribute("data-held")==="1"&&A.cmp[id]){
 set("Saving…",true);
-try{var nf=A.cmp[id];await cmpSave(f,nf);f.size_bytes=nf.size;delete A.cmp[id];A.err="";refresh()}catch(e){btn.removeAttribute("data-held");delete A.cmp[id];set("Save failed, tap to retry",false);btn.title=String(e.message||e);try{console.error("Compress save failed",e)}catch(x){}}
+try{var nf=A.cmp[id];await cmpSave(f,nf);f.size_bytes=nf.size;delete A.cmp[id];A.err="";refresh()}catch(e){btn.removeAttribute("data-held");delete A.cmp[id];var em=String((e&&e.message)||e);var perm=/row-level security|policy|permission|403|unauthorized/i.test(em);set(perm?"Save blocked (storage permission)":"Save failed, tap to retry",false);btn.title=em;try{console.error("Compress save failed",e)}catch(x){}}
 return}
 set("Compressing…",true);
 try{

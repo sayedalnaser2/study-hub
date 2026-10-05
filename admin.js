@@ -182,7 +182,7 @@ return'<div class="adm-tools"><input type="search" id="adm-q" placeholder="Searc
 }
 function fileRows(r){
 if(!r.length)return'<p class="adm-none">No files.</p>';
-return r.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+(f.featured?' <span class="adm-me">FEATURED</span>':'')+(f.hidden?' <span class="adm-ban">HIDDEN</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+'</span></div><div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button><button class="btn small" data-adm-ft="'+esc(f.id)+'">'+(f.featured?'Unfeature':'Feature')+'</button><button class="btn small" data-adm-ed="'+esc(f.id)+'">Edit</button><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join("")
+return r.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+(f.featured?' <span class="adm-me">FEATURED</span>':'')+(f.hidden?' <span class="adm-ban">HIDDEN</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+'</span></div><div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button><button class="btn small" data-adm-ft="'+esc(f.id)+'">'+(f.featured?'Unfeature':'Feature')+'</button>'+(canCmp(f)?'<button class="btn small" data-adm-cp="'+esc(f.id)+'">Compress</button>':'')+'<button class="btn small" data-adm-ed="'+esc(f.id)+'">Edit</button><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join("")
 }
 function isPdf(f){return /pdf/i.test(f.content_type||"")||/\.pdf$/i.test(f.asset_path||"")}
 var RV={queued:["WAITING",""],ok:["LOOKS FINE","adm-me"],warn:["CHECK THIS","adm-ban"],bad:["PROBLEM","adm-ban"]};
@@ -254,7 +254,7 @@ var st=A.stor||{supabase:+A.stats.storage_bytes||0,r2:0},GB=1000*1000*1000;
 function meter(name,used,cap,note){var pc=Math.min(100,used/cap*100),cls=pc>=95?"bad":pc>=80?"warn":"";return'<h3 class="adm-h3">'+name+'</h3><div class="adm-meter '+cls+'"><i style="width:'+Math.max(1,pc).toFixed(1)+'%"></i></div><p class="adm-note"><b>'+mb(used)+'</b> of '+note+' ('+pc.toFixed(1)+'%). '+(pc>=80?'Getting close to the limit.':'Plenty of space left.')+'</p>'}
 var h=card("Storage",meter("Supabase (older files)",+st.supabase||0,FREE,"1 GB")+meter("Cloudflare R2 (new uploads)",+st.r2||0,10*GB,"10 GB free")+'<p class="adm-note">New uploads go to Cloudflare R2 first. If R2 is unavailable or reaches 9 GB, uploads fall back to Supabase.</p>');
 var big=A.files.slice().sort(function(a,b){return(+b.size_bytes||0)-(+a.size_bytes||0)}).slice(0,10);
-h+=card("Biggest files",big.length?big.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(nm(f.uploader_id))+'</span></div><div class="adm-a"><span class="adm-size">'+mb(f.size_bytes)+'</span><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join(""):'<p class="adm-none">No files.</p>');
+h+=card("Biggest files",big.length?big.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(nm(f.uploader_id))+'</span></div><div class="adm-a"><span class="adm-size">'+mb(f.size_bytes)+'</span>'+(canCmp(f)?'<button class="btn small" data-adm-cp="'+esc(f.id)+'">Compress</button>':'')+'<button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join(""):'<p class="adm-none">No files.</p>');
 var g=dupes();
 h+=card("Possible duplicates",g.length?g.map(function(grp){return'<div class="adm-dup">'+grp.map(function(f,i){return'<div class="adm-row"><div><b>'+esc(f.title)+(i===0?' <span class="adm-me">OLDEST</span>':'')+'</b><span>'+esc(f.file_name||"")+' · '+mb(f.size_bytes)+' · '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+'</span></div><div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join("")+'</div>'}).join(""):'<p class="adm-none">No duplicates found.</p>','<p class="adm-note">Files with the same name and size, or the same title in the same programme and year.</p>');
 return h
@@ -433,6 +433,31 @@ var f=A.files.filter(function(x){return x.id===id})[0];if(!f)return;btn.disabled
 var nv=!f.hidden,r=await sb.from("files").update({hidden:nv}).eq("id",id);if(r.error){A.err=r.error.message;refresh();return}
 f.hidden=nv;refresh()
 }
+function canCmp(f){return /\.(pdf|png|jpe?g|webp)$/i.test(f.asset_path||"")}
+A.cmp={};
+async function cmpSave(f,file){
+var ctype=f.content_type||CT[extOf(f.asset_path)]||"application/octet-stream";
+if(isR2(f.asset_path)){var sg=await r2({action:"sign-upload",size:file.size,ext:extOf(f.asset_path),key:f.asset_path});var pr=await fetch(sg.url,{method:"PUT",body:file,headers:{"Content-Type":ctype}});if(!pr.ok)throw new Error("Upload to storage failed ("+pr.status+")")}
+else{var up=await sb.storage.from("files").upload(f.asset_path,file,{contentType:ctype,upsert:true});if(up.error)throw up.error}
+var u=await sb.from("files").update({size_bytes:file.size}).eq("id",f.id);if(u.error)throw u.error
+}
+async function cmpFile(id,btn){
+var f=A.files.filter(function(x){return x.id===id})[0];if(!f)return;
+var set=function(t,dis,cls){btn.textContent=t;btn.disabled=!!dis;btn.classList.toggle("primary",!!cls)};
+if(btn.getAttribute("data-held")==="1"&&A.cmp[id]){
+set("Saving…",true);
+try{var nf=A.cmp[id];await cmpSave(f,nf);f.size_bytes=nf.size;delete A.cmp[id];A.err="";refresh()}catch(e){A.err="Could not replace the file: "+(e.message||e);delete A.cmp[id];refresh()}
+return}
+set("Compressing…",true);
+try{
+if(!window.__cmp)throw new Error("Compression is not available");
+var res=await fetch(await fileUrl(f.asset_path));if(!res.ok)throw new Error("Could not download the file ("+res.status+")");
+var blob=await res.blob(),ex=extOf(f.asset_path),file=new File([blob],"file."+ex,{type:f.content_type||CT[ex]||blob.type});
+var out=await window.__cmp.run(file,{min:50*1024});
+if(!out||out===file||out.size>=file.size*0.95){set("Already small",true);return}
+A.cmp[id]=out;btn.setAttribute("data-held","1");set("Save: "+mb(file.size)+" → "+mb(out.size),false,true)
+}catch(e){A.err="Compress failed: "+(e.message||e);refresh()}
+}
 async function toggleFeat(id,btn){
 var f=A.files.filter(function(x){return x.id===id})[0];if(!f)return;btn.disabled=true;
 var nv=!f.featured,r=await sb.from("files").update({featured:nv}).eq("id",id);if(r.error){A.err=r.error.message;refresh();return}
@@ -554,6 +579,7 @@ if(x=t.closest("[data-adm-rvf]")){A.revF=x.getAttribute("data-adm-rvf");refresh(
 if(x=t.closest("[data-adm-rq]")){x.disabled=true;rq(x.getAttribute("data-adm-rq")).catch(function(er){A.err=/file_reviews/.test(er.message||"")?"Run supabase-admin7.sql first (Supabase > SQL Editor).":er.message;refresh()});return}
 if(x=t.closest("[data-adm-ed]")){editFile(x.getAttribute("data-adm-ed"));return}
 if(x=t.closest("[data-adm-hd]")){toggleHide(x.getAttribute("data-adm-hd"),x);return}
+if(x=t.closest("[data-adm-cp]")){cmpFile(x.getAttribute("data-adm-cp"),x);return}
 if(x=t.closest("[data-adm-ft]")){toggleFeat(x.getAttribute("data-adm-ft"),x);return}
 if(x=t.closest("[data-adm-ut]")){userTime(x.getAttribute("data-adm-ut"));return}
 if(x=t.closest("[data-adm-rn]")){renameUser(x.getAttribute("data-adm-rn"));return}

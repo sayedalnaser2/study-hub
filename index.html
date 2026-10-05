@@ -2181,7 +2181,14 @@ var BUCKET="files";
     return file
   }
 
-  /* pdf: re-encode big JPEG pictures, then re-save compactly */
+  /* pdf: re-encode big pictures (JPEG or lossless Flate), then re-save compactly */
+  function ncomp(L,N,d){
+    var cs=d.get(N("ColorSpace"));
+    if(cs===N("DeviceRGB"))return 3;if(cs===N("DeviceGray"))return 1;
+    if(cs instanceof L.PDFArray&&cs.size()===2&&cs.lookup(0)===N("ICCBased")){var ic=cs.lookup(1);var n=ic&&ic.dict&&ic.dict.get(N("N"));var v=n&&n.asNumber?n.asNumber():0;return v===3||v===1?v:0}
+    return 0
+  }
+  function num(x){return x&&x.asNumber?x.asNumber():0}
   async function shrinkPdf(file){
     var L=await loadLib(),P=L.PDFDocument,N=function(x){return L.PDFName.of(x)},deadline=Date.now()+BUDGET;
     var pdf=await P.load(await file.arrayBuffer(),{updateMetadata:false});
@@ -2193,17 +2200,31 @@ var BUCKET="files";
       var d=o.dict;
       if(d.get(N("Subtype"))!==N("Image"))continue;
       var fl=d.get(N("Filter"));if(fl instanceof L.PDFArray&&fl.size()===1)fl=fl.lookup(0);
-      if(fl!==N("DCTDecode"))continue;
-      if(d.get(N("ImageMask"))||d.get(N("Decode"))||d.get(N("Mask")))continue;
-      var cs=d.get(N("ColorSpace"));if(cs===N("DeviceCMYK"))continue;
-      var bytes=o.contents;if(!bytes||bytes.length<60*1024)continue;
+      var isJpg=fl===N("DCTDecode"),isFlate=fl===N("FlateDecode");
+      if(!isJpg&&!isFlate)continue;
+      var im=d.get(N("ImageMask"));if(im&&im!==L.PDFBool.False)continue;
+      if(d.get(N("Decode"))||d.get(N("Mask")))continue;
+      var bytes=o.contents;if(!bytes||bytes.length<(isJpg?60:120)*1024)continue;
+      var nc=ncomp(L,N,d);if(isFlate&&!nc)continue;
+      if(isJpg&&d.get(N("ColorSpace"))===N("DeviceCMYK"))continue;
+      if(isJpg&&nc===0&&d.get(N("ColorSpace"))instanceof L.PDFArray)continue;
       try{
-        var bmp=await createImageBitmap(new Blob([bytes],{type:"image/jpeg"}),{imageOrientation:"none"});
+        var bmp,sw=num(d.get(N("Width"))),sh=num(d.get(N("Height")));
+        if(isJpg){bmp=await createImageBitmap(new Blob([bytes],{type:"image/jpeg"}),{imageOrientation:"none"})}
+        else{
+          if(num(d.get(N("BitsPerComponent")))!==8||!sw||!sh)continue;
+          var raw=L.decodePDFRawStream(o).decode();
+          if(!raw||raw.length<sw*sh*nc)continue;
+          var rgba=new Uint8ClampedArray(sw*sh*4),k=0,m=0,px=sw*sh;
+          if(nc===3){for(;k<px;k++){rgba[m++]=raw[k*3];rgba[m++]=raw[k*3+1];rgba[m++]=raw[k*3+2];rgba[m++]=255}}
+          else{for(;k<px;k++){var g=raw[k];rgba[m++]=g;rgba[m++]=g;rgba[m++]=g;rgba[m++]=255}}
+          bmp=await createImageBitmap(new ImageData(rgba,sw,sh))
+        }
         var w=bmp.width,h=bmp.height,sc=Math.min(1,MAXPX/Math.max(w,h)),nw=Math.max(1,Math.round(w*sc)),nh=Math.max(1,Math.round(h*sc));
         var b=await toBlob(draw(bmp,nw,nh),"image/jpeg",QP);bmp.close&&bmp.close();
-        if(!b||b.size>bytes.length*0.85)continue;
-        var nb=new Uint8Array(await b.arrayBuffer());
-        o.contents=nb;
+        if(!b||b.size>bytes.length*(isJpg?0.85:0.6))continue;
+        o.contents=new Uint8Array(await b.arrayBuffer());
+        d.set(N("Filter"),N("DCTDecode"));
         d.set(N("Width"),L.PDFNumber.of(nw));d.set(N("Height"),L.PDFNumber.of(nh));
         d.set(N("ColorSpace"),N("DeviceRGB"));d.set(N("BitsPerComponent"),L.PDFNumber.of(8));d.delete(N("DecodeParms"));
       }catch(x){}
@@ -2678,6 +2699,6 @@ var BUCKET="files";
 })();
 </script>
 
-<script src="admin.js?v=11"></script>
+<script src="admin.js?v=12"></script>
 </body>
 </html>

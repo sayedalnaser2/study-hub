@@ -105,10 +105,11 @@ async function loadRev(){var r=await sb.from("file_reviews").select("*");if(r.er
 async function loadRatings(){var r=await sb.from("ratings").select("file_id,user_id,stars,text,at").order("at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.ratings=r.data}
 async function loadUsers(){var r=await sb.rpc("admin_users");if(r.error)throw r.error;A.users=r.data}
 async function loadReports(){var r=await sb.from("reports").select("*").order("at",{ascending:false}).limit(300);if(r.error)throw r.error;A.reports=r.data}
+async function loadCR(){var r=await sb.from("copyright_reports").select("*").order("at",{ascending:false}).limit(300);if(r.error)throw new Error(r.error.message+" (run supabase-admin11.sql)");A.crep=r.data}
 async function loadAdmins(){var r=await sb.rpc("admin_list");if(r.error)throw r.error;A.admins=r.data}
 async function loadSite(){var r=await sb.from("site_settings").select("value").eq("key","announcement").maybeSingle();A.site=r.data&&r.data.value||{text:"",text_ar:"",on:false,until:""}}
 function ready(t){
-return t==="insights"?!!(A.ins.rows&&A.files):t==="overview"?!!A.stats:t==="activity"?!!(A.files&&A.ratings&&A.users&&A.reports):t==="files"?!!A.files:t==="pdfrev"?!!(A.files&&A.rev):t==="reviews"?!!(A.ratings&&A.files):t==="reports"?!!(A.reports&&A.files&&A.ratings):t==="users"?!!A.users:t==="cleanup"?!!(A.files&&A.stats):t==="site"?!!A.site:t==="time"?!!A.time:t==="admins"?!!A.admins:true
+return t==="insights"?!!(A.ins.rows&&A.files):t==="overview"?!!A.stats:t==="activity"?!!(A.files&&A.ratings&&A.users&&A.reports):t==="files"?!!A.files:t==="pdfrev"?!!(A.files&&A.rev):t==="reviews"?!!(A.ratings&&A.files):t==="copyright"?!!(A.crep&&A.files):t==="reports"?!!(A.reports&&A.files&&A.ratings):t==="users"?!!A.users:t==="cleanup"?!!(A.files&&A.stats):t==="site"?!!A.site:t==="time"?!!A.time:t==="admins"?!!A.admins:true
 }
 async function load(t){
 A.err="";
@@ -122,6 +123,7 @@ if(t==="pdfrev")P.push(loadRev());
 if(t==="cleanup")P.push(loadStats());
 if(t==="reviews"||t==="reports")P.push(loadRatings(),loadFiles());
 if(t==="reports")P.push(loadReports());
+if(t==="copyright")P.push(loadCR(),loadFiles());
 if(t==="users")P.push(loadUsers());
 if(t==="site")P.push(loadSite());
 if(t==="admins")P.push(loadAdmins());
@@ -236,6 +238,25 @@ return'<div class="adm-row'+(r.status==="done"?' adm-done':'')+'"><div><b>'+esc(
 (f&&r.kind==="file"?'<a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button><button class="btn small" data-adm-ed="'+esc(f.id)+'">Edit</button>':'')+
 (r.status==="open"&&!gone?'<button class="btn small danger" data-adm-rdel="'+r.id+'">Delete '+(r.kind==="file"?"file":"review")+'</button>':'')+
 (r.status==="open"?'<button class="btn small" data-adm-rok="'+r.id+'">Dismiss</button>':'<button class="btn small" data-adm-rrm="'+r.id+'">Remove</button>')+'</div></div>'}).join("")
+}
+function copyrightTab(){
+if(!ready("copyright"))return loading();
+var t={};A.files.forEach(function(f){t[f.id]=f});
+if(!A.crep.length)return'<p class="adm-none">No copyright, privacy or other reports yet. People send them with the Report button or from the Copyright policy page.</p>';
+var KL={copyright:"Copyright",privacy:"Privacy",other:"Other"};
+return A.crep.map(function(r){
+var f=r.file_id?t[r.file_id]:null;
+return'<div class="adm-row'+(r.status==="done"?' adm-done':'')+'"><div><b>'+esc(KL[r.kind]||r.kind)+(r.status==="done"?' <span class="adm-me">HANDLED</span>':'')+' · '+esc(r.file_title||"")+'</b>'+
+'<span>'+(f?'Matched file “'+esc(f.title)+'” by '+esc(nm(f.uploader_id))+(f.hidden?' (hidden)':''):(r.file_id?'File already deleted':'Not linked to a file: search for it in Files'))+'</span>'+
+'<p>“'+esc(r.details)+'”</p><span>From '+esc(r.name||"unknown")+(r.email?' · <a href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a>':'')+' · '+dtt(r.at)+'</span></div><div class="adm-a">'+
+(f?'<a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button>':'')+
+(r.status==="open"?'<button class="btn small" data-adm-crok="'+r.id+'">Mark handled</button>':'<button class="btn small" data-adm-crrm="'+r.id+'">Remove</button>')+'</div></div>'}).join("")
+}
+async function crAct(id,act){
+var rp=A.crep.filter(function(x){return String(x.id)===String(id)})[0];if(!rp)return;
+if(act==="ok"){var r=await sb.from("copyright_reports").update({status:"done"}).eq("id",id);if(r.error)throw r.error;rp.status="done"}
+else{var r2=await sb.from("copyright_reports").delete().eq("id",id);if(r2.error)throw r2.error;A.crep=A.crep.filter(function(x){return x!==rp})}
+refresh()
 }
 function usersTab(){
 if(!A.users)return loading();
@@ -385,12 +406,12 @@ if(cards.length||quiz.length){var s=await sb.from("file_study").upsert({file_id:
 return out
 }
 };
-var TABS=[["overview","Overview"],["time","Time"],["insights","Insights"],["activity","Activity"],["files","Files"],["pdfrev","Review PDFs"],["reviews","Reviews"],["reports","Reports"],["users","Users"],["subjects","Subjects"],["cleanup","Cleanup"],["site","Site"],["admins","Admins","owner"],["backup","Backup","owner"]];
+var TABS=[["overview","Overview"],["time","Time"],["insights","Insights"],["activity","Activity"],["files","Files"],["pdfrev","Review PDFs"],["reviews","Reviews"],["reports","Reports"],["copyright","Copyright"],["users","Users"],["subjects","Subjects"],["cleanup","Cleanup"],["site","Site"],["admins","Admins","owner"],["backup","Backup","owner"]];
 A.html=function(){
-var body={overview:overview,time:timeTab,insights:insTab,activity:activity,files:filesTab,pdfrev:pdfRevTab,reviews:reviewsTab,reports:reportsTab,users:usersTab,subjects:subjectsTab,cleanup:cleanupTab,site:siteTab,admins:adminsTab,backup:backupTab}[A.tab]();
+var body={overview:overview,time:timeTab,insights:insTab,activity:activity,files:filesTab,pdfrev:pdfRevTab,reviews:reviewsTab,reports:reportsTab,copyright:copyrightTab,users:usersTab,subjects:subjectsTab,cleanup:cleanupTab,site:siteTab,admins:adminsTab,backup:backupTab}[A.tab]();
 var openN=(A.reports||[]).filter(function(r){return r.status==="open"}).length;
 return'<div id="adm"><div class="pagehead"><h1>Admin</h1><p>'+(A.role==="owner"?"You are the owner.":"You are a moderator.")+' Deleting a file also removes its stored upload.</p></div>'+
-'<div class="seg adm-tabs" role="group" aria-label="Admin sections">'+TABS.filter(function(t){return !t[2]||A.role===t[2]}).map(function(t){return'<button data-adm-tab="'+t[0]+'" aria-pressed="'+(A.tab===t[0])+'"><b>'+t[1]+(t[0]==="reports"&&openN?' ('+openN+')':'')+'</b></button>'}).join("")+'<button data-adm-reload="1" aria-label="Reload"><b>Reload</b></button></div>'+
+'<div class="seg adm-tabs" role="group" aria-label="Admin sections">'+TABS.filter(function(t){return !t[2]||A.role===t[2]}).map(function(t){return'<button data-adm-tab="'+t[0]+'" aria-pressed="'+(A.tab===t[0])+'"><b>'+t[1]+(t[0]==="reports"&&openN?' ('+openN+')':'')+(t[0]==="copyright"&&A.crep&&A.crep.filter(function(r){return r.status==="open"}).length?' ('+A.crep.filter(function(r){return r.status==="open"}).length+')':'')+'</b></button>'}).join("")+'<button data-adm-reload="1" aria-label="Reload"><b>Reload</b></button></div>'+
 (A.err?'<div class="note bad" role="alert">'+esc(A.err)+'</div>':'')+'<div class="adm-body">'+body+'</div></div>'
 };
 A.bind=function(){
@@ -590,6 +611,8 @@ if(x=t.closest("[data-adm-cp]")){cmpFile(x.getAttribute("data-adm-cp"),x);return
 if(x=t.closest("[data-adm-ft]")){toggleFeat(x.getAttribute("data-adm-ft"),x);return}
 if(x=t.closest("[data-adm-ut]")){userTime(x.getAttribute("data-adm-ut"));return}
 if(x=t.closest("[data-adm-rn]")){renameUser(x.getAttribute("data-adm-rn"));return}
+if(x=t.closest("[data-adm-crok]")){crAct(x.getAttribute("data-adm-crok"),"ok").catch(function(er){A.err=er.message;refresh()});return}
+if(x=t.closest("[data-adm-crrm]")){crAct(x.getAttribute("data-adm-crrm"),"rm").catch(function(er){A.err=er.message;refresh()});return}
 if(x=t.closest("[data-adm-rok]")){repAct(x.getAttribute("data-adm-rok"),"ok").catch(function(er){A.err=er.message;refresh()});return}
 if(x=t.closest("[data-adm-rrm]")){repAct(x.getAttribute("data-adm-rrm"),"rm").catch(function(er){A.err=er.message;refresh()});return}
 if(x=t.closest("[data-adm-rdel]")){two(x,x.textContent,function(){return repAct(x.getAttribute("data-adm-rdel"),"del")});return}

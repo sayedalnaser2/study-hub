@@ -100,7 +100,7 @@ async function all(t,order,asc){var out=[],i=0;for(;;){var r=await sb.from(t).se
 async function loadTime(){var r=await sb.rpc("admin_time");if(r.error)throw r.error;A.time=r.data}
 async function loadStats(){var r=await sb.rpc("admin_stats");if(r.error)throw r.error;try{var q=await sb.rpc("admin_storage");A.stor=q.error?null:q.data}catch(e){A.stor=null}A.stats=r.data}
 async function loadNames(){var r=await sb.from("profiles").select("id,name").limit(1000);if(r.data)r.data.forEach(function(p){A.names[p.id]=p.name})}
-async function loadFiles(){var r=await sb.from("files").select("id,title,uni,college,major,year,subject,kind,description,uploader_id,created_at,asset_path,size_bytes,file_name,featured,hidden,content_type").order("created_at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.files=r.data}
+async function loadFiles(){var r=await sb.from("files").select("id,title,uni,college,major,year,subject,kind,description,uploader_id,created_at,asset_path,size_bytes,file_name,featured,hidden,content_type,compressed,orig_bytes").order("created_at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.files=r.data}
 async function loadRev(){var r=await sb.from("file_reviews").select("*");if(r.error)throw r.error;A.rev={};r.data.forEach(function(x){A.rev[x.file_id]=x});A.study={};try{var q=await sb.from("file_study").select("file_id");(q.data||[]).forEach(function(x){A.study[x.file_id]=1})}catch(e){}}
 async function loadRatings(){var r=await sb.from("ratings").select("file_id,user_id,stars,text,at").order("at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.ratings=r.data}
 async function loadUsers(){var r=await sb.rpc("admin_users");if(r.error)throw r.error;A.users=r.data}
@@ -176,13 +176,17 @@ return ev.slice(0,80).map(function(e){return'<div class="adm-row"><div><span cla
 }
 function filesTab(){
 if(!A.files)return loading();
-var q=A.q.trim().toLowerCase();
-var r=A.files.filter(function(f){return !q||(f.title+" "+f.uni+" "+f.major+" "+(f.subject||"")+" "+nm(f.uploader_id)).toLowerCase().indexOf(q)>-1});
-return'<div class="adm-tools"><input type="search" id="adm-q" placeholder="Search files, subjects or uploaders" value="'+esc(A.q)+'" aria-label="Search files"><span>'+r.length+' of '+A.files.length+'</span></div><div id="adm-list">'+fileRows(r)+'</div>'
+var r=A.files.filter(fmatch);
+return'<div class="adm-tools"><input type="search" id="adm-q" placeholder="Search files, subjects or uploaders" value="'+esc(A.q)+'" aria-label="Search files"><select id="adm-cf" aria-label="Filter by compression"><option value=""'+(A.cf?"":" selected")+'>All files</option><option value="yes"'+(A.cf==="yes"?" selected":"")+'>Compressed</option><option value="no"'+(A.cf==="no"?" selected":"")+'>Not compressed (PDFs and images)</option></select><span>'+r.length+' of '+A.files.length+'</span></div><div id="adm-list">'+fileRows(r)+'</div>'
 }
+function fmatch(f){var q=(A.q||"").trim().toLowerCase();
+if(q&&(f.title+" "+f.uni+" "+f.major+" "+(f.subject||"")+" "+nm(f.uploader_id)).toLowerCase().indexOf(q)<0)return false;
+if(A.cf==="yes")return !!f.compressed;
+if(A.cf==="no")return canCmp(f)&&!f.compressed;
+return true}
 function fileRows(r){
 if(!r.length)return'<p class="adm-none">No files.</p>';
-return r.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+(f.featured?' <span class="adm-me">FEATURED</span>':'')+(f.hidden?' <span class="adm-ban">HIDDEN</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+'</span></div><div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button><button class="btn small" data-adm-ft="'+esc(f.id)+'">'+(f.featured?'Unfeature':'Feature')+'</button>'+(canCmp(f)?'<button class="btn small" data-adm-cp="'+esc(f.id)+'">Compress</button>':'')+'<button class="btn small" data-adm-ed="'+esc(f.id)+'">Edit</button><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join("")
+return r.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+(f.featured?' <span class="adm-me">FEATURED</span>':'')+(f.hidden?' <span class="adm-ban">HIDDEN</span>':'')+(f.compressed?' <span class="adm-tag">COMPRESSED'+(f.orig_bytes?' · was '+mb(f.orig_bytes):'')+'</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(f.year)+(f.subject?' · '+esc(f.subject):'')+'</span><span>By '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+' · '+mb(f.size_bytes)+'</span></div><div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small" data-adm-hd="'+esc(f.id)+'">'+(f.hidden?'Unhide':'Hide')+'</button><button class="btn small" data-adm-ft="'+esc(f.id)+'">'+(f.featured?'Unfeature':'Feature')+'</button>'+(canCmp(f)?'<button class="btn small" data-adm-cp="'+esc(f.id)+'">Compress</button>':'')+'<button class="btn small" data-adm-ed="'+esc(f.id)+'">Edit</button><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join("")
 }
 function isPdf(f){return /pdf/i.test(f.content_type||"")||/\.pdf$/i.test(f.asset_path||"")}
 var RV={queued:["WAITING",""],ok:["LOOKS FINE","adm-me"],warn:["CHECK THIS","adm-ban"],bad:["PROBLEM","adm-ban"]};
@@ -254,7 +258,7 @@ var st=A.stor||{supabase:+A.stats.storage_bytes||0,r2:0},GB=1000*1000*1000;
 function meter(name,used,cap,note){var pc=Math.min(100,used/cap*100),cls=pc>=95?"bad":pc>=80?"warn":"";return'<h3 class="adm-h3">'+name+'</h3><div class="adm-meter '+cls+'"><i style="width:'+Math.max(1,pc).toFixed(1)+'%"></i></div><p class="adm-note"><b>'+mb(used)+'</b> of '+note+' ('+pc.toFixed(1)+'%). '+(pc>=80?'Getting close to the limit.':'Plenty of space left.')+'</p>'}
 var h=card("Storage",meter("Supabase (older files)",+st.supabase||0,FREE,"1 GB")+meter("Cloudflare R2 (new uploads)",+st.r2||0,10*GB,"10 GB free")+'<p class="adm-note">New uploads go to Cloudflare R2 first. If R2 is unavailable or reaches 9 GB, uploads fall back to Supabase.</p>');
 var big=A.files.slice().sort(function(a,b){return(+b.size_bytes||0)-(+a.size_bytes||0)}).slice(0,10);
-h+=card("Biggest files",big.length?big.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(nm(f.uploader_id))+'</span></div><div class="adm-a"><span class="adm-size">'+mb(f.size_bytes)+'</span>'+(canCmp(f)?'<button class="btn small" data-adm-cp="'+esc(f.id)+'">Compress</button>':'')+'<button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join(""):'<p class="adm-none">No files.</p>');
+h+=card("Biggest files",big.length?big.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+(f.compressed?' <span class="adm-tag">COMPRESSED</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(nm(f.uploader_id))+'</span></div><div class="adm-a"><span class="adm-size">'+mb(f.size_bytes)+'</span>'+(canCmp(f)?'<button class="btn small" data-adm-cp="'+esc(f.id)+'">Compress</button>':'')+'<button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join(""):'<p class="adm-none">No files.</p>');
 var g=dupes();
 h+=card("Possible duplicates",g.length?g.map(function(grp){return'<div class="adm-dup">'+grp.map(function(f,i){return'<div class="adm-row"><div><b>'+esc(f.title)+(i===0?' <span class="adm-me">OLDEST</span>':'')+'</b><span>'+esc(f.file_name||"")+' · '+mb(f.size_bytes)+' · '+esc(nm(f.uploader_id))+' · '+dt(f.created_at)+'</span></div><div class="adm-a"><a class="btn small" target="_blank" rel="noopener" href="/_blob/'+esc(f.asset_path)+'">Open</a><button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join("")+'</div>'}).join(""):'<p class="adm-none">No duplicates found.</p>','<p class="adm-note">Files with the same name and size, or the same title in the same programme and year.</p>');
 return h
@@ -439,7 +443,9 @@ async function cmpSave(f,file){
 var ctype=f.content_type||CT[extOf(f.asset_path)]||"application/octet-stream";
 if(isR2(f.asset_path)){var sg=await r2({action:"sign-upload",size:file.size,ext:extOf(f.asset_path),key:f.asset_path});var pr=await fetch(sg.url,{method:"PUT",body:file,headers:{"Content-Type":ctype}});if(!pr.ok)throw new Error("Upload to storage failed ("+pr.status+")")}
 else{var up=await sb.storage.from("files").upload(f.asset_path,file,{contentType:ctype,upsert:true});if(up.error)throw up.error}
-var u=await sb.from("files").update({size_bytes:file.size}).eq("id",f.id);if(u.error)throw u.error
+var orig=f.compressed&&f.orig_bytes?f.orig_bytes:f.size_bytes;
+var u=await sb.from("files").update({size_bytes:file.size,compressed:true,orig_bytes:orig}).eq("id",f.id);if(u.error)throw u.error;
+f.compressed=true;f.orig_bytes=orig
 }
 async function cmpFile(id,btn){
 var f=A.files.filter(function(x){return x.id===id})[0];if(!f)return;
@@ -566,6 +572,7 @@ addl("Finished. "+made+" restored, "+skip+" already there"+(bad?", "+bad+" faile
 A.busy=false
 }
 document.addEventListener("change",function(e){if(!A.ok)return;var u=e.target.closest&&e.target.closest("#adm-ins-uni");if(u){A.ins.uni=u.value;refresh()}});
+document.addEventListener("change",function(e){if(!A.ok)return;if(e.target&&e.target.id==="adm-cf"){A.cf=e.target.value;refresh()}});
 document.addEventListener("click",function(e){
 if(!A.ok)return;var t=e.target,x;
 if(x=t.closest("[data-adm-tab]")){A.tab=x.getAttribute("data-adm-tab");if(A.tab==="pdfrev")A.rev=null;A.err="";refresh();return}
@@ -598,7 +605,7 @@ if(f.id==="adm-ann"){e.preventDefault();saveAnn(f)}
 if(f.id==="adm-addadm"){e.preventDefault();var m=document.getElementById("adm-admmsg");var r=await sb.rpc("admin_add",{e:f.email.value});if(r.error){m.textContent=r.error.message;return}await loadAdmins();refresh()}
 });
 document.addEventListener("input",function(e){
-if(e.target.id==="adm-q"){A.q=e.target.value;var q=A.q.trim().toLowerCase(),r=A.files.filter(function(f){return !q||(f.title+" "+f.uni+" "+f.major+" "+(f.subject||"")+" "+nm(f.uploader_id)).toLowerCase().indexOf(q)>-1});document.getElementById("adm-list").innerHTML=fileRows(r)}
+if(e.target.id==="adm-q"){A.q=e.target.value;var r=A.files.filter(fmatch);document.getElementById("adm-list").innerHTML=fileRows(r);var cn=document.querySelector(".adm-tools span");if(cn)cn.textContent=r.length+" of "+A.files.length}
 });
 async function check(){
 try{

@@ -452,7 +452,7 @@ var f=A.files.filter(function(x){return x.id===id})[0];if(!f)return;
 var set=function(t,dis,cls){btn.textContent=t;btn.disabled=!!dis;btn.classList.toggle("primary",!!cls)};
 if(btn.getAttribute("data-held")==="1"&&A.cmp[id]){
 set("Saving…",true);
-try{var nf=A.cmp[id];await cmpSave(f,nf);f.size_bytes=nf.size;delete A.cmp[id];A.err="";refresh()}catch(e){A.err="Could not replace the file: "+(e.message||e);delete A.cmp[id];refresh()}
+try{var nf=A.cmp[id];await cmpSave(f,nf);f.size_bytes=nf.size;delete A.cmp[id];A.err="";refresh()}catch(e){btn.removeAttribute("data-held");delete A.cmp[id];set("Save failed, tap to retry",false);btn.title=String(e.message||e);try{console.error("Compress save failed",e)}catch(x){}}
 return}
 set("Compressing…",true);
 try{
@@ -460,9 +460,9 @@ if(!window.__cmp)throw new Error("Compression is not available");
 var res=await fetch(await fileUrl(f.asset_path));if(!res.ok)throw new Error("Could not download the file ("+res.status+")");
 var blob=await res.blob(),ex=extOf(f.asset_path),file=new File([blob],"file."+ex,{type:f.content_type||CT[ex]||blob.type});
 var out=await window.__cmp.run(file,{min:50*1024});
-if(!out||out===file||out.size>=file.size*0.95){set("Already small",true);return}
+if(!out||out===file||out.size>=file.size*0.95){set("Nothing to shrink",true);btn.title="This file has no large pictures to reduce, so it is already about as small as it can get.";return}
 A.cmp[id]=out;btn.setAttribute("data-held","1");set("Save: "+mb(file.size)+" → "+mb(out.size),false,true)
-}catch(e){A.err="Compress failed: "+(e.message||e);refresh()}
+}catch(e){set("Failed, tap to retry",false);btn.title=String(e.message||e);try{console.error("Compress failed",e)}catch(x){}}
 }
 async function toggleFeat(id,btn){
 var f=A.files.filter(function(x){return x.id===id})[0];if(!f)return;btn.disabled=true;

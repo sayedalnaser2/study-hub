@@ -306,6 +306,7 @@ nav button{white-space:nowrap;padding:6px 10px}
 .sc-q{font-size:18px;font-weight:600;line-height:1.4;margin:6px 0 14px;overflow-wrap:anywhere}.sc-opts{display:flex;flex-direction:column;gap:8px}.sc-opt{display:flex;gap:10px;align-items:flex-start;text-align:start;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer;font-size:15px}.sc-opt b{font-family:var(--mono);color:var(--accent)}.sc-opt span{overflow-wrap:anywhere}.sc-opt:disabled{cursor:default;opacity:1}.sc-opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--bg))}.sc-opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--bg))}.sc-fb{margin-top:12px;font-size:14px}
 #adbar{position:fixed;left:0;right:0;bottom:0;z-index:70;background:var(--surface);border-top:1px solid var(--line);padding:4px 36px calc(4px + env(safe-area-inset-bottom,0px));min-height:50px;box-shadow:0 -4px 16px rgba(0,0,0,.08)}#adbar[hidden]{display:none}#adbar .ad-b{max-width:728px;margin:0 auto;min-height:50px}#adbar .ad-l{position:absolute;left:8px;top:2px;font-size:10px;color:var(--muted)}#adbar .ad-x{position:absolute;right:6px;top:4px;width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer}#adbar .ad-x:hover{background:var(--bg)}@media(min-width:768px){#adbar .ad-b,#adbar .ad-ph{min-height:90px}}#adbar .ad-ph{display:grid;place-items:center;min-height:50px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);font-size:13px}
 @media (pointer:coarse){button,.btn,select{min-height:40px}button[aria-label^="Close"],.ad-x{min-width:40px;min-height:40px}}
+.cmpbox{font-size:14px}.cmpbox label{display:flex!important;flex-direction:row!important;align-items:center;gap:8px;cursor:pointer;margin:0}.cmpbox input{width:18px;height:18px;flex:none;margin:0}.cmpbox small{display:block;color:var(--muted);font-size:12.5px;margin-top:4px;padding-inline-start:26px}
 #ckbar{position:fixed;left:0;right:0;bottom:var(--adh,0px);z-index:75;background:var(--surface);color:var(--fg);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(0,0,0,.12);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}#ckbar[hidden]{display:none}#ckbar .ck-in{max-width:760px;margin:0 auto;display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center}#ckbar p{flex:1 1 280px;margin:0;font-size:13.5px;line-height:1.45}#ckbar .ck-b{display:flex;gap:8px;flex-wrap:wrap}#adbar .ad-c{position:absolute;left:8px;bottom:2px;font-size:10px;color:var(--muted);background:none;border:0;padding:0;min-height:0;min-width:0;text-decoration:underline;cursor:pointer}
 body.has-ad{padding-bottom:var(--adh,0px)}body.has-ad #pmpill{bottom:calc(var(--adh,0px) + 14px)}
 </style>
@@ -1378,6 +1379,8 @@ var BUCKET="files";
   function bindUpload(){
     var drop=$("#drop"),inp=$("#file");if(!inp)return;
     if(picked){$("#dname").textContent=picked.name;$("#dhint").textContent=size(picked.size)}
+    if(!$("#cmpbox")){var cb=document.createElement("div");cb.id="cmpbox";cb.className="full cmpbox";cb.innerHTML='<label for="cmpchk"><input type="checkbox" id="cmpchk"><span><b>Reduce file size</b> <span>(recommended)</span></span></label><small>Shrinks big scanned pages and photos before upload. Text stays searchable.</small>';drop.parentNode.insertBefore(cb,drop.nextSibling);
+      var ck=cb.querySelector("input");ck.checked=U.cmp!==false;ck.addEventListener("change",function(){U.cmp=ck.checked})}
     inp.addEventListener("change",function(){pick(inp.files[0])});
     ["dragenter","dragover"].forEach(function(n){drop.addEventListener(n,function(e){e.preventDefault();drop.classList.add("over")})});
     ["dragleave","drop"].forEach(function(n){drop.addEventListener(n,function(e){e.preventDefault();drop.classList.remove("over")})});
@@ -1414,9 +1417,11 @@ var BUCKET="files";
     if(!title){say(false,"Give the file a title so classmates can find it.");return}
     var btn=$("#go");btn.disabled=true;btn.textContent="Uploading…";$("#prog").hidden=false;$("#prog i").style.width="60%";
     try{
-      var e=ext(picked.name),a=await S.assets.upload(picked,{type:OK_EXT[e]});
+      var e=ext(picked.name),up=picked;
+      if(U.cmp!==false&&window.__cmp){btn.textContent="Compressing…";try{up=await window.__cmp.run(picked)||picked}catch(x){up=picked}btn.textContent="Uploading…"}
+      var a=await S.assets.upload(up,{type:OK_EXT[e]});
       await S.db.collection("files").add({title:title,uni:U.uni,college:U.college,major:U.major,year:U.year,subject:subj,kind:U.kind,description:U.desc.trim(),assetId:a.id,contentType:a.contentType,sizeBytes:a.sizeBytes,fileName:picked.name,uploaderId:S.me||"",createdAt:Date.now()});
-      var okText="Shared. Classmates in "+U.major+", "+U.year+" can now find \""+title+"\" in the Library.";
+      var okText="Shared. Classmates in "+U.major+", "+U.year+" can now find \""+title+"\" in the Library."+(up!==picked&&up.size<picked.size?" File size reduced from "+size(picked.size)+" to "+size(up.size)+".":"");
       picked=null;S.filter={uni:U.uni,college:U.college,major:U.major,year:U.year,subject:subj,kind:"",q:"",sort:"new"};U.title=U.subject=U.desc="";U.locked=false;
       saveLast("lib");S.msg=null;S.page="library";try{history.replaceState(null,"","#library")}catch(e){}render();window.scrollTo(0,0);
       showToast(okText)
@@ -2148,8 +2153,85 @@ var BUCKET="files";
 })();
 </script>
 <script>
+/* Upload compression: shrinks big scanned PDFs and photos in the browser before they are uploaded. Falls back to the original file on any problem. */
+(function(){
+  var doc=document,MIN=400*1024,MAXPX=1800,QP=0.65,MAXIMG=2200,QI=0.82,BUDGET=30000;
+  var URLS=["https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js","https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js","https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"];
+  function loadScript(u){return new Promise(function(ok,no){var s=doc.createElement("script");s.src=u;s.async=true;s.onload=ok;s.onerror=function(){s.remove();no()};doc.head.appendChild(s)})}
+  function loadLib(){
+    if(window.PDFLib)return Promise.resolve(window.PDFLib);
+    var p=Promise.reject();URLS.forEach(function(u){p=p.catch(function(){return loadScript(u).then(function(){if(!window.PDFLib)throw 0})})});
+    return p.then(function(){return window.PDFLib})
+  }
+  function toBlob(cv,type,q){return new Promise(function(res){cv.toBlob(res,type,q)})}
+  function draw(bmp,nw,nh){var cv=doc.createElement("canvas");cv.width=nw;cv.height=nh;var cx=cv.getContext("2d");cx.fillStyle="#fff";cx.fillRect(0,0,nw,nh);cx.drawImage(bmp,0,0,nw,nh);return cv}
+  function ext(n){return (n.split(".").pop()||"").toLowerCase()}
+
+  /* photos: png, jpg, webp */
+  async function shrinkImage(file){
+    var e=ext(file.name),type=e==="png"?"image/png":e==="webp"?"image/webp":"image/jpeg";
+    var bmp=await createImageBitmap(file);
+    var w=bmp.width,h=bmp.height,sc=Math.min(1,MAXIMG/Math.max(w,h));
+    if(type==="image/png"&&sc>=1){bmp.close&&bmp.close();return file}
+    var nw=Math.max(1,Math.round(w*sc)),nh=Math.max(1,Math.round(h*sc));
+    var cv=type==="image/png"?(function(){var c=doc.createElement("canvas");c.width=nw;c.height=nh;c.getContext("2d").drawImage(bmp,0,0,nw,nh);return c})():draw(bmp,nw,nh);
+    bmp.close&&bmp.close();
+    var b=await toBlob(cv,type,QI);
+    if(b&&b.size<file.size*0.9)return new File([b],file.name,{type:type});
+    return file
+  }
+
+  /* pdf: re-encode big JPEG pictures, then re-save compactly */
+  async function shrinkPdf(file){
+    var L=await loadLib(),P=L.PDFDocument,N=function(x){return L.PDFName.of(x)},deadline=Date.now()+BUDGET;
+    var pdf=await P.load(await file.arrayBuffer(),{updateMetadata:false});
+    var objs=pdf.context.enumerateIndirectObjects();
+    for(var i=0;i<objs.length;i++){
+      if(Date.now()>deadline)break;
+      var o=objs[i][1];
+      if(!(o instanceof L.PDFRawStream))continue;
+      var d=o.dict;
+      if(d.get(N("Subtype"))!==N("Image"))continue;
+      var fl=d.get(N("Filter"));if(fl instanceof L.PDFArray&&fl.size()===1)fl=fl.lookup(0);
+      if(fl!==N("DCTDecode"))continue;
+      if(d.get(N("ImageMask"))||d.get(N("Decode"))||d.get(N("Mask")))continue;
+      var cs=d.get(N("ColorSpace"));if(cs===N("DeviceCMYK"))continue;
+      var bytes=o.contents;if(!bytes||bytes.length<60*1024)continue;
+      try{
+        var bmp=await createImageBitmap(new Blob([bytes],{type:"image/jpeg"}),{imageOrientation:"none"});
+        var w=bmp.width,h=bmp.height,sc=Math.min(1,MAXPX/Math.max(w,h)),nw=Math.max(1,Math.round(w*sc)),nh=Math.max(1,Math.round(h*sc));
+        var b=await toBlob(draw(bmp,nw,nh),"image/jpeg",QP);bmp.close&&bmp.close();
+        if(!b||b.size>bytes.length*0.85)continue;
+        var nb=new Uint8Array(await b.arrayBuffer());
+        o.contents=nb;
+        d.set(N("Width"),L.PDFNumber.of(nw));d.set(N("Height"),L.PDFNumber.of(nh));
+        d.set(N("ColorSpace"),N("DeviceRGB"));d.set(N("BitsPerComponent"),L.PDFNumber.of(8));d.delete(N("DecodeParms"));
+      }catch(x){}
+    }
+    var out=await pdf.save({useObjectStreams:true});
+    var chk=await P.load(out,{updateMetadata:false});
+    if(chk.getPageCount()!==pdf.getPageCount())return file;
+    if(out.length<file.size*0.92)return new File([out],file.name,{type:"application/pdf"});
+    return file
+  }
+
+  window.__cmp={
+    run:async function(file){
+      try{
+        if(!file||file.size<MIN)return file;
+        var e=ext(file.name);
+        if(e==="pdf")return await shrinkPdf(file);
+        if(e==="png"||e==="jpg"||e==="jpeg"||e==="webp")return await shrinkImage(file)
+      }catch(x){}
+      return file
+    }
+  }
+})();
+</script>
+<script>
 (function(){
   var AR={
+    "Compressing…":"جارٍ الضغط…","Reduce file size":"تقليل حجم الملف","(recommended)":"(موصى به)","Shrinks big scanned pages and photos before upload. Text stays searchable.":"يصغّر الصفحات الممسوحة الكبيرة والصور قبل الرفع. يبقى النص قابلاً للبحث.",
     "Study Hub shows ads to stay free. Our ad partner may use cookies to personalise ads. You choose.":"يعرض Study Hub إعلانات ليبقى مجانياً. قد يستخدم شريكنا الإعلاني ملفات تعريف الارتباط لتخصيص الإعلانات. الخيار لك.","Accept":"موافق","Non-personalised ads only":"إعلانات غير مخصصة فقط","Ad choices":"خيارات الإعلانات",
     "Advertisement":"إعلان","Coming soon":"قريباً",
     "Custom…":"مخصص…","Set":"تعيين","(custom)":"(مخصص)",

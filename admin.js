@@ -550,7 +550,7 @@ var files=await all("files","created_at",true),ratings=await all("ratings","at",
 var day=new Date().toISOString().slice(0,10),man={app:"study-hub",version:1,exported_at:new Date().toISOString(),files:[],ratings:ratings,profiles:profiles,custom_courses:cc.map(function(c){return{uni:c.uni,major:c.major,year:c.year,subject:c.subject}}),site_settings:st};
 if(kind==="json"){
 files.forEach(function(f){f.public_url=isR2(f.asset_path)?"":sb.storage.from("files").getPublicUrl(f.asset_path).data.publicUrl});man.files=files;
-save(new Blob([JSON.stringify(man,null,1)],{type:"application/json"}),"study-hub-data-"+day+".json");say("Done. Data saved (files themselves are not inside this JSON).");A.busy=false;return}
+save(new Blob([JSON.stringify(man,null,1)],{type:"application/json"}),"studybh-data-"+day+".json");say("Done. Data saved (files themselves are not inside this JSON).");A.busy=false;return}
 await loadZip();var zip=new JSZip(),miss=0,ok=0,used={};
 for(var i=0;i<files.length;i++){
 var f=files[i],u=uniOf(f.uni),col=f.college||collegeOf(f.uni,f.major),ext=extOf(f.file_name||f.asset_path);
@@ -560,10 +560,10 @@ try{var r=await fetch(await fileUrl(f.asset_path));if(!r.ok)throw 0;zip.file(p,a
 catch(e){miss++;man.files.push({zip_path:null,missing:true,row:f})}
 }
 zip.file("manifest.json",JSON.stringify(man,null,1));
-zip.file("README.txt","Study Hub backup made "+man.exported_at+"\n\nFiles: "+ok+" saved, "+miss+" missing.\nTo restore: Admin > Backup > Restore, choose this ZIP. Every file goes back to its own university, college, major, year and subject automatically.\nFiles are also sorted into folders here so you can find them by hand.\n");
+zip.file("README.txt","StudyBH backup made "+man.exported_at+"\n\nFiles: "+ok+" saved, "+miss+" missing.\nTo restore: Admin > Backup > Restore, choose this ZIP. Every file goes back to its own university, college, major, year and subject automatically.\nFiles are also sorted into folders here so you can find them by hand.\n");
 addl0("Building the ZIP…");
 var blob=await zip.generateAsync({type:"blob",compression:"STORE"},function(m){addl0("Building the ZIP… "+Math.round(m.percent)+"%")});
-save(blob,"study-hub-backup-"+day+".zip");say("Done. "+ok+" files saved"+(miss?", "+miss+" could not be downloaded":"")+". Size "+mb(blob.size)+".")
+save(blob,"studybh-backup-"+day+".zip");say("Done. "+ok+" files saved"+(miss?", "+miss+" could not be downloaded":"")+". Size "+mb(blob.size)+".")
 }catch(e){say("Backup failed: "+((e&&e.message)||e))}
 A.busy=false
 }

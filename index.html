@@ -332,6 +332,10 @@ var BUCKET="files";
   function banner(t){document.addEventListener("DOMContentLoaded",function(){var d=document.createElement("div");d.style.cssText="background:#fff4e5;color:#7a4300;padding:10px 16px;font:14px/1.4 system-ui,sans-serif;text-align:center";d.textContent=t;document.body.insertBefore(d,document.body.firstChild)})}
   if(!ready){window.claude={use:async function(){return null}};banner("Study Hub is not connected yet. Open the file and set SUPABASE_URL and SUPABASE_ANON_KEY at the top of the script.");return}
   var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);window.__sb=sb;
+  /* Storage limits set by the admin (Admin > Site). Defaults apply until they load. */
+  window.__limits={file_mb:20,total_gb:9,student_mb:0};
+  window.fileMB=function(){var n=+(window.__limits&&window.__limits.file_mb);return n>0?n:20};
+  try{sb.from("site_settings").select("value").eq("key","limits").maybeSingle().then(function(r){var v=r&&r.data&&r.data.value;if(v&&typeof v==="object")window.__limits=Object.assign({},window.__limits,v)},function(){})}catch(e){}
   var sessP=sb.auth.getSession().then(function(r){return r.data&&r.data.session||null}).catch(function(){return null});
   function fail(e){throw {code:(e&&(e.code||e.statusCode))||"error",message:e&&e.message}}
   var CFG={
@@ -343,16 +347,19 @@ var BUCKET="files";
   };
   var subs={};function bump(t){(subs[t]||[]).forEach(function(f){f()})}
   /* Extra file space on Cloudflare R2 (through the "r2" Supabase function). Falls back to Supabase storage if anything fails. */
+  var REFUSE={too_big:"too_big",r2_full:"quota_exceeded",student_quota:"student_quota"};
+  async function refusal(er){try{var j=await er.context.json();return j&&REFUSE[j.error]||null}catch(x){return null}}
   async function r2put(file,ext,type){
     try{
       var a=await sb.functions.invoke("r2",{body:{action:"sign-upload",size:file.size,ext:ext}});
-      if(a.error||!a.data||!a.data.url)return null;
+      if(a.error){var rc=await refusal(a.error);if(rc)throw{code:rc,refused:1};return null}
+      if(!a.data||!a.data.url)return null;
       var p=await fetch(a.data.url,{method:"PUT",body:file,headers:{"Content-Type":type}});
       if(!p.ok)return null;
       var c=await sb.functions.invoke("r2",{body:{action:"commit",id:a.data.key}});
-      if(c.error||!c.data||!c.data.size){try{await sb.functions.invoke("r2",{body:{action:"delete",id:a.data.key}})}catch(x){}return null}
+      if(c.error||!c.data||!c.data.size){var rc2=c.error?await refusal(c.error):null;try{await sb.functions.invoke("r2",{body:{action:"delete",id:a.data.key}})}catch(x){}if(rc2)throw{code:rc2,refused:1};return null}
       return{id:a.data.key,url:"",sizeBytes:c.data.size,contentType:type}
-    }catch(x){return null}
+    }catch(x){if(x&&x.refused)throw x;return null}
   }
   var api={
     user:{id:async function(){var s=await sessP;return s?s.user.id:null},canEdit:function(){return false},
@@ -1319,7 +1326,7 @@ var BUCKET="files";
   function uploadPage(){
     if(!U.adv&&!(U.locked&&U.uni&&U.college&&U.major&&U.year))return uploadSteps();
     var m=S.msg,can=S.assets&&S.dbOk&&S.me,u=uni(U.uni);
-    return '<div class="pagehead"><h1>Upload a file</h1><p>Tell us where it belongs so classmates in your course can find it. PDFs, images and text files up to 20 MB.</p></div>'+(U.adv?'<p class="stalt" style="margin:0 0 14px"><button class="btn small" data-adv="up:0">Use buttons instead</button></p>':'')+
+    return '<div class="pagehead"><h1>Upload a file</h1><p>Tell us where it belongs so classmates in your course can find it. PDFs, images and text files up to '+fileMB()+' MB.</p></div>'+(U.adv?'<p class="stalt" style="margin:0 0 14px"><button class="btn small" data-adv="up:0">Use buttons instead</button></p>':'')+
     (!can&&S.loaded?(S.dbOk&&!S.me?'<div class="note">Sign in to upload files. <button class="btn small primary" data-auth="1">Sign in or sign up</button></div>':'<div class="note">Uploading is not available right now. Check that the hub is connected to Supabase.</div>'):'')+
     (m?'<div class="note '+(m.ok?'ok':'bad')+'" role="status">'+esc(m.text)+'</div>':'')+
     '<form class="form" id="upf" novalidate>'+
@@ -1372,7 +1379,7 @@ var BUCKET="files";
     if(!f)return;var e=ext(f.name),hint=$("#dhint");
     if(/^(doc|docx|ppt|pptx|xls|xlsx|pages|key)$/.test(e)){picked=null;$("#dname").textContent="Save it as a PDF first";hint.textContent="Word and PowerPoint files are not supported. See Guidelines for the steps.";return}
     if(!OK_EXT[e]){picked=null;$("#dname").textContent="This file type is not supported";hint.textContent="Use PDF, PNG, JPG, TXT, MD or CSV.";return}
-    if(f.size>20*1048576){picked=null;$("#dname").textContent="File is over 20 MB";hint.textContent="Compress it or split it into parts.";return}
+    if(f.size>fileMB()*1048576){picked=null;$("#dname").textContent="File is over "+fileMB()+" MB";hint.textContent="Compress it or split it into parts.";return}
     picked=f;$("#dname").textContent=f.name;hint.textContent=size(f.size);
     var t=$("#pt");if(!t.value){t.value=U.title=f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ")}
   }
@@ -1426,6 +1433,8 @@ var BUCKET="files";
     }catch(err){
       var c=err&&err.code,t="The upload did not finish. Try again in a moment.";
       if(c==="quota_exceeded"||c==="quota")t="The hub is out of storage space.";
+      else if(c==="too_big")t="This file is over the size limit ("+fileMB()+" MB). Compress it or split it into parts.";
+      else if(c==="student_quota")t="You have reached your upload allowance.";
       else if(c==="not_granted"||c==="invalid_argument"||c==="not_signed_in"||c==="42501")t="Please sign in to upload.";
       else if(c==="unsupported_type")t="This file type is not accepted. Use a PDF, image or text file.";
       say(false,t)
@@ -2419,7 +2428,7 @@ var BUCKET="files";
     "Uploading…":"جارٍ الرفع…","Saving…":"جارٍ الحفظ…","Loading files…":"جارٍ تحميل الملفات…",
     "Save it as a PDF first":"احفظه بصيغة PDF أولًا","Word and PowerPoint files are not supported. See Guidelines for the steps.":"ملفات Word وPowerPoint غير مدعومة. راجع الإرشادات لمعرفة الخطوات.",
     "This file type is not supported":"نوع الملف غير مدعوم","Use PDF, PNG, JPG, TXT, MD or CSV.":"استخدم PDF أو PNG أو JPG أو TXT أو MD أو CSV.",
-    "File is over 20 MB":"حجم الملف يتجاوز 20 ميغابايت","Compress it or split it into parts.":"اضغطه أو قسّمه إلى أجزاء.",
+    "File is over 20 MB":"حجم الملف يتجاوز 20 ميغابايت","You have reached your upload allowance.":"لقد وصلت إلى الحد المسموح لك برفعه.","The hub is out of storage space.":"لا توجد مساحة تخزين متاحة في المنصة حاليًا.","Compress it or split it into parts.":"اضغطه أو قسّمه إلى أجزاء.",
     "Choose your university first.":"اختر جامعتك أولًا.","Choose your college or school.":"اختر كليتك أو مدرستك.","Choose your major.":"اختر تخصصك.","Choose your year.":"اختر سنتك.",
     "Enter the subject, for example the course name and code.":"أدخل المادة، مثل اسم المقرر ورمزه.","Choose a file to upload.":"اختر ملفًا لرفعه.","Give the file a title so classmates can find it.":"أعطِ الملف عنوانًا ليجده زملاؤك.",
     "The upload did not finish. Try again in a moment.":"لم يكتمل الرفع. حاول مرة أخرى بعد قليل.","The hub is out of storage space. Ask the organizer to free some up.":"مساحة التخزين ممتلئة. اطلب من المسؤول تفريغ بعضها.",
@@ -2458,8 +2467,9 @@ var BUCKET="files";
   function base(s){return Object.prototype.hasOwnProperty.call(AR,s)?AR[s]:null}
   function tr(s){
     var t=s.trim();if(!t)return s;
-    var lead=s.slice(0,s.indexOf(t)),tail=s.slice(s.indexOf(t)+t.length),r=core(t);
-    return r===null||r===t?s:lead+r+tail
+    var lead=s.slice(0,s.indexOf(t)),tail=s.slice(s.indexOf(t)+t.length),n=fileMB(),t2=n===20?t:t.replace(n+" MB","20 MB"),r=core(t2);
+    if(r!==null&&n!==20)r=r.replace("20 ميغابايت",n+" ميغابايت");
+    return r===null||r===t2?s:lead+r+tail
   }
   function core(t){
     var b=base(t),m;if(b!==null)return b;
@@ -2467,6 +2477,7 @@ var BUCKET="files";
     if(m=/^(\d+) files?$/.exec(t))return cnt(+m[1],["ملفات","ملف","ملفان","ملفًا"]);
     if(m=/^(\d+) (grades|options) · (\d+) files?$/.exec(t))return cnt(+m[1],m[2]==="grades"?["صفوف","صف","صفان","صفًا"]:["خيارات","خيار","خياران","خيارًا"])+" · "+cnt(+m[3],["ملفات","ملف","ملفان","ملفًا"]);
     if(m=/^Year (\d+)$/.exec(t))return "السنة "+m[1];
+    if(m=/^This file is over the size limit \((\d+) MB\)\. Compress it or split it into parts\.$/.exec(t))return "حجم الملف يتجاوز الحد المسموح ("+m[1]+" ميغابايت). اضغطه أو قسّمه إلى أجزاء.";
     if(m=/^(First|Second|Third) (Intermediate|Secondary)(?: – (.+))?$/.exec(t))return {First:"الأول",Second:"الثاني",Third:"الثالث"}[m[1]]+(m[2]==="Intermediate"?" الإعدادي":" الثانوي")+(m[3]?" – "+(base(m[3])||m[3]):"");
     if(m=/^Grade (\d+) – (.+)$/.exec(t))return "الصف "+(ORD[+m[1]]||m[1])+" – "+(base(m[2])||m[2]);
     if(m=/^Grade (\d+)$/.exec(t))return "الصف "+(ORD[+m[1]]||m[1]);
@@ -2794,6 +2805,6 @@ var BUCKET="files";
   pass();setTimeout(hashOpen,400)
 })();
 </script>
-<script src="admin.js?v=14"></script>
+<script src="admin.js?v=15"></script>
 </body>
 </html>

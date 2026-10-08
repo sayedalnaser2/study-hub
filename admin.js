@@ -107,7 +107,9 @@ async function loadUsers(){var r=await sb.rpc("admin_users");if(r.error)throw r.
 async function loadReports(){var r=await sb.from("reports").select("*").order("at",{ascending:false}).limit(300);if(r.error)throw r.error;A.reports=r.data}
 async function loadCR(){var r=await sb.from("copyright_reports").select("*").order("at",{ascending:false}).limit(300);if(r.error)throw new Error(r.error.message+" (run supabase-admin11.sql)");A.crep=r.data}
 async function loadAdmins(){var r=await sb.rpc("admin_list");if(r.error)throw r.error;A.admins=r.data}
-async function loadSite(){var r=await sb.from("site_settings").select("value").eq("key","announcement").maybeSingle();A.site=r.data&&r.data.value||{text:"",text_ar:"",on:false,until:""}}
+async function loadSite(){var r=await sb.from("site_settings").select("value").eq("key","announcement").maybeSingle();A.site=r.data&&r.data.value||{text:"",text_ar:"",on:false,until:""};
+var l=await sb.from("site_settings").select("value").eq("key","limits").maybeSingle();A.lim=Object.assign({file_mb:20,total_gb:9,student_mb:0},l.data&&l.data.value||{});
+var u=await sb.from("files").select("size_bytes,asset_path").limit(20000),all=0,r2=0,rows=u.data||[];rows.forEach(function(x){var b=+x.size_bytes||0;all+=b;if(String(x.asset_path||"").indexOf("r2:")===0)r2+=b});A.use={all:all,r2:r2,n:rows.length}}
 function ready(t){
 return t==="insights"?!!(A.ins.rows&&A.files):t==="overview"?!!A.stats:t==="activity"?!!(A.files&&A.ratings&&A.users&&A.reports):t==="files"?!!A.files:t==="pdfrev"?!!(A.files&&A.rev):t==="reviews"?!!(A.ratings&&A.files):t==="copyright"?!!(A.crep&&A.files):t==="reports"?!!(A.reports&&A.files&&A.ratings):t==="users"?!!A.users:t==="cleanup"?!!(A.files&&A.stats):t==="site"?!!A.site:t==="time"?!!A.time:t==="admins"?!!A.admins:true
 }
@@ -291,9 +293,16 @@ var k=(f.title||"").trim().toLowerCase()+"|"+f.uni+"|"+f.major+"|"+f.year;(m2[k]
 [m1,m2].forEach(function(m){Object.keys(m).forEach(function(k){var g=m[k];if(g.length<2)return;g=g.slice().sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at)});var key=g.map(function(x){return x.id}).join(",");if(!seen[key]){seen[key]=1;out.push(g)}})});
 return out
 }
+function gbs(b){return b<1e9?(b/1e6).toFixed(1)+" MB":(b/1e9).toFixed(2)+" GB"}
+function limCard(){
+var L=A.lim||{file_mb:20,total_gb:9,student_mb:0},U=A.use||{all:0,r2:0,n:0},cap=L.total_gb*1e9,pct=cap>0?Math.min(100,Math.round(U.r2/cap*100)):0,own=A.role==="owner";
+var bar='<div style="height:8px;border-radius:4px;background:rgba(127,127,127,.25);margin:6px 0 4px"><i style="display:block;height:8px;border-radius:4px;width:'+pct+'%;background:'+(pct>=90?"#d93025":"#2f6fed")+'"></i></div><p class="adm-note">'+gbs(U.r2)+' of '+L.total_gb+' GB used on Cloudflare R2 ('+pct+'%). All files together, including older ones: '+gbs(U.all)+' in '+U.n+' files.</p>';
+if(!own)return card("Storage limits",bar+'<p class="adm-note">Per file: '+L.file_mb+' MB. Total cap: '+L.total_gb+' GB. Per student: '+(L.student_mb>0?L.student_mb+' MB':'no limit')+'. Only the owner can change these.</p>');
+return card("Storage limits",bar+'<form id="adm-lim" class="adm-form"><label>Biggest single file (MB, 1 to 100)<input type="number" name="file_mb" min="1" max="100" step="1" required value="'+esc(L.file_mb)+'"></label><label>Total storage cap on R2 (GB). New uploads stop when it is reached<input type="number" name="total_gb" min="1" max="1000" step="0.5" required value="'+esc(L.total_gb)+'"></label><label>Per student (MB). 0 means no limit<input type="number" name="student_mb" min="0" max="5000" step="10" required value="'+esc(L.student_mb)+'"></label><div class="adm-a"><button class="btn primary small">Save limits</button></div><div class="adm-msg" id="adm-limmsg" role="status"></div></form>','<p class="adm-note">These apply to the next upload. Files already uploaded are never removed. Cloudflare R2 is free up to 10 GB; above that it costs about $0.015 per GB each month. The older Supabase storage keeps its own 20 MB limit.</p>')
+}
 function siteTab(){
 if(!A.site)return loading();var s=A.site;
-return card("Announcement banner",'<p class="adm-note">Shows a message at the top of every page. Visitors can close it. Write the Arabic version too so Arabic visitors see it in Arabic.</p><form id="adm-ann" class="adm-form"><label>Message (English)<input name="text" maxlength="200" value="'+esc(s.text)+'"></label><label>Message (Arabic)<input name="text_ar" maxlength="200" dir="rtl" value="'+esc(s.text_ar)+'"></label><label>Hide after (optional)<input type="date" name="until" value="'+esc(s.until)+'"></label><label class="adm-chk"><input type="checkbox" name="on"'+(s.on?' checked':'')+'> Show the banner</label><div class="adm-a"><button class="btn primary small">Save</button></div><div class="adm-msg" id="adm-annmsg" role="status"></div></form>')
+return limCard()+card("Announcement banner",'<p class="adm-note">Shows a message at the top of every page. Visitors can close it. Write the Arabic version too so Arabic visitors see it in Arabic.</p><form id="adm-ann" class="adm-form"><label>Message (English)<input name="text" maxlength="200" value="'+esc(s.text)+'"></label><label>Message (Arabic)<input name="text_ar" maxlength="200" dir="rtl" value="'+esc(s.text_ar)+'"></label><label>Hide after (optional)<input type="date" name="until" value="'+esc(s.until)+'"></label><label class="adm-chk"><input type="checkbox" name="on"'+(s.on?' checked':'')+'> Show the banner</label><div class="adm-a"><button class="btn primary small">Save</button></div><div class="adm-msg" id="adm-annmsg" role="status"></div></form>')
 }
 function adminsTab(){
 if(A.role!=="owner")return'<p class="adm-none">Only the owner can manage admins.</p>';
@@ -508,6 +517,17 @@ var v={text:f.text.value.trim(),text_ar:f.text_ar.value.trim(),until:f.until.val
 var r=await sb.from("site_settings").upsert({key:"announcement",value:v,updated_at:new Date().toISOString()});
 if(r.error){m.textContent=r.error.message;return}A.site=v;ann=v;try{localStorage.removeItem("sh_ann")}catch(e){}paintBanner();m.textContent="Saved."
 }
+async function saveLim(f){
+var m=document.getElementById("adm-limmsg");
+function n(x,lo,hi){x=+x;return isFinite(x)?Math.min(hi,Math.max(lo,x)):NaN}
+var v={file_mb:Math.round(n(f.file_mb.value,1,100)),total_gb:n(f.total_gb.value,1,1000),student_mb:Math.round(n(f.student_mb.value,0,5000))};
+if(isNaN(v.file_mb)||isNaN(v.total_gb)||isNaN(v.student_mb)){m.textContent="Enter numbers in all three boxes.";return}
+m.textContent="Saving…";
+var r=await sb.from("site_settings").upsert({key:"limits",value:v,updated_at:new Date().toISOString()});
+if(r.error){m.textContent=r.error.message;return}
+A.lim=v;if(window.__limits)window.__limits=Object.assign({},window.__limits,v);refresh();
+setTimeout(function(){var x=document.getElementById("adm-limmsg");if(x)x.textContent="Saved. Applies to the next upload."},50)
+}
 async function addSubjects(){
 var st=A.sub,ta=document.getElementById("adm-cs"),ls=ta.value.split("\n").map(function(s){return s.trim()}).filter(Boolean);if(!ls.length)return;
 var rows=ls.map(function(s){return{uni:st.uni,major:st.major,year:st.year,subject:s.slice(0,120)}});
@@ -625,6 +645,7 @@ if(t.closest("[data-adm-rs]")){restore();return}
 document.addEventListener("submit",async function(e){
 var f=e.target;
 if(f.id==="adm-ann"){e.preventDefault();saveAnn(f)}
+if(f.id==="adm-lim"){e.preventDefault();saveLim(f)}
 if(f.id==="adm-addadm"){e.preventDefault();var m=document.getElementById("adm-admmsg");var r=await sb.rpc("admin_add",{e:f.email.value});if(r.error){m.textContent=r.error.message;return}await loadAdmins();refresh()}
 });
 document.addEventListener("input",function(e){

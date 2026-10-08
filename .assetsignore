@@ -1,0 +1,7 @@
+worker
+wrangler.jsonc
+.assetsignore
+*.sql
+*.ts
+*.md
+.github

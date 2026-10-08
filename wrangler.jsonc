@@ -1,0 +1,16 @@
+{
+  "name": "studybh-api",
+  "main": "worker/src/worker.js",
+  "compatibility_date": "2025-01-01",
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/auth/*"]
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "studybh", "database_id": "9ae4e584-8b78-45d9-82d4-83ceacce4d35" }
+  ],
+  "r2_buckets": [
+    { "binding": "BUCKET", "bucket_name": "studybh-files" }
+  ]
+}

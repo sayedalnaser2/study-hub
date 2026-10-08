@@ -105,7 +105,7 @@ async function loadRev(){var r=await sb.from("file_reviews").select("*");if(r.er
 async function loadRatings(){var r=await sb.from("ratings").select("file_id,user_id,stars,text,at").order("at",{ascending:false}).limit(1000);if(r.error)throw r.error;A.ratings=r.data}
 async function loadUsers(){var r=await sb.rpc("admin_users");if(r.error)throw r.error;A.users=r.data}
 async function loadReports(){var r=await sb.from("reports").select("*").order("at",{ascending:false}).limit(300);if(r.error)throw r.error;A.reports=r.data}
-async function loadCR(){var r=await sb.from("copyright_reports").select("*").order("at",{ascending:false}).limit(300);if(r.error)throw new Error(r.error.message+" (run supabase-admin11.sql)");A.crep=r.data}
+async function loadCR(){var r=await sb.from("copyright_reports").select("*").order("at",{ascending:false}).limit(300);if(r.error)throw new Error(r.error.message+"");A.crep=r.data}
 async function loadAdmins(){var r=await sb.rpc("admin_list");if(r.error)throw r.error;A.admins=r.data}
 async function loadSite(){var r=await sb.from("site_settings").select("value").eq("key","announcement").maybeSingle();A.site=r.data&&r.data.value||{text:"",text_ar:"",on:false,until:""};
 var l=await sb.from("site_settings").select("value").eq("key","limits").maybeSingle();A.lim=Object.assign({file_mb:20,total_gb:9,student_mb:0},l.data&&l.data.value||{});
@@ -131,7 +131,7 @@ if(t==="site")P.push(loadSite());
 if(t==="admins")P.push(loadAdmins());
 if(t==="subjects")P.push(loadCC());
 await Promise.all(P)
-}catch(e){A.err=(e&&e.message)||"Could not load. Did you run supabase-admin2.sql?"}
+}catch(e){A.err=(e&&e.message)||"Could not load."}
 if(t==="overview"||t==="activity"||t==="reports"){try{if(!A.reports)await loadReports()}catch(e){}}
 refresh()
 }
@@ -279,7 +279,7 @@ function cleanupTab(){
 if(!ready("cleanup"))return loading();
 var st=A.stor||{supabase:+A.stats.storage_bytes||0,r2:0},GB=1000*1000*1000;
 function meter(name,used,cap,note){var pc=Math.min(100,used/cap*100),cls=pc>=95?"bad":pc>=80?"warn":"";return'<h3 class="adm-h3">'+name+'</h3><div class="adm-meter '+cls+'"><i style="width:'+Math.max(1,pc).toFixed(1)+'%"></i></div><p class="adm-note"><b>'+mb(used)+'</b> of '+note+' ('+pc.toFixed(1)+'%). '+(pc>=80?'Getting close to the limit.':'Plenty of space left.')+'</p>'}
-var h=card("Storage",meter("Supabase (older files)",+st.supabase||0,FREE,"1 GB")+meter("Cloudflare R2 (new uploads)",+st.r2||0,10*GB,"10 GB free")+'<p class="adm-note">New uploads go to Cloudflare R2 first. If R2 is unavailable or reaches 9 GB, uploads fall back to Supabase.</p>');
+var h=card("Storage",meter("Older storage",+st.supabase||0,FREE,"1 GB")+meter("Cloudflare R2 (new uploads)",+st.r2||0,10*GB,"10 GB free")+'<p class="adm-note">New uploads go to Cloudflare R2 first. If R2 is unavailable or reaches 9 GB, uploads fall back to Supabase.</p>');
 var big=A.files.slice().sort(function(a,b){return(+b.size_bytes||0)-(+a.size_bytes||0)}).slice(0,10);
 h+=card("Biggest files",big.length?big.map(function(f){return'<div class="adm-row"><div><b>'+esc(f.title)+(f.compressed?' <span class="adm-tag">COMPRESSED</span>':'')+'</b><span>'+esc(f.uni)+' · '+esc(f.major)+' · '+esc(nm(f.uploader_id))+'</span></div><div class="adm-a"><span class="adm-size">'+mb(f.size_bytes)+'</span>'+(canCmp(f)?'<button class="btn small" data-adm-cp="'+esc(f.id)+'">Compress</button>':'')+'<button class="btn small danger" data-adm-df="'+esc(f.id)+'">Delete</button></div></div>'}).join(""):'<p class="adm-none">No files.</p>');
 var g=dupes();
@@ -624,7 +624,7 @@ if(x=t.closest("[data-adm-dr]")){two(x,"Delete",function(){return delRev(x.getAt
 if(x=t.closest("[data-adm-pu]")){two(x,"Delete content",function(){return purge(x.getAttribute("data-adm-pu"))});return}
 if(x=t.closest("[data-adm-ban]")){var p=x.getAttribute("data-adm-ban").split(":");x.disabled=true;ban(p[0],p[1]==="1").catch(function(er){A.err=er.message;refresh()});return}
 if(x=t.closest("[data-adm-rvf]")){A.revF=x.getAttribute("data-adm-rvf");refresh();return}
-if(x=t.closest("[data-adm-rq]")){x.disabled=true;rq(x.getAttribute("data-adm-rq")).catch(function(er){A.err=/file_reviews/.test(er.message||"")?"Run supabase-admin7.sql first (Supabase > SQL Editor).":er.message;refresh()});return}
+if(x=t.closest("[data-adm-rq]")){x.disabled=true;rq(x.getAttribute("data-adm-rq")).catch(function(er){A.err=/file_reviews/.test(er.message||"")?"Could not queue the file.":er.message;refresh()});return}
 if(x=t.closest("[data-adm-ed]")){editFile(x.getAttribute("data-adm-ed"));return}
 if(x=t.closest("[data-adm-hd]")){toggleHide(x.getAttribute("data-adm-hd"),x);return}
 if(x=t.closest("[data-adm-cp]")){cmpFile(x.getAttribute("data-adm-cp"),x);return}

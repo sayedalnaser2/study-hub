@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Study Hub</title>
-<meta name="description" content="Study Hub is where students in Bahrain share and find notes, slides and past papers by university, major and year.">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Study Hub"><meta property="og:title" content="Study Hub - share and find study files in Bahrain"><meta property="og:description" content="Notes, slides and past papers from your classmates, sorted by university, major and year. Free for students.">
-<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Study Hub"><meta name="twitter:description" content="Notes, slides and past papers from your classmates in Bahrain.">
+<title>StudyBH</title>
+<meta name="description" content="StudyBH is where students in Bahrain share and find notes, slides and past papers by university, major and year.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="StudyBH"><meta property="og:title" content="StudyBH - share and find study files in Bahrain"><meta property="og:description" content="Notes, slides and past papers from your classmates, sorted by university, major and year. Free for students.">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="StudyBH"><meta name="twitter:description" content="Notes, slides and past papers from your classmates in Bahrain.">
 <link rel="preconnect" href="https://poqwmhnfruzmojgdnfcr.supabase.co" crossorigin><link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 <script>try{var __t=JSON.parse(localStorage.getItem("sh_theme"));if(__t==="light"||__t==="dark")document.documentElement.setAttribute("data-theme",__t)}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#f6f7f9">
-<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Study Hub">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="StudyBH">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAADFUlEQVR42u3dsXETURSG0X1vHBJTAQSoAXISaIQeKIEeaAQl5DQAAaqAmBwip8Duytp7f52Ta/zs+XR9V+PxG8uBXrz99nshzuV8Gkd97SFekiIfIiYp7iFkksIeQiYp7CFkksKeYqaKa7Q0xUxS1EPIJK0gU8wkTespZpKinmImKeopZpKinmImKerpx0SSaTqTNKWnmEmKeoqZpKjt0GTv0KYznae0CU3uhDad6T6lTWgyJ7TpTMKUNqHJ3aEhImjrBilrhwmNlQMEDYKGdYYHQkxoEDQIGgSNoEHQIGgQNAgaQYOgoYyHzof/8flVqfO8fPd982s/vH9e6nv5+OlnyyZa/nFStZD3hF0t5O5hTzEfd8bqMXc5ox0aD4Wm83XP2mnydTqrCY0JDYIGQYOgETQIGgQNggZBI2gQNAgaBA2CRtAgaBA0CBoEjaBB0CBoEDQIGkGDoEHQIGgQNIIGQYOgQdAgaAR9pD33AFY7a6fr0jqd1YS+8zdeUswtg64ey5rzVY+l422yLW+SfeRqZDFHBQ12aAQNggZBg6BB0GR66Hz4N6+flTrPl6+/Nr826TP1I7X8HLpayHvCrhZy97CnmI87Y/WYu5zRDo2HQtP5umftNPk6ndWExoQGQYOgQdAIGgQNggZBg6ARNAgaBA2CBkEjaBA0CBoEDYJG0CBoEDQIGgSNoEHQIGgQNAgaQYOgQdAgaBA0gj7SnnsAq52103Vpnc5qQt/5Gy8p5pZBV49lzfmqx9LxNtmWN8k+cjWymKOCBjs0ggZBg6BB0CBoBA2CBkGDoGFZ5uV8Gn4MJLicT8OExsoBggZBw4agPRiS8EBoQmPlgBZBWzvovm6Y0GSvHKY0naezCU3+Q6EpTdfpbEKTP6FNabpO579OaFHTLeZ/rhyiplPMdmjuY4c2pek4nf97QouaDjGvWjlETfWYV+/QoqZyzJseCkVN1ZiXZVl2xem//1Ml5M0T2rSmasy7gxY1lWLevXJYQagS8pMELWyO/u3+pOuCsLn1mnqz/VfcIr7F1zn0gU7k4r22P7hqE7iQsygdAAAAAElFTkSuQmCC">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -315,7 +315,7 @@ body.has-ad{padding-bottom:var(--adh,0px)}body.has-ad #pmpill{bottom:calc(var(--
 </head>
 <body>
 <header class="top"><div class="bar">
-  <button class="brand" data-go="home" aria-label="Study Hub home"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Study Hub</button>
+  <button class="brand" data-go="home" aria-label="StudyBH home"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>StudyBH</button>
   <nav id="nav" aria-label="Main"></nav>
 </div></header>
 <div class="wrap"><main id="view"></main></div>
@@ -330,7 +330,7 @@ var BUCKET="files";
 (function(){
   var ready=!/YOUR_SUPABASE/.test(SUPABASE_URL+SUPABASE_ANON_KEY)&&window.supabase&&window.supabase.createClient;
   function banner(t){document.addEventListener("DOMContentLoaded",function(){var d=document.createElement("div");d.style.cssText="background:#fff4e5;color:#7a4300;padding:10px 16px;font:14px/1.4 system-ui,sans-serif;text-align:center";d.textContent=t;document.body.insertBefore(d,document.body.firstChild)})}
-  if(!ready){window.claude={use:async function(){return null}};banner("Study Hub is not connected yet. Open the file and set SUPABASE_URL and SUPABASE_ANON_KEY at the top of the script.");return}
+  if(!ready){window.claude={use:async function(){return null}};banner("StudyBH is not connected yet. Open the file and set SUPABASE_URL and SUPABASE_ANON_KEY at the top of the script.");return}
   var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);window.__sb=sb;
   /* Storage limits set by the admin (Admin > Site). Defaults apply until they load. */
   window.__limits={file_mb:20,total_gb:9,student_mb:0};
@@ -1088,7 +1088,7 @@ var BUCKET="files";
   function showGate(){
     if(document.getElementById("gate"))return;
     var canClose=!!LEVEL,g=document.createElement("div");g.id="gate";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");g.setAttribute("aria-labelledby","gate-t");
-    g.innerHTML='<div class="gate-box"><div class="gate-top"><b>Study Hub</b><span><button type="button" class="btn small" id="gate-lang"></button>'+(canClose?' <button type="button" class="btn small" id="gate-x">Cancel</button>':'')+'</span></div>'+
+    g.innerHTML='<div class="gate-box"><div class="gate-top"><b>StudyBH</b><span><button type="button" class="btn small" id="gate-lang"></button>'+(canClose?' <button type="button" class="btn small" id="gate-x">Cancel</button>':'')+'</span></div>'+
       '<h1 id="gate-t">Welcome! Who are you studying as?</h1><p>Choose one so we show you the right files. You can switch any time.</p>'+
       '<div class="gate-cards"><button type="button" data-lv="school"'+(LEVEL==="school"?' aria-pressed="true"':'')+'><b>School student</b><span>Grades 1 to 12</span></button>'+
       '<button type="button" data-lv="uni"'+(LEVEL==="uni"?' aria-pressed="true"':'')+'><b>University student</b><span>Universities and colleges across Bahrain</span></button></div></div>';
@@ -1567,7 +1567,7 @@ var BUCKET="files";
   function standalone(){return (window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true}
   function installBlock(){
     if(standalone())return"";
-    if(deferred)return'<div class="here"><span>Install Study Hub on your phone or computer to open it like an app, with your opened PDFs available offline.</span><button type="button" class="btn small primary" data-install="1">Install app</button></div>';
+    if(deferred)return'<div class="here"><span>Install StudyBH on your phone or computer to open it like an app, with your opened PDFs available offline.</span><button type="button" class="btn small primary" data-install="1">Install app</button></div>';
     if(/iphone|ipad|ipod/i.test(navigator.userAgent))return'<div class="here"><span>To install: tap the Share button in Safari, then choose Add to Home Screen.</span></div>';
     return"";
   }
@@ -1892,7 +1892,7 @@ var BUCKET="files";
       if(a==="copy"){inp.select();var ok=false;try{ok=doc.execCommand("copy")}catch(x){}
         if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(inp.value).then(function(){msg.textContent="Link copied."},function(){msg.textContent=ok?"Link copied.":"Press and hold the link to copy it."});
         else msg.textContent=ok?"Link copied.":"Press and hold the link to copy it."}
-      if(a==="native"){navigator.share({title:"Study Hub",text:"Page "+v.cur+" on Study Hub",url:inp.value}).catch(function(){})}
+      if(a==="native"){navigator.share({title:"StudyBH",text:"Page "+v.cur+" on StudyBH",url:inp.value}).catch(function(){})}
     });
     d.addEventListener("close",function(){d.remove()});
     (doc.getElementById("pdfv")||doc.body).appendChild(d);d.showModal()
@@ -2117,7 +2117,7 @@ var BUCKET="files";
   function ckShow(){
     if(!wantCk)return;
     if(!ck){ck=doc.createElement("section");ck.id="ckbar";ck.setAttribute("aria-label","Ad choices");
-      ck.innerHTML='<div class="ck-in"><p>Study Hub shows ads to stay free. Our ad partner may use cookies to personalise ads. You choose.</p><div class="ck-b"><button type="button" class="btn small primary" data-ck="all">Accept</button><button type="button" class="btn small" data-ck="essential">Non-personalised ads only</button></div></div>';
+      ck.innerHTML='<div class="ck-in"><p>StudyBH shows ads to stay free. Our ad partner may use cookies to personalise ads. You choose.</p><div class="ck-b"><button type="button" class="btn small primary" data-ck="all">Accept</button><button type="button" class="btn small" data-ck="essential">Non-personalised ads only</button></div></div>';
       ck.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-ck]");if(b)ckSet(b.getAttribute("data-ck"))});
       doc.body.appendChild(ck)}
     ck.hidden=false
@@ -2260,15 +2260,15 @@ var BUCKET="files";
 (function(){
   var AR={
     "Compressing…":"جارٍ الضغط…","Reduce file size":"تقليل حجم الملف","(recommended)":"(موصى به)","Shrinks big scanned pages and photos before upload. Text stays searchable.":"يصغّر الصفحات الممسوحة الكبيرة والصور قبل الرفع. يبقى النص قابلاً للبحث.",
-    "Study Hub shows ads to stay free. Our ad partner may use cookies to personalise ads. You choose.":"يعرض Study Hub إعلانات ليبقى مجانياً. قد يستخدم شريكنا الإعلاني ملفات تعريف الارتباط لتخصيص الإعلانات. الخيار لك.","Accept":"موافق","Non-personalised ads only":"إعلانات غير مخصصة فقط","Ad choices":"خيارات الإعلانات",
+    "StudyBH shows ads to stay free. Our ad partner may use cookies to personalise ads. You choose.":"يعرض StudyBH إعلانات ليبقى مجانياً. قد يستخدم شريكنا الإعلاني ملفات تعريف الارتباط لتخصيص الإعلانات. الخيار لك.","Accept":"موافق","Non-personalised ads only":"إعلانات غير مخصصة فقط","Ad choices":"خيارات الإعلانات",
     "Advertisement":"إعلان","Coming soon":"قريباً",
     "Custom…":"مخصص…","Set":"تعيين","(custom)":"(مخصص)",
     "Study":"ادرس","Flashcards":"بطاقات تعليمية","Quiz":"اختبار","Card":"بطاقة","Question":"سؤال","Answer":"الإجابة","known":"معروفة","Score":"النتيجة","Only cards I am still learning":"البطاقات التي ما زلت أتعلمها فقط","Tap the card to flip it":"اضغط على البطاقة لقلبها","Previous":"السابق","Next":"التالي","Shuffle":"خلط","Still learning":"ما زلت أتعلم","I know it":"أعرفها","All cards learned":"تم تعلّم كل البطاقات","You marked every card as known. Nice work.":"حددت كل البطاقات على أنها معروفة. عمل رائع.","Start over":"ابدأ من جديد","Your score":"نتيجتك","Best":"الأفضل","Try the ones I missed":"جرّب الأسئلة التي أخطأت فيها","Retake the quiz":"أعد الاختبار","Next question":"السؤال التالي","See score":"عرض النتيجة","Correct!":"صحيح!","Not quite.":"ليس تماماً.","No study set for this file yet.":"لا توجد مجموعة دراسة لهذا الملف بعد.","Could not load the study set. Check your connection and try again.":"تعذّر تحميل مجموعة الدراسة. تحقق من اتصالك وحاول مرة أخرى.",
     "day streak":"أيام متتالية","min today":"دقيقة اليوم","best streak":"أفضل سلسلة","Goal reached. Your streak is safe for today.":"تم تحقيق الهدف. سلسلتك محفوظة لهذا اليوم.","Study 5 minutes a day to keep your streak. Time counts while a PDF is open or the focus timer runs.":"ادرس ٥ دقائق يومياً للحفاظ على سلسلتك. يُحتسب الوقت أثناء فتح ملف PDF أو تشغيل مؤقت التركيز.","Focus timer":"مؤقت التركيز","Focus":"تركيز","Break":"استراحة","Start":"ابدأ","Pause":"إيقاف مؤقت","Reset":"إعادة ضبط","Skip":"تخطّي","Length":"المدة","Sessions today":"جلسات اليوم","Share":"مشاركة","Share this page":"مشاركة هذه الصفحة","Copy link":"نسخ الرابط","Share…":"مشاركة…","Link copied.":"تم نسخ الرابط.","Press and hold the link to copy it.":"اضغط مطولاً على الرابط لنسخه.","Include my highlights and notes on this page":"تضمين تحديداتي وملاحظاتي في هذه الصفحة","Undo":"تراجع","paused":"متوقف مؤقتاً","Focus session done. Take a short break.":"انتهت جلسة التركيز. خذ استراحة قصيرة.","Break over. Ready for the next focus session.":"انتهت الاستراحة. جاهز لجلسة التركيز التالية.","Anyone with the link opens this PDF at page":"يفتح أي شخص لديه الرابط هذا الملف عند الصفحة",
-    "My library":"مكتبتي","Favourite":"المفضلة","Favourites":"المفضلة","Continue reading":"متابعة القراءة","Continue":"متابعة","Saved pages":"الصفحات المحفوظة","Available offline":"متاح بدون إنترنت","Show more":"عرض المزيد","Install app":"تثبيت التطبيق","Auto":"تلقائي","Light":"فاتح","Dark":"داكن","Remove from device":"إزالة من الجهاز","Resume at page":"استئناف من الصفحة","Pages":"الصفحات","Nothing yet":"لا شيء بعد","Open a PDF and it will appear here so you can pick up where you stopped.":"افتح ملف PDF وسيظهر هنا لتكمل من حيث توقفت.","No favourites yet":"لا توجد ملفات مفضلة بعد","Tap Favourite on any file to keep it here.":"اضغط على المفضلة في أي ملف لحفظه هنا.","No offline PDFs yet":"لا توجد ملفات بدون إنترنت بعد","Open a PDF once and it will be saved here automatically.":"افتح ملف PDF مرة واحدة وسيُحفظ هنا تلقائياً.","PDFs you open are kept on this device so they open instantly and work without internet.":"تُحفظ ملفات PDF التي تفتحها على جهازك لتُفتح فوراً وتعمل بدون إنترنت.","You are offline. PDFs you opened before still work.":"أنت غير متصل بالإنترنت. ملفات PDF التي فتحتها سابقاً ما زالت تعمل.","Your favourites, where you stopped reading, saved pages and PDFs kept on this device.":"ملفاتك المفضلة، ومكان توقفك عن القراءة، والصفحات المحفوظة، وملفات PDF المحفوظة على هذا الجهاز.","Install Study Hub on your phone or computer to open it like an app, with your opened PDFs available offline.":"ثبّت Study Hub على هاتفك أو حاسوبك لفتحه كتطبيق مع إتاحة ملفات PDF التي فتحتها بدون إنترنت.","To install: tap the Share button in Safari, then choose Add to Home Screen.":"للتثبيت: اضغط زر المشاركة في Safari ثم اختر «إضافة إلى الشاشة الرئيسية».",
+    "My library":"مكتبتي","Favourite":"المفضلة","Favourites":"المفضلة","Continue reading":"متابعة القراءة","Continue":"متابعة","Saved pages":"الصفحات المحفوظة","Available offline":"متاح بدون إنترنت","Show more":"عرض المزيد","Install app":"تثبيت التطبيق","Auto":"تلقائي","Light":"فاتح","Dark":"داكن","Remove from device":"إزالة من الجهاز","Resume at page":"استئناف من الصفحة","Pages":"الصفحات","Nothing yet":"لا شيء بعد","Open a PDF and it will appear here so you can pick up where you stopped.":"افتح ملف PDF وسيظهر هنا لتكمل من حيث توقفت.","No favourites yet":"لا توجد ملفات مفضلة بعد","Tap Favourite on any file to keep it here.":"اضغط على المفضلة في أي ملف لحفظه هنا.","No offline PDFs yet":"لا توجد ملفات بدون إنترنت بعد","Open a PDF once and it will be saved here automatically.":"افتح ملف PDF مرة واحدة وسيُحفظ هنا تلقائياً.","PDFs you open are kept on this device so they open instantly and work without internet.":"تُحفظ ملفات PDF التي تفتحها على جهازك لتُفتح فوراً وتعمل بدون إنترنت.","You are offline. PDFs you opened before still work.":"أنت غير متصل بالإنترنت. ملفات PDF التي فتحتها سابقاً ما زالت تعمل.","Your favourites, where you stopped reading, saved pages and PDFs kept on this device.":"ملفاتك المفضلة، ومكان توقفك عن القراءة، والصفحات المحفوظة، وملفات PDF المحفوظة على هذا الجهاز.","Install StudyBH on your phone or computer to open it like an app, with your opened PDFs available offline.":"ثبّت StudyBH على هاتفك أو حاسوبك لفتحه كتطبيق مع إتاحة ملفات PDF التي فتحتها بدون إنترنت.","To install: tap the Share button in Safari, then choose Add to Home Screen.":"للتثبيت: اضغط زر المشاركة في Safari ثم اختر «إضافة إلى الشاشة الرئيسية».",
     "Universities":"الجامعات",
     "Download":"تنزيل","Open in new tab":"فتح في تبويب جديد","Close":"إغلاق","Loading PDF…":"جارٍ تحميل الملف…","PDF viewer":"عارض PDF","Zoom in":"تكبير","Zoom out":"تصغير",
-    "Save your progress to your Google Drive?":"هل تريد حفظ تقدمك في Google Drive؟","Study Hub can remember where you stopped in each PDF, your saved pages and your reading settings, and bring them with you to any phone or computer you sign in on.":"يستطيع Study Hub تذكّر المكان الذي توقفت عنده في كل ملف PDF وصفحاتك المحفوظة وإعدادات القراءة، ونقلها معك إلى أي هاتف أو حاسوب تسجّل الدخول منه.","To do this, Google will ask you to let Study Hub keep one tiny hidden file in your own Google Drive. Study Hub cannot see or change any of your other files, and no one else can read this file. You can remove it any time in your Google account under Third-party apps.":"لتحقيق ذلك ستطلب منك Google السماح لـ Study Hub بحفظ ملف صغير مخفي في Google Drive الخاص بك. لا يستطيع Study Hub رؤية أو تعديل أي ملفات أخرى لديك، ولا يستطيع أحد غيرك قراءة هذا الملف. يمكنك إزالته في أي وقت من حساب Google ضمن «التطبيقات التابعة لجهات خارجية».","Allow access":"السماح بالوصول","Not now":"ليس الآن","Study Hub could not get access":"تعذّر على Study Hub الحصول على الإذن","Without access, your place in PDFs, your saved pages and your reading settings stay on this device only. They will not follow you to another phone or computer.":"بدون الإذن ستبقى مواضع توقفك في ملفات PDF وصفحاتك المحفوظة وإعدادات القراءة على هذا الجهاز فقط، ولن تنتقل معك إلى هاتف أو حاسوب آخر.","We ask because Google Drive is where we keep this small file, so it stays in your own account. When Google asks, keep the Google Drive box ticked and press Allow. If a school or organisation account is being used, its admin may have blocked this.":"نطلب ذلك لأن Google Drive هو المكان الذي نحفظ فيه هذا الملف الصغير، ليبقى في حسابك أنت. عندما تسألك Google، أبقِ خانة Google Drive محددة واضغط «السماح». وإذا كان الحساب تابعًا لمدرسة أو جهة، فقد يكون المسؤول قد حظر ذلك.","Try again":"حاول مرة أخرى","Keep on this device":"الاحتفاظ بها على هذا الجهاز","School accounts cannot sync":"حسابات المدارس لا تدعم المزامنة","You are signed in with a school or organisation email. Schools usually block apps from saving to Google Drive, so your progress stays on this device only for now.":"أنت مسجّل الدخول ببريد تابع لمدرسة أو جهة. تمنع المدارس عادةً التطبيقات من الحفظ في Google Drive، لذلك سيبقى تقدمك على هذا الجهاز فقط حاليًا.","To keep your progress on every device: sign out, then sign in with a personal Gmail account. Or ask your school's IT admin to allow Study Hub to use Google Drive app data, then press Try anyway.":"للاحتفاظ بتقدمك على كل أجهزتك: سجّل الخروج ثم سجّل الدخول بحساب Gmail شخصي. أو اطلب من مسؤول تقنية المعلومات في مدرستك السماح لـ Study Hub باستخدام بيانات التطبيق في Google Drive، ثم اضغط «حاول على أي حال».","Try anyway":"حاول على أي حال","OK":"حسنًا","Could not reach Google Drive":"تعذّر الوصول إلى Google Drive","Something went wrong while connecting. Your progress stays on this device and Study Hub will try again next time.":"حدث خطأ أثناء الاتصال. سيبقى تقدمك على هذا الجهاز وسيحاول Study Hub مرة أخرى في المرة القادمة.","Connected to your Google Drive":"تم الاتصال بـ Google Drive","Your PDF progress, saved pages and reading settings will now follow you to any device where you sign in with this Google account.":"سينتقل تقدمك في ملفات PDF وصفحاتك المحفوظة وإعدادات القراءة الآن إلى أي جهاز تسجّل الدخول منه بحساب Google هذا.","Done":"تم",
+    "Save your progress to your Google Drive?":"هل تريد حفظ تقدمك في Google Drive؟","StudyBH can remember where you stopped in each PDF, your saved pages and your reading settings, and bring them with you to any phone or computer you sign in on.":"يستطيع StudyBH تذكّر المكان الذي توقفت عنده في كل ملف PDF وصفحاتك المحفوظة وإعدادات القراءة، ونقلها معك إلى أي هاتف أو حاسوب تسجّل الدخول منه.","To do this, Google will ask you to let StudyBH keep one tiny hidden file in your own Google Drive. StudyBH cannot see or change any of your other files, and no one else can read this file. You can remove it any time in your Google account under Third-party apps.":"لتحقيق ذلك ستطلب منك Google السماح لـ StudyBH بحفظ ملف صغير مخفي في Google Drive الخاص بك. لا يستطيع StudyBH رؤية أو تعديل أي ملفات أخرى لديك، ولا يستطيع أحد غيرك قراءة هذا الملف. يمكنك إزالته في أي وقت من حساب Google ضمن «التطبيقات التابعة لجهات خارجية».","Allow access":"السماح بالوصول","Not now":"ليس الآن","StudyBH could not get access":"تعذّر على StudyBH الحصول على الإذن","Without access, your place in PDFs, your saved pages and your reading settings stay on this device only. They will not follow you to another phone or computer.":"بدون الإذن ستبقى مواضع توقفك في ملفات PDF وصفحاتك المحفوظة وإعدادات القراءة على هذا الجهاز فقط، ولن تنتقل معك إلى هاتف أو حاسوب آخر.","We ask because Google Drive is where we keep this small file, so it stays in your own account. When Google asks, keep the Google Drive box ticked and press Allow. If a school or organisation account is being used, its admin may have blocked this.":"نطلب ذلك لأن Google Drive هو المكان الذي نحفظ فيه هذا الملف الصغير، ليبقى في حسابك أنت. عندما تسألك Google، أبقِ خانة Google Drive محددة واضغط «السماح». وإذا كان الحساب تابعًا لمدرسة أو جهة، فقد يكون المسؤول قد حظر ذلك.","Try again":"حاول مرة أخرى","Keep on this device":"الاحتفاظ بها على هذا الجهاز","School accounts cannot sync":"حسابات المدارس لا تدعم المزامنة","You are signed in with a school or organisation email. Schools usually block apps from saving to Google Drive, so your progress stays on this device only for now.":"أنت مسجّل الدخول ببريد تابع لمدرسة أو جهة. تمنع المدارس عادةً التطبيقات من الحفظ في Google Drive، لذلك سيبقى تقدمك على هذا الجهاز فقط حاليًا.","To keep your progress on every device: sign out, then sign in with a personal Gmail account. Or ask your school's IT admin to allow StudyBH to use Google Drive app data, then press Try anyway.":"للاحتفاظ بتقدمك على كل أجهزتك: سجّل الخروج ثم سجّل الدخول بحساب Gmail شخصي. أو اطلب من مسؤول تقنية المعلومات في مدرستك السماح لـ StudyBH باستخدام بيانات التطبيق في Google Drive، ثم اضغط «حاول على أي حال».","Try anyway":"حاول على أي حال","OK":"حسنًا","Could not reach Google Drive":"تعذّر الوصول إلى Google Drive","Something went wrong while connecting. Your progress stays on this device and StudyBH will try again next time.":"حدث خطأ أثناء الاتصال. سيبقى تقدمك على هذا الجهاز وسيحاول StudyBH مرة أخرى في المرة القادمة.","Connected to your Google Drive":"تم الاتصال بـ Google Drive","Your PDF progress, saved pages and reading settings will now follow you to any device where you sign in with this Google account.":"سينتقل تقدمك في ملفات PDF وصفحاتك المحفوظة وإعدادات القراءة الآن إلى أي جهاز تسجّل الدخول منه بحساب Google هذا.","Done":"تم",
     "Save":"حفظ","Delete":"حذف",
     "Annotate":"تعليق","Scroll":"تمرير","Highlight":"تظليل","Pen":"قلم","Note":"ملاحظة","Erase":"محو","Undo":"تراجع","Yellow":"أصفر","Green":"أخضر","Pink":"وردي","Blue":"أزرق","Notes":"الملاحظات","Write a note…":"اكتب ملاحظة…","No notes yet. Use the Note tool to add one.":"لا توجد ملاحظات بعد. استخدم أداة «ملاحظة» لإضافة واحدة.",
     "Pages":"الصفحات","Contents":"المحتويات","Saved":"المحفوظة","Fit page":"ملاءمة الصفحة","Fit width":"ملاءمة العرض","Night":"ليلي","Save page":"حفظ الصفحة","Unsave page":"إزالة الحفظ","Done":"تم","Page":"صفحة","Go to page":"الانتقال إلى صفحة","Search in this PDF":"البحث في هذا الملف","Indexing…":"جارٍ الفهرسة…","No results":"لا توجد نتائج","No text to search in this PDF":"لا يوجد نص قابل للبحث في هذا الملف (قد يكون مصوّرًا)","Resumed at page":"تمت المتابعة من الصفحة","Start over":"البدء من جديد","Previous result":"النتيجة السابقة","Next result":"النتيجة التالية","Loading…":"جارٍ التحميل…","This PDF has no contents list.":"لا يحتوي هذا الملف على فهرس للمحتويات.","No saved pages yet. Use Save page while reading.":"لا توجد صفحات محفوظة بعد. استخدم «حفظ الصفحة» أثناء القراءة.",
@@ -2400,7 +2400,7 @@ var BUCKET="files";
     "History":"التاريخ",
     "Geography":"الجغرافيا",
     "Computer Science":"علوم الحاسب",
-    "Study Hub":"مركز الدراسة","Home":"الرئيسية","Library":"المكتبة","Upload":"رفع","Majors":"التخصصات","Guidelines":"الإرشادات","Admin":"الإدارة",
+    "StudyBH":"StudyBH","Home":"الرئيسية","Library":"المكتبة","Upload":"رفع","Majors":"التخصصات","Guidelines":"الإرشادات","Admin":"الإدارة",
     "For students at universities across Bahrain":"لطلبة الجامعات في مملكة البحرين",
     "Study together. Share what helped you.":"ادرسوا معًا. شاركوا ما ساعدكم.",
     "Pick your university, major and year, then upload notes, slides and past papers. Or find what your classmates already shared before the exam.":"اختر جامعتك وتخصصك وسنتك، ثم ارفع ملاحظاتك وشرائحك واختبارات السنوات السابقة. أو ابحث عمّا شاركه زملاؤك قبل الامتحان.",
@@ -2409,7 +2409,7 @@ var BUCKET="files";
     "No reviews yet":"لا توجد تقييمات بعد","No reviews yet. Be the first.":"لا توجد تقييمات بعد. كن أول من يقيّم.","Hide reviews":"إخفاء التقييمات","Reviews":"التقييمات","Write a review":"اكتب تقييمًا",
     "Post review":"نشر التقييم","Update review":"تحديث التقييم","Remove mine":"حذف تقييمي","Remove":"حذف","Open":"فتح","UPLOADER":"صاحب الملف","You":"أنت","A classmate":"زميل",
     "Click again to remove":"اضغط مرة أخرى للحذف","Could not remove":"تعذّر الحذف","Could not remove.":"تعذّر الحذف.","General":"عام",
-    "No ratings":"لا توجد تقييمات","Your rating":"تقييمك","Your review":"تقييمك المكتوب","Study Hub home":"الصفحة الرئيسية لمركز الدراسة","Main":"القائمة الرئيسية",
+    "No ratings":"لا توجد تقييمات","Your rating":"تقييمك","Your review":"تقييمك المكتوب","StudyBH home":"الصفحة الرئيسية لـ StudyBH","Main":"القائمة الرئيسية",
     "What did you think? Was it clear, complete, useful?":"ما رأيك؟ هل كان واضحًا وكاملًا ومفيدًا؟",
     "Narrow it down in order: university, college or school, major, year, then subject.":"حدّد بالترتيب: الجامعة، ثم الكلية أو المدرسة، ثم التخصص، ثم السنة، ثم المادة.",
     "University":"الجامعة","College":"الكلية","School":"المدرسة","Faculty":"الكلية","Department":"القسم","College / School":"الكلية / المدرسة","Major":"التخصص","Year":"السنة","Subject":"المادة",
@@ -2535,7 +2535,7 @@ var BUCKET="files";
     if(l==="ar"){lang="ar";root.setAttribute("lang","ar");root.setAttribute("dir","rtl");walk(document.body)}
     else{busy=true;restore(document.body);busy=false;lang="en";root.setAttribute("lang","en");root.setAttribute("dir","ltr")}
     var b=document.getElementById("langbtn");if(b){b.textContent=l==="ar"?"English":"عربي";b.setAttribute("aria-label",l==="ar"?"Switch to English":"التبديل إلى العربية")}
-    document.title=l==="ar"?"مركز الدراسة":(document.title==="مركز الدراسة"?"Study Hub":document.title);
+    if(document.title==="مركز الدراسة")document.title="StudyBH";
     if(save){try{localStorage.setItem("sh_lang",l)}catch(e){}}
   }
   function setup(){
@@ -2586,12 +2586,12 @@ var BUCKET="files";
   }
   function askDlg(){
     show("Save your progress to your Google Drive?",
-      ["Study Hub can remember where you stopped in each PDF, your saved pages and your reading settings, and bring them with you to any phone or computer you sign in on.",
-       "To do this, Google will ask you to let Study Hub keep one tiny hidden file in your own Google Drive. Study Hub cannot see or change any of your other files, and no one else can read this file. You can remove it any time in your Google account under Third-party apps."],
+      ["StudyBH can remember where you stopped in each PDF, your saved pages and your reading settings, and bring them with you to any phone or computer you sign in on.",
+       "To do this, Google will ask you to let StudyBH keep one tiny hidden file in your own Google Drive. StudyBH cannot see or change any of your other files, and no one else can read this file. You can remove it any time in your Google account under Third-party apps."],
       [["Allow access",function(){connect("")}],["Not now",function(){setSt("no")}]],function(){setSt("no")})
   }
   function deniedDlg(){
-    show("Study Hub could not get access",
+    show("StudyBH could not get access",
       ["Without access, your place in PDFs, your saved pages and your reading settings stay on this device only. They will not follow you to another phone or computer.",
        "We ask because Google Drive is where we keep this small file, so it stays in your own account. When Google asks, keep the Google Drive box ticked and press Allow. If a school or organisation account is being used, its admin may have blocked this."],
       [["Try again",function(){connect("consent")}],["Keep on this device",function(){setSt("no")}]],function(){setSt("no")})
@@ -2599,12 +2599,12 @@ var BUCKET="files";
   function schoolDlg(){
     show("School accounts cannot sync",
       ["You are signed in with a school or organisation email. Schools usually block apps from saving to Google Drive, so your progress stays on this device only for now.",
-       "To keep your progress on every device: sign out, then sign in with a personal Gmail account. Or ask your school's IT admin to allow Study Hub to use Google Drive app data, then press Try anyway."],
+       "To keep your progress on every device: sign out, then sign in with a personal Gmail account. Or ask your school's IT admin to allow StudyBH to use Google Drive app data, then press Try anyway."],
       [["OK",function(){setSt("school")}],["Try anyway",function(){connect("")}]],function(){setSt("school")});
     dlg.querySelector(".btn").classList.remove("primary")
   }
   function errDlg(){
-    show("Could not reach Google Drive",["Something went wrong while connecting. Your progress stays on this device and Study Hub will try again next time."],[["OK"]])
+    show("Could not reach Google Drive",["Something went wrong while connecting. Your progress stays on this device and StudyBH will try again next time."],[["OK"]])
   }
   function okDlg(){
     show("Connected to your Google Drive",
@@ -2725,7 +2725,7 @@ var BUCKET="files";
   /* footer */
   function foot(){if(doc.getElementById("sitefoot"))return;var w=doc.querySelector(".wrap");if(!w||!w.parentNode)return;
     var f=doc.createElement("footer");f.id="sitefoot";f.className="sitefoot";
-    f.innerHTML='<a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><a href="copyright.html">Copyright policy</a><button type="button" data-cr="">Report copyright</button><span>Study Hub · student file sharing in Bahrain</span>';
+    f.innerHTML='<a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><a href="copyright.html">Copyright policy</a><button type="button" data-cr="">Report copyright</button><span>StudyBH · student file sharing in Bahrain</span>';
     w.parentNode.insertBefore(f,w.nextSibling)}
   /* dialog */
   function open(o){
@@ -2805,6 +2805,6 @@ var BUCKET="files";
   pass();setTimeout(hashOpen,400)
 })();
 </script>
-<script src="admin.js?v=15"></script>
+<script src="admin.js?v=16"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 /* StudyBH service worker: keeps the app shell and the PDF viewer libraries so the site opens fast and works offline.
    Opened PDFs are stored by the page itself in the "sh-pdf" cache; this worker never touches them or any API traffic. */
-var SHELL="sh-shell-v9",RT="sh-rt-v1",KEEP=[SHELL,RT,"sh-pdf"];
-var FILES=["./","index.html","admin.js?v=16","manifest.webmanifest","icon.svg"];
+var SHELL="sh-shell-v10",RT="sh-rt-v1",KEEP=[SHELL,RT,"sh-pdf"];
+var FILES=["./","index.html","admin.js?v=17","sb.js?v=1","manifest.webmanifest","icon.svg"];
 var CDN=/^https:\/\/(cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net|unpkg\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
 self.addEventListener("install",function(e){
   e.waitUntil(caches.open(SHELL).then(function(c){return Promise.all(FILES.map(function(f){return c.add(f).catch(function(){})}))}).then(function(){return self.skipWaiting()}))
@@ -24,6 +24,7 @@ function netFirst(req,key){
 self.addEventListener("fetch",function(e){
   var req=e.request;if(req.method!=="GET")return;
   var u=new URL(req.url);
+  if(u.origin===location.origin&&(/^\/(api|auth)\//.test(u.pathname)))return;
   if(u.origin===location.origin){
     if(req.mode==="navigate"||/\/(index\.html)?$/.test(u.pathname)){e.respondWith(netFirst(req,"index.html"));return}
     e.respondWith(caches.open(SHELL).then(function(c){return c.match(req).then(function(hit){

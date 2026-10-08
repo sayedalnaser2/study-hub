@@ -7,7 +7,7 @@
 <meta name="description" content="StudyBH is where students in Bahrain share and find notes, slides and past papers by university, major and year.">
 <link rel="canonical" href="https://studybh.com/"><meta property="og:url" content="https://studybh.com/"><meta property="og:type" content="website"><meta property="og:site_name" content="StudyBH"><meta property="og:title" content="StudyBH - share and find study files in Bahrain"><meta property="og:description" content="Notes, slides and past papers from your classmates, sorted by university, major and year. Free for students.">
 <meta name="twitter:card" content="summary"><meta name="twitter:title" content="StudyBH"><meta name="twitter:description" content="Notes, slides and past papers from your classmates in Bahrain.">
-<link rel="preconnect" href="https://poqwmhnfruzmojgdnfcr.supabase.co" crossorigin><link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 <script>try{var __t=JSON.parse(localStorage.getItem("sh_theme"));if(__t==="light"||__t==="dark")document.documentElement.setAttribute("data-theme",__t)}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#f6f7f9">
@@ -320,17 +320,16 @@ body.has-ad{padding-bottom:var(--adh,0px)}body.has-ad #pmpill{bottom:calc(var(--
 </div></header>
 <div class="wrap"><main id="view"></main></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sb.js?v=1"></script>
 <script>
-/* ============ SUPABASE CONFIG: paste your own values (Supabase dashboard > Project Settings > API) ============ */
-var SUPABASE_URL="https://poqwmhnfruzmojgdnfcr.supabase.co";      // e.g. https://abcdxyz.supabase.co
-var SUPABASE_ANON_KEY="sb_publishable_QgxUsOqDnhx4GTbfbCvt_A_QOGp7-Qh"; // the public key (anon or sb_publishable_...). Never put the service_role key here.
+/* StudyBH data layer: see sb.js (talks to our Cloudflare Worker at /api) */
+var SUPABASE_URL="studybh",SUPABASE_ANON_KEY="studybh";
 var BUCKET="files";
 /* ============================================================================================================== */
 (function(){
   var ready=!/YOUR_SUPABASE/.test(SUPABASE_URL+SUPABASE_ANON_KEY)&&window.supabase&&window.supabase.createClient;
   function banner(t){document.addEventListener("DOMContentLoaded",function(){var d=document.createElement("div");d.style.cssText="background:#fff4e5;color:#7a4300;padding:10px 16px;font:14px/1.4 system-ui,sans-serif;text-align:center";d.textContent=t;document.body.insertBefore(d,document.body.firstChild)})}
-  if(!ready){window.claude={use:async function(){return null}};banner("StudyBH is not connected yet. Open the file and set SUPABASE_URL and SUPABASE_ANON_KEY at the top of the script.");return}
+  if(!ready){window.claude={use:async function(){return null}};banner("StudyBH could not start. Please reload the page.");return}
   var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);window.__sb=sb;
   /* Storage limits set by the admin (Admin > Site). Defaults apply until they load. */
   window.__limits={file_mb:20,total_gb:9,student_mb:0};
@@ -346,7 +345,7 @@ var BUCKET="files";
       to:function(r){return{fileId:r.file_id,userId:r.user_id,stars:r.stars,text:r.text||"",at:+new Date(r.at)}}}
   };
   var subs={};function bump(t){(subs[t]||[]).forEach(function(f){f()})}
-  /* Extra file space on Cloudflare R2 (through the "r2" Supabase function). Falls back to Supabase storage if anything fails. */
+  /* Extra file space on Cloudflare R2 (through the Worker at /api/r2). */
   var REFUSE={too_big:"too_big",r2_full:"quota_exceeded",student_quota:"student_quota"};
   async function refusal(er){try{var j=await er.context.json();return j&&REFUSE[j.error]||null}catch(x){return null}}
   async function r2put(file,ext,type){
@@ -2805,6 +2804,6 @@ var BUCKET="files";
   pass();setTimeout(hashOpen,400)
 })();
 </script>
-<script src="admin.js?v=16"></script>
+<script src="admin.js?v=17"></script>
 </body>
 </html>
